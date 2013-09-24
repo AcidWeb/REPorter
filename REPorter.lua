@@ -35,7 +35,7 @@ RE.ClickedPOI = "";
 RE.ReportPrefix = "";
 
 RE.FoundNewVersion = false;
-RE.AddonVersionCheck = 80;
+RE.AddonVersionCheck = 81;
 RE.Debug = 0;
 
 RE.DefaultConfig = {
@@ -425,7 +425,7 @@ function REPorter_OnEvent(self, event, ...)
 			end
 		end
 
-		if AlliancePointNum and HordePointNum then
+		if AlliancePointNum and HordePointNum and AllianceBaseNum and HordeBaseNum then
 			local timeLeft = 0;
 
 			if RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum] == 0 then	
