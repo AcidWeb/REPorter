@@ -4,10 +4,10 @@ if GetLocale() ~= "frFR" then return end
 REPorterLocale:CreateLocaleTable({
 	["Add \"[REPorter]\" to end of each report"] = "Ajouter [Reporter] \195\160 la fin de chaque rapport",
 	Attack = "Attaque",
-	Clear = "Claire", -- Needs review
+	Clear = "Nettoy\195\169(e)", -- Needs review
 	East = "Est",
-	Front = "Front", -- Needs review
-	Guard = "Garder", -- Needs review
+	Front = "Centrale", -- Needs review
+	Guard = "D\195\169fendre", -- Needs review
 	["Heavily defended"] = "Lourdement d\195\169fendu",
 	Help = "Aidez moi",
 	Incoming = "Ils arrivent",
