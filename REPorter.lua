@@ -34,7 +34,7 @@ RE.ClickedPOI = "";
 RE.ReportPrefix = "";
 
 RE.FoundNewVersion = false;
-RE.AddonVersionCheck = 70;
+RE.AddonVersionCheck = 71;
 RE.Debug = 1;
 
 RE.DefaultConfig = {
@@ -392,20 +392,25 @@ function REPorter_OnEvent(self, event, ...)
 	elseif event == "UPDATE_WORLD_STATES" and RE.MapSettings[RE.CurrentMap] then
 		local AllianceBaseNum, AlliancePointNum, HordeBaseNum, HordePointNum, AllianceTimeToWin, HordeTimeToWin = 0, nil, 0, nil, 0, 0;
 		local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings[RE.CurrentMap]["WorldStateNum"]);
-		local Mes1 = {strsplit("/", text)};
-		if Mes1[2] then
-			local Mes2 = {strsplit(":", Mes1[1])};
-			local Mes3 = {strsplit(" ", Mes2[2])};
-			AllianceBaseNum = tonumber(Mes3[2]);
-			AlliancePointNum = tonumber(Mes2[3]);
+		if text ~= nil then
+			local Mes1 = {strsplit("/", text)};
+			if Mes1[2] then
+				local Mes2 = {strsplit(":", Mes1[1])};
+				local Mes3 = {strsplit(" ", Mes2[2])};
+				AllianceBaseNum = tonumber(Mes3[2]);
+				AlliancePointNum = tonumber(Mes2[3]);
+			end
 		end
+
 		_, _, _, text = GetWorldStateUIInfo(RE.MapSettings[RE.CurrentMap]["WorldStateNum"]+1);
-		Mes1 = {strsplit("/", text)};
-		if Mes1[2] then
-			Mes2 = {strsplit(":", Mes1[1])};
-			Mes3 = {strsplit(" ", Mes2[2])};
-			HordeBaseNum = tonumber(Mes3[2]);
-			HordePointNum = tonumber(Mes2[3]);
+		if text ~= nil then
+			local Mes1 = {strsplit("/", text)};
+			if Mes1[2] then
+				Mes2 = {strsplit(":", Mes1[1])};
+				Mes3 = {strsplit(" ", Mes2[2])};
+				HordeBaseNum = tonumber(Mes3[2]);
+				HordePointNum = tonumber(Mes2[3]);
+			end
 		end
 
 		if AlliancePointNum and HordePointNum then
@@ -1083,7 +1088,7 @@ function REPorter_Update(NotResetHealth)
 			end
 		end
 
-		if mapFileName == "AlteracValley" or mapFileName == "GilneasBattleground2" or mapFileName == "IsleofConquest" or mapFileName == "ArathiBasin" then
+		if mapFileName == "AlteracValley" or mapFileName == "GilneasBattleground2" or mapFileName == "IsleofConquest" or mapFileName == "ArathiBasin" or (IsRatedBattleground() and mapFileName == "NetherstormArena") then
 			RE.DoIEvenCareAboutNodes = true;
 		else
 			RE.DoIEvenCareAboutNodes = false;
@@ -1139,7 +1144,15 @@ function REPorter_NodeChange(newTexture, nodeName)
 		elseif newTexture == 14 then -- GY Horde
 			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
-		end 
+		end
+	elseif RE.CurrentMap == "NetherstormArena" then
+		if newTexture == 9 then -- Tower Ally
+			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
+		elseif newTexture == 12 then -- Tower Horde
+			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
+		end
 	elseif RE.CurrentMap == "GilneasBattleground2" then 
 		if newTexture == 9 then -- Lighthouse Ally
 			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
