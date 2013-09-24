@@ -1,4 +1,4 @@
-﻿# RETabBinder
+﻿# REPorter
 
 [Curse](http://www.curse.com/addons/wow/reporter-battleground-map)
 
