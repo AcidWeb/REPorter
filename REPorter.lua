@@ -35,7 +35,7 @@ RE.ClickedPOI = "";
 RE.ReportPrefix = "";
 
 RE.FoundNewVersion = false;
-RE.AddonVersionCheck = 83;
+RE.AddonVersionCheck = 84;
 RE.Debug = 0;
 
 RE.DefaultConfig = {
@@ -80,13 +80,16 @@ RE.MapSettings = {
 	["IsleofConquest"] = {["HE"] = 370, ["WI"] = 325, ["HO"] = 230, ["VE"] = 85, ["StartTimer"] = 240},
 	["GilneasBattleground2"] = {["HE"] = 350, ["WI"] = 315, ["HO"] = 240, ["VE"] = 90, ["pointsToWin"] = 2000, ["WorldStateNum"] = 1, ["StartTimer"] = 240},
 	["TwinPeaks"] = {["HE"] = 435, ["WI"] = 250, ["HO"] = 280, ["VE"] = 40, ["StartTimer"] = 240},
-	["TempleofKotmogu"] = {["HE"] = 395, ["WI"] = 455, ["HO"] = 155, ["VE"] = 85, ["StartTimer"] = 240},
-	["STVDiamondMineBG"] = {["HE"] = 355, ["WI"] = 450, ["HO"] = 170, ["VE"] = 85, ["StartTimer"] = 240}
+	["TempleofKotmogu"] = {["HE"] = 250, ["WI"] = 400, ["HO"] = 185, ["VE"] = 155, ["StartTimer"] = 240},
+	["STVDiamondMineBG"] = {["HE"] = 325, ["WI"] = 435, ["HO"] = 175, ["VE"] = 95, ["StartTimer"] = 240},
+	["GoldRush"] = {["HE"] = 410, ["WI"] = 510, ["HO"] = 155, ["VE"] = 50, ["pointsToWin"] = 1600, ["WorldStateNum"] = 1, ["StartTimer"] = 240}
 };
 RE.EstimatorSettings = {
 	["ArathiBasin"] = { [0] = 0, [1] = 0.8333, [2] = 1.1111, [3] = 1.6667, [4] = 3.3333, [5] = 30},
 	["NetherstormArena"] = { [0] = 0, [1] = 0.5, [2] = 1, [3] = 2.5, [4] = 5},
-	["GilneasBattleground2"] = { [0] = 0, [1] = 1.1111, [2] = 3.3333, [3] = 30}
+	["GilneasBattleground2"] = { [0] = 0, [1] = 1.1111, [2] = 3.3333, [3] = 30},
+	--TODO: 3 base value might be wrong
+	["GoldRush"] = { [0] = 0, [1] = 1.6, [2] = 3.2, [3] = 30}
 }
 RE.POIDropDown = {
 	{ text = L["Incoming"], hasArrow = true, notCheckable = true,
@@ -329,6 +332,9 @@ function REPorter_OnHide(self)
 	RE.DoIEvenCareAboutGates = false;
 	REPorterExternal:UnregisterEvent("UPDATE_WORLD_STATES");
 	REPorterExternal:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
+	REPorterExternal:UnregisterEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE");
+	REPorterExternal:UnregisterEvent("CHAT_MSG_BG_SYSTEM_HORDE");
+	REPorterExternal:UnregisterEvent("CHAT_MSG_SYSTEM");
 	RE.IsWinning = "";
 	REPorter_ClearTextures();
 	CloseDropDownMenus();
@@ -532,6 +538,8 @@ function REPorter_OnEvent(self, event, ...)
 			REPorterTimerOverlay:Hide();
 			REPorterTimerOverlay:SetFrameStrata("MEDIUM");
 		end
+	elseif event == "CHAT_MSG_BG_SYSTEM_ALLIANCE" or event == "CHAT_MSG_BG_SYSTEM_HORDE" or event == "CHAT_MSG_SYSTEM" then
+		REPorter_Update(true);
 	end
 end
 
@@ -1164,12 +1172,12 @@ function REPorter_Update(NotResetHealth)
 			end
 		end
 
-		if mapFileName == "AlteracValley" or mapFileName == "GilneasBattleground2" or mapFileName == "IsleofConquest" or mapFileName == "ArathiBasin" or (IsRatedBattleground() and mapFileName == "NetherstormArena") then
+		if mapFileName == "AlteracValley" or mapFileName == "GilneasBattleground2" or mapFileName == "IsleofConquest" or mapFileName == "ArathiBasin" or mapFileName == "GoldRush" or (IsRatedBattleground() and mapFileName == "NetherstormArena") then
 			RE.DoIEvenCareAboutNodes = true;
 		else
 			RE.DoIEvenCareAboutNodes = false;
 		end
-		if mapFileName == "GilneasBattleground2" or mapFileName == "NetherstormArena" or mapFileName == "ArathiBasin" then
+		if mapFileName == "GilneasBattleground2" or mapFileName == "NetherstormArena" or mapFileName == "ArathiBasin" or mapFileName == "GoldRush" then
 			RE.DoIEvenCareAboutPoints = true;
 			REPorterExternal:RegisterEvent("UPDATE_WORLD_STATES");
 		else
@@ -1191,6 +1199,11 @@ function REPorter_Update(NotResetHealth)
 			RE.DefaultTimer = 240;
 		else
 			RE.DefaultTimer = 60;
+		end
+		if mapFileName == "TempleofKotmogu" then
+			REPorterExternal:RegisterEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE");
+			REPorterExternal:RegisterEvent("CHAT_MSG_BG_SYSTEM_HORDE");
+			REPorterExternal:RegisterEvent("CHAT_MSG_SYSTEM");
 		end
 
 		if RE.PlayedFromStartOneTimeTrigger then
@@ -1316,6 +1329,14 @@ function REPorter_NodeChange(newTexture, nodeName)
 			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 24 then -- Lumbermill Horde
+			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
+		end
+	elseif RE.CurrentMap == "GoldRush" then
+		if newTexture == 17 then -- Mine Ally
+			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
+		elseif newTexture == 19 then -- Mine Horde
 			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		end

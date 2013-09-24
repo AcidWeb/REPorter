@@ -1,7 +1,7 @@
-## Interface: 50200
+## Interface: 50300
 ## Title: REPorter
 ## Notes: Provide battleground map.
-## Version: 0.8.3
+## Version: 0.8.4
 ## Author: AcidWeb
 ## SavedVariablesPerCharacter: REPSettings
 Locals\enUS.lua
@@ -14,6 +14,7 @@ Locals\ptBR.lua
 Locals\esMX.lua
 Locals\esES.lua
 Locals\itIT.lua
+Locals\zhTW.lua
 
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
