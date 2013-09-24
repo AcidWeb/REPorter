@@ -1,10 +1,11 @@
 ## Interface: 40300
 ## Title: REPorter
 ## Notes: Provide battleground map.
-## Version: 0.5
+## Version: 0.6
 ## Author: AcidWeb
 ## SavedVariablesPerCharacter: REPSettings
 Locals\enUS.lua
+Locals\koKR.lua
 
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua

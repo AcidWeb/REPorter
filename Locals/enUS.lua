@@ -14,8 +14,13 @@ local L = {
 
 	["Toggle map"] = true,
 	["Map alpha"] = true,
+	["Map scale"] = true,
 	["Lock map"] = true,
 	["Add \"[REPorter]\" to end of each report"] = true,
+
+	["West"] = true,
+	["East"] = true,
+	["Front"] = true,
 
 	["New version released!"] = true,
 		

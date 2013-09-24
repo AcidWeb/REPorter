@@ -232,6 +232,9 @@
 			<TileSize>
 				<AbsValue val="32"/>
 			</TileSize>
+			<BackgroundInsets>
+				<AbsInset left="6" right="6" top="6" bottom="6"/>
+			</BackgroundInsets>
 		</Backdrop>
 		<Frames>
 			<Button name="$parent_SB1" text="1" inherits="UIPanelButtonTemplate">
@@ -480,6 +483,9 @@
 			<TileSize>
 				<AbsValue val="32"/>
 			</TileSize>
+			<BackgroundInsets>
+				<AbsInset left="6" right="6" top="6" bottom="6"/>
+			</BackgroundInsets>
 		</Backdrop>
 		<Layers>
 			<Layer>
@@ -543,6 +549,30 @@
 				</Layers>
 				<Scripts>
 					<OnValueChanged>REPorter_AlphaSlider();</OnValueChanged>
+				</Scripts>
+			</Slider>
+			<Slider name="$parent_scale" inherits="OptionsSliderTemplate" minValue="0.5" maxValue="1.5" orientation="HORIZONTAL">
+				<Size>
+					<AbsDimension x="200" y="16"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="16" y="-125"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString name="$parentValue" inherits="GameFontHighlight">
+							<Anchors>
+								<Anchor point="TOP" relativePoint="BOTTOM"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnValueChanged>REPorter_ScaleSlider();</OnValueChanged>
 				</Scripts>
 			</Slider>
 		</Frames>

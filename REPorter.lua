@@ -5,31 +5,41 @@ local L = REPorterLocale;
 RE.ShefkiTimer = LibStub("LibShefkiTimer-1.0");
 
 RE.POIIconSize = 30;
-RE.DefaultTimer = 60;
 RE.MapUpdateRate = 0.05;
-RE.BGPOISNum = 0;
-RE.BlipOffsetT = 0.5;
 RE.BGVehicles = {};
 RE.POINodes = {};
-RE.AddonVersionCheck = 50;
+RE.BGPOISNum = 0;
+
+RE.DefaultTimer = 60;
 RE.DoIEvenCareAboutNodes = false;
 RE.DoIEvenCareAboutPoints = false;
-RE.IsWinning = "Nobody";
-RE.CurrentMap = "";
+RE.DoIEvenCareAboutGates = false;
+RE.JoinedInProgress = false;
+RE.IoCAllianceGateName = "";
+RE.IoCHordeGateName = "";
+RE.IoCGateEstimator = {};
+RE.IoCGateEstimatorText = "";
+RE.IsWinning = "";
+
+RE.BlipOffsetT = 0.5;
 RE.BlinkPOIMin = 0.3;
 RE.BlinkPOIMax = 0.6;
 RE.BlinkPOI = 0.3;
 RE.BlinkPOIUp = true;
+
+RE.CurrentMap = "";
 RE.ClickedPOI = "";
-RE.FoundNewVersion = false;
 RE.ReportPrefix = "";
 
+RE.FoundNewVersion = false;
+RE.AddonVersionCheck = 60;
 RE.Debug = 0;
 
 RE.DefaultConfig = {
 	firstTime = 1,
 	opacity = 0.85,
 	nameAdvert = 1,
+	scale = 1,
 	version = RE.AddonVersionCheck
 };
 RE.BlipCoords = {
@@ -96,20 +106,19 @@ SLASH_REPORTER1, SLASH_REPORTER2 = "/rep", "/reporter";
 
 -- *** Auxiliary functions
 function REPorter_BlinkPOI()
-	if RE.BlinkPOI + 0.01 <= RE.BlinkPOIMax and RE.BlinkPOIUp then
-		RE.BlinkPOI = RE.BlinkPOI + 0.01;
+	if RE.BlinkPOI + 0.03 <= RE.BlinkPOIMax and RE.BlinkPOIUp then
+		RE.BlinkPOI = RE.BlinkPOI + 0.03;
 	else
 		if RE.BlinkPOIUp then
 			RE.BlinkPOIUp = false;
-			RE.BlinkPOI = RE.BlinkPOI - 0.01;
-		elseif RE.BlinkPOI - 0.01 <= RE.BlinkPOIMin then
+			RE.BlinkPOI = RE.BlinkPOI - 0.03;
+		elseif RE.BlinkPOI - 0.03 <= RE.BlinkPOIMin then
 			RE.BlinkPOIUp = true;
-			RE.BlinkPOI = RE.BlinkPOI - 0.01;
+			RE.BlinkPOI = RE.BlinkPOI - 0.03;
 		else
-			RE.BlinkPOI = RE.BlinkPOI - 0.01;
+			RE.BlinkPOI = RE.BlinkPOI - 0.03;
 		end
 	end
-	return RE.BlinkPOI;
 end
 
 function REPorter_ShortTime(TimeRaw)
@@ -171,7 +180,6 @@ function REPorter_TableCount(Table)
 		RENum = RENum + 1;
 		table.insert(RETable, k);
 	end
-
 	return RENum, RETable
 end
 
@@ -258,6 +266,16 @@ function REPorter_CreatePOI(index)
 	frame:SetPoint("CENTER", frameMain, "CENTER");
 end
 
+function REPorter_UpdateIoCEstimator()
+	if RE.IoCGateEstimator[FACTION_HORDE] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+		RE.IoCGateEstimatorText = "|cFF00A9FF"..REPorter_Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%|r";
+	elseif RE.IoCGateEstimator[FACTION_HORDE] > RE.IoCGateEstimator[FACTION_ALLIANCE] then
+		RE.IoCGateEstimatorText = "|cFFFF141D"..REPorter_Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."%|r";
+	else
+		RE.IoCGateEstimatorText = "";
+	end
+end
+
 function REPorter_HideTooltip()
 	GameTooltip:Hide();
 end
@@ -274,7 +292,6 @@ function REPorter_OnLoad(self)
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA");
 	self:RegisterEvent("CHAT_MSG_ADDON");
 	self:RegisterEvent("MODIFIER_STATE_CHANGED");
-	self:RegisterEvent("UPDATE_WORLD_STATES");
 
 	RE.updateTimer = 0;
 end
@@ -294,7 +311,10 @@ function REPorter_OnHide(self)
 	RE.CurrentMap = "";
 	RE.DoIEvenCareAboutNodes = false;
 	RE.DoIEvenCareAboutPoints = false;
-	RE.IsWinning = "Nobody";
+	RE.DoIEvenCareAboutGates = false;
+	REPorterExternal:UnregisterEvent("UPDATE_WORLD_STATES");
+	REPorterExternal:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
+	RE.IsWinning = "";
 	REPorter_ClearTextures();
 	CloseDropDownMenus();
 end
@@ -304,6 +324,12 @@ function REPorter_OnEvent(self, event, ...)
 		if (not REPSettings) then
 			REPSettings = RE.DefaultConfig;
 		end
+
+		-- *** Update section
+		if REPSettings["scale"] == nil then
+			REPSettings["scale"] = RE.DefaultConfig["scale"];
+		end
+		--
 
 		RegisterAddonMessagePrefix("REPorter");
 
@@ -334,7 +360,7 @@ function REPorter_OnEvent(self, event, ...)
 				RE.FoundNewVersion = true;
 			end
 		end
-	elseif event == "UPDATE_WORLD_STATES" and RE.DoIEvenCareAboutPoints and RE.MapSettings[RE.CurrentMap] ~= nil then
+	elseif event == "UPDATE_WORLD_STATES" and RE.MapSettings[RE.CurrentMap] ~= nil then
 		local AllianceBaseNum, AlliancePointNum, HordeBaseNum, HordePointNum, AllianceTimeToWin, HordeTimeToWin = 0, nil, 0, nil, 0, 0;
 		local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings[RE.CurrentMap]["WorldStateNum"]);
 		local Mes1 = {strsplit("/", text)};
@@ -363,23 +389,62 @@ function REPorter_OnEvent(self, event, ...)
 
 			if AllianceTimeToWin > 1 and HordeTimeToWin > 1 then
 				if AllianceTimeToWin < HordeTimeToWin then
-					if (RE.IsWinning ~= FACTION_ALLIANCE) or (timeLeft - AllianceTimeToWin > 15) or (timeLeft - AllianceTimeToWin < -15) then
+					if (RE.IsWinning ~= FACTION_ALLIANCE) or (timeLeft - AllianceTimeToWin > 10) or (timeLeft - AllianceTimeToWin < -10) then
 						RE.ShefkiTimer:CancelTimer(RE.EstimatorTimer, true);
 						RE.EstimatorTimer = nil;
 						RE.IsWinning = FACTION_ALLIANCE;
 						RE.EstimatorTimer = RE.ShefkiTimer:ScheduleTimer(REPorter_EstimatorTimerNull, REPorter_Round(AllianceTimeToWin, 0));
 					end
 				elseif AllianceTimeToWin > HordeTimeToWin then
-					if (RE.IsWinning ~= FACTION_HORDE) or (timeLeft - HordeTimeToWin > 15) or (timeLeft - HordeTimeToWin < -15) then
+					if (RE.IsWinning ~= FACTION_HORDE) or (timeLeft - HordeTimeToWin > 10) or (timeLeft - HordeTimeToWin < -10) then
 						RE.ShefkiTimer:CancelTimer(RE.EstimatorTimer, true);
 						RE.EstimatorTimer = nil;
 						RE.IsWinning = FACTION_HORDE;
 						RE.EstimatorTimer = RE.ShefkiTimer:ScheduleTimer(REPorter_EstimatorTimerNull, REPorter_Round(HordeTimeToWin, 0));
 					end
 				else
-					RE.IsWinning = "Nobody";
+					RE.IsWinning = "";
 				end
 			end
+		end
+	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" and select(2, ...) == "SPELL_BUILDING_DAMAGE" then
+		local guid,gateName,_,_,_,_,_,damage = select(8,...);
+		if RE.CurrentMap ~= "IsleofConquest" then
+			RE.POINodes[gateName]["health"] = RE.POINodes[gateName]["health"] - damage;
+		else
+			local gateID = strsub(guid, 7,10);
+			if gateID == "FBA8" then -- Horde East
+				RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] - damage;
+				if RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
+					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"];
+				end
+			elseif gateID == "FBA6" then -- Horde Central
+				RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] - damage;
+				if RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
+					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"];
+				end
+			elseif gateID == "FBA7" then -- Horde West
+				RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] - damage;
+				if RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
+					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"];
+				end
+			elseif gateID == "FC74" then -- Alliance East
+				RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] - damage;
+				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"];
+				end
+			elseif gateID == "FC73" then -- Alliance West
+				RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] - damage;
+				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"];
+				end
+			elseif gateID == "FC72" then -- Alliance Center
+				RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] - damage;
+				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"];
+				end
+			end
+			REPorter_UpdateIoCEstimator();
 		end
 	elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
 		local _, instanceType = IsInInstance();
@@ -402,15 +467,18 @@ function REPorter_OnEvent(self, event, ...)
 		if IsShiftKeyDown() and IsAltKeyDown() then
 			REPorterExternalOverlay:Hide();
 			REPorterTimerOverlay:Show();
+			REPorterTimerOverlay:SetFrameStrata("DIALOG");
 		else
 			REPorterExternalOverlay:Show();
 			REPorterTimerOverlay:Hide();
+			REPorterTimerOverlay:SetFrameStrata("MEDIUM");
 		end
 	end
 end
 
 function REPorter_OnUpdate(self, elapsed)
 	if RE.updateTimer < 0 then
+		REPorter_BlinkPOI();
 		local subZoneName = GetSubZoneText();
 		if subZoneName ~= nil and subZoneName ~= "" then
 			REPorterTab_SB1:Enable();
@@ -489,7 +557,22 @@ function REPorter_OnUpdate(self, elapsed)
 			local battlefieldPOI = _G[battlefieldPOIName];
 			if i <= RE.numPOIs then
 				local name, description, textureIndex, x, y, _, showInBattleMap = GetMapLandmarkInfo(i);
-				if RE.POINodes[name] == nil and RE.CurrentMap == "StrandoftheAncients" then
+				if RE.CurrentMap == "IsleofConquest" and name ~= nil then
+					if i == 1 then
+						name = name.." - "..L["East"];
+					elseif i == 2 then
+						name = name.." - "..L["West"];
+					elseif i == 3 then
+						name = name.." - "..L["Front"];
+					elseif i == 7 then
+						name = name.." - "..L["Front"];
+					elseif i == 8 then
+						name = name.." - "..L["East"];
+					elseif i == 9 then
+						name = name.." - "..L["West"];
+					end
+				end
+				if name ~= nil and RE.POINodes[name] == nil and RE.CurrentMap == "StrandoftheAncients" then
 					REPorter_Update();
 				end
 				if showInBattleMap and textureIndex ~= 0 then
@@ -511,18 +594,26 @@ function REPorter_OnUpdate(self, elapsed)
 						end
 						_G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize);
 						_G[battlefieldPOIName.."TextureBGofBG"]:Hide();
-						_G[battlefieldPOIName.."TextureBGTop1"]:Hide();
-						_G[battlefieldPOIName.."TextureBGTop2"]:Hide();
-						_G[battlefieldPOIName.."Timer"]:Hide();
+						if RE.DoIEvenCareAboutGates and RE.POINodes[name]["health"] ~= nil and RE.POINodes[name]["health"] ~= 0 and textureIndex ~= 76 and textureIndex ~= 79 and textureIndex ~= 82 and textureIndex ~= 104 and textureIndex ~= 107 and textureIndex ~= 110 then
+							_G[battlefieldPOIName.."TextureBGTop1"]:Hide();
+							_G[battlefieldPOIName.."TextureBGTop2"]:Show();
+							_G[battlefieldPOIName.."TextureBGTop2"]:SetWidth((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"]) * RE.POIIconSize);
+							_G[battlefieldPOIName.."Timer_Caption"]:SetText(REPorter_Round((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"])*100, 0).."%");
+							_G[battlefieldPOIName.."Timer"]:Show();
+						else
+							_G[battlefieldPOIName.."TextureBGTop1"]:Hide();
+							_G[battlefieldPOIName.."TextureBGTop2"]:Hide();
+							_G[battlefieldPOIName.."Timer"]:Hide();
+						end
 					else
 						local timeLeft = RE.ShefkiTimer:TimeLeft(RE.POINodes[name]["timer"]);
 						_G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize - ((timeLeft / RE.DefaultTimer) * RE.POIIconSize));
 						_G[battlefieldPOIName.."TextureBGofBG"]:Show();
 						_G[battlefieldPOIName.."TextureBGofBG"]:SetWidth((timeLeft / RE.DefaultTimer) * RE.POIIconSize);
 						if RE.POINodes[name]["isCapturing"] == FACTION_HORDE then
-							_G[battlefieldPOIName.."TextureBG"]:SetTexture(1,0,0,REPorter_BlinkPOI());
+							_G[battlefieldPOIName.."TextureBG"]:SetTexture(1,0,0,RE.BlinkPOI);
 						elseif RE.POINodes[name]["isCapturing"] == FACTION_ALLIANCE then
-							_G[battlefieldPOIName.."TextureBG"]:SetTexture(0,0,1,REPorter_BlinkPOI());
+							_G[battlefieldPOIName.."TextureBG"]:SetTexture(0,0,1,RE.BlinkPOI);
 						end
 						if timeLeft <= 10 then
 							_G[battlefieldPOIName.."TextureBGTop1"]:Show();
@@ -536,24 +627,24 @@ function REPorter_OnUpdate(self, elapsed)
 						_G[battlefieldPOIName.."Timer"]:Show();
 						_G[battlefieldPOIName.."Timer_Caption"]:SetText(REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.POINodes[name]["timer"]), 0)));
 					end
-					if GetNumRaidMembers() > 0 then
-						for i=1, MAX_RAID_MEMBERS do
-							local unit = "raid"..i;
-							local partyX, partyY = GetPlayerMapPosition(unit);
-							partyX, partyY = REPorter_GetRealCoords(partyX, partyY);
-							if (partyX ~= 0 and partyY ~= 0) and (UnitAffectingCombat(unit)) then
-								if REPorter_PointDistance(x, y, partyX, partyY) < 33 then
-									_G[battlefieldPOIName.."WarZone"]:Show();
-									break;
-								end
-							end
-							_G[battlefieldPOIName.."WarZone"]:Hide();
-						end
-					end
-					battlefieldPOI:Show();
 					if RE.CurrentMap == "IsleofConquest" and RE.POINodes[name]["texture"] >= 77 and RE.POINodes[name]["texture"] <= 82 then
 						_G[battlefieldPOIName.."WarZone"]:Hide();
-						_G[battlefieldPOIName.."TextureBG"]:SetTexture(1,1,1,0);
+					else
+						if GetNumRaidMembers() > 0 then
+							for i=1, MAX_RAID_MEMBERS do
+								local unit = "raid"..i;
+								local partyX, partyY = GetPlayerMapPosition(unit);
+								partyX, partyY = REPorter_GetRealCoords(partyX, partyY);
+								if (partyX ~= 0 and partyY ~= 0) and (UnitAffectingCombat(unit)) then
+									if REPorter_PointDistance(x, y, partyX, partyY) < 33 then
+										_G[battlefieldPOIName.."WarZone"]:Show();
+										break;
+									end
+								end
+								_G[battlefieldPOIName.."WarZone"]:Hide();
+							end
+						end
+						battlefieldPOI:Show();
 					end
 				else
 					battlefieldPOI:Hide();
@@ -637,6 +728,8 @@ function REPorter_OnUpdate(self, elapsed)
 			else
 				REPorterTab_Estimator_Text:SetText("");
 			end
+		elseif RE.CurrentMap == "IsleofConquest" and RE.JoinedInProgress == false then
+			REPorterTab_Estimator_Text:SetText(RE.IoCGateEstimatorText);
 		else
 			REPorterTab_Estimator_Text:SetText("");
 		end
@@ -686,24 +779,24 @@ function REPorterUnit_OnEnterPOI(self)
 	local unitButton;
 	local newLineString = "";
 	local tooltipText = "";
-
 	for i=1, RE.numPOIs do
 		local battlefieldPOIName = "REPorterPOI"..i;
 		local battlefieldPOI = _G[battlefieldPOIName];
 		unitButton = battlefieldPOI;
 		if unitButton:IsVisible() and unitButton:IsMouseOver() and unitButton.name ~= "" then
-			if not(RE.CurrentMap == "IsleofConquest" and RE.POINodes[unitButton.name]["texture"] >= 77 and RE.POINodes[unitButton.name]["texture"] <= 82) then
-				local status = ""
-				if RE.POINodes[unitButton.name]["status"] ~= "" and RE.POINodes[unitButton.name]["status"] ~= nil then
-					status = "\n"..RE.POINodes[unitButton.name]["status"];
-				end
-				if RE.ShefkiTimer:TimeLeft(RE.POINodes[unitButton.name]["timer"]) == nil then
-					tooltipText = tooltipText..newLineString..unitButton.name.."|cFFFFFFFF"..status.."|r";
-				else
-					tooltipText = tooltipText..newLineString..unitButton.name.."|cFFFFFFFF ["..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.POINodes[unitButton.name]["timer"]), 0)).."]"..status.."|r";
-				end
-				newLineString = "\n";
+			local status = ""
+			if RE.POINodes[unitButton.name]["status"] ~= "" and RE.POINodes[unitButton.name]["status"] ~= nil then
+				status = "\n"..RE.POINodes[unitButton.name]["status"];
 			end
+			if RE.POINodes[unitButton.name]["health"] ~= nil then
+				status = "\n["..REPorter_Round((RE.POINodes[unitButton.name]["health"]/RE.POINodes[unitButton.name]["maxHealth"])*100, 0).."%]";
+			end
+			if RE.ShefkiTimer:TimeLeft(RE.POINodes[unitButton.name]["timer"]) == nil then
+				tooltipText = tooltipText..newLineString..unitButton.name.."|cFFFFFFFF"..status.."|r";
+			else
+				tooltipText = tooltipText..newLineString..unitButton.name.."|cFFFFFFFF ["..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.POINodes[unitButton.name]["timer"]), 0)).."]"..status.."|r";
+			end
+			newLineString = "\n";
 		end
 	end
 	GameTooltip:SetText(tooltipText);
@@ -720,6 +813,14 @@ end
 function REPorter_Update()
 	local mapFileName = GetMapInfo();
 	if mapFileName ~= nil and RE.MapSettings[mapFileName] ~= nil then
+		if RE.Debug > 0 then
+			print("\124cFF74D06C[REPorter]\124r Update!");
+		end
+		if (GetBattlefieldInstanceRunTime()/1000) < 150 then
+			RE.JoinedInProgress = false;
+		else
+			RE.JoinedInProgress = true;
+		end
 		RE.CurrentMap = mapFileName;
 		if REPSettings[RE.CurrentMap] ~= nil then
 			REPorterExternal:ClearAllPoints();
@@ -728,6 +829,7 @@ function REPorter_Update()
 			REPorterExternal:ClearAllPoints();
 			REPorterExternal:SetPoint("CENTER", "UIParent", "CENTER", 0, 0);
 		end
+		REPorterTimerOverlay:Hide();
 		REPorterExternal:SetHeight(RE.MapSettings[mapFileName]["HE"]);
 		REPorterExternalOverlay:SetHeight(RE.MapSettings[mapFileName]["HE"]);
 		REPorterExternalPlayerArrow:SetHeight(RE.MapSettings[mapFileName]["HE"])
@@ -740,21 +842,6 @@ function REPorter_Update()
 		REPorterExternalPlayerArrow:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"]);
 		REPorterExternalPlayerArrow:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"]);
 		REPorterExternalPlayerArrow:SetPoint("TOPLEFT", REPorterExternal, "TOPLEFT");
-		if (mapFileName == "AlteracValley") or (mapFileName == "GilneasBattleground2") or (mapFileName == "IsleofConquest") or (mapFileName == "ArathiBasin") then
-			RE.DoIEvenCareAboutNodes = true;
-		else
-			RE.DoIEvenCareAboutNodes = false;
-		end
-		if (mapFileName == "GilneasBattleground2") or (mapFileName == "NetherstormArena") or (mapFileName == "ArathiBasin") then
-			RE.DoIEvenCareAboutPoints = true;
-		else
-			RE.DoIEvenCareAboutPoints = false;
-		end
-		if mapFileName == "AlteracValley" then
-			RE.DefaultTimer = 240;
-		else
-			RE.DefaultTimer = 60;
-		end
 		RE.POINodes = {};
 		local texName;
 		local numDetailTiles = GetNumberOfDetailTiles();
@@ -762,7 +849,6 @@ function REPorter_Update()
 			texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i;
 			_G["REPorter"..i]:SetTexture(texName);
 		end
-		local iconSize = RE.POIIconSize;
 		RE.numPOIs = GetNumMapLandmarks();
 		if RE.BGPOISNum < RE.numPOIs then
 			for i=RE.BGPOISNum+1, RE.numPOIs do
@@ -770,6 +856,7 @@ function REPorter_Update()
 			end
 			RE.BGPOISNum = RE.numPOIs;
 		end
+		local SOTARoundTester = false;
 		for i=1, RE.BGPOISNum do
 			local battlefieldPOIName = "REPorterPOI"..i;
 			local battlefieldPOI = _G[battlefieldPOIName];
@@ -794,15 +881,84 @@ function REPorter_Update()
 							x = x - 9;
 						end
 					end
+					if mapFileName == "IsleofConquest" then
+						if i == 1 then
+							RE.IoCAllianceGateName = name;
+							name = name.." - "..L["East"];
+							x = x + 13;
+						elseif i == 2 then
+							name = name.." - "..L["West"];
+							x = x - 13;
+						elseif i == 3 then
+							name = name.." - "..L["Front"];
+							y = y + 13;
+						elseif i == 4 then
+							y = y - 5;
+						elseif i == 7 then
+							RE.IoCHordeGateName = name;
+							name = name.." - "..L["Front"];
+							y = y - 10;
+							x = x + 1;
+						elseif i == 8 then
+							name = name.." - "..L["East"];
+							x = x + 10;
+						elseif i == 9 then
+							name = name.." - "..L["West"];
+							x = x - 10;
+						elseif i == 10 then
+							y = y + 10;
+						end
+					end
 					
 					battlefieldPOI:SetPoint("CENTER", "REPorter", "TOPLEFT", x, y);
 					battlefieldPOIWarZone:SetPoint("CENTER", "REPorter", "TOPLEFT", x, y);
-					battlefieldPOI:SetWidth(iconSize);
-					battlefieldPOI:SetHeight(iconSize);
+					battlefieldPOI:SetWidth(RE.POIIconSize);
+					battlefieldPOI:SetHeight(RE.POIIconSize);
 					battlefieldPOI.name = name;
 					battlefieldPOI:Show();
 
 					RE.POINodes[name] = {["id"] = i, ["name"] = name, ["status"] = description, ["x"]= x, ["y"] = y, ["texture"] = textureIndex};
+
+					if RE.CurrentMap == "IsleofConquest" then
+						if i == 1 or i == 2 or i == 3 or i == 7 or i == 8 or i == 9 then
+							RE.POINodes[name]["health"] = 600000;
+							RE.POINodes[name]["maxHealth"] = 600000;
+						end
+					end
+					if mapFileName == "StrandoftheAncients" then
+						if i == 1 and textureIndex == 46 then
+							SOTARoundTester = true;
+						end
+						if SOTARoundTester then
+							if i == 4 or i == 5 then
+								RE.POINodes[name]["health"] = 11000;
+								RE.POINodes[name]["maxHealth"] = 11000;
+							elseif i == 6 or i == 7 then
+								RE.POINodes[name]["health"] = 13000;
+								RE.POINodes[name]["maxHealth"] = 13000;
+							elseif i == 8 then
+								RE.POINodes[name]["health"] = 14000;
+								RE.POINodes[name]["maxHealth"] = 14000;
+							elseif i == 2 then
+								RE.POINodes[name]["health"] = 10000;
+								RE.POINodes[name]["maxHealth"] = 10000;
+							end
+						else
+							if i == 3 or i == 4 then
+								RE.POINodes[name]["health"] = 11000;
+								RE.POINodes[name]["maxHealth"] = 11000;
+							elseif i == 5 or i == 6 then
+								RE.POINodes[name]["health"] = 13000;
+								RE.POINodes[name]["maxHealth"] = 13000;
+							elseif i == 7 then
+								RE.POINodes[name]["health"] = 14000;
+								RE.POINodes[name]["maxHealth"] = 14000;
+							elseif i == 1 then
+								RE.POINodes[name]["health"] = 10000;
+								RE.POINodes[name]["maxHealth"] = 10000;
+							end
+						end
+					end
 				else
 					battlefieldPOI.name = "";
 					battlefieldPOI:Hide();
@@ -812,6 +968,35 @@ function REPorter_Update()
 				battlefieldPOI:Hide();
 				_G[battlefieldPOIName.."WarZone"]:Hide();
 			end
+		end
+
+		if (mapFileName == "AlteracValley") or (mapFileName == "GilneasBattleground2") or (mapFileName == "IsleofConquest") or (mapFileName == "ArathiBasin") then
+			RE.DoIEvenCareAboutNodes = true;
+		else
+			RE.DoIEvenCareAboutNodes = false;
+		end
+		if (mapFileName == "GilneasBattleground2") or (mapFileName == "NetherstormArena") or (mapFileName == "ArathiBasin") then
+			RE.DoIEvenCareAboutPoints = true;
+			REPorterExternal:RegisterEvent("UPDATE_WORLD_STATES");
+		else
+			RE.DoIEvenCareAboutPoints = false;
+		end
+		if mapFileName == "IsleofConquest" then
+			RE.IoCGateEstimator = {};
+			RE.IoCGateEstimator[FACTION_ALLIANCE] = 600000;
+			RE.IoCGateEstimator[FACTION_HORDE] = 600000;
+			RE.IoCGateEstimatorText = "";
+		end
+		if (mapFileName == "StrandoftheAncients") or (mapFileName == "IsleofConquest") then
+			RE.DoIEvenCareAboutGates = true;
+			REPorterExternal:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
+		else	
+			RE.DoIEvenCareAboutGates = false;
+		end
+		if mapFileName == "AlteracValley" then
+			RE.DefaultTimer = 240;
+		else
+			RE.DefaultTimer = 60;
 		end
 	end
 end
@@ -953,6 +1138,10 @@ end
 function REPorter_POIStatus(POIName)
 	if RE.POINodes[POIName] ~= nil then
 		if RE.ShefkiTimer:TimeLeft(RE.POINodes[POIName]["timer"]) == nil then
+			if RE.POINodes[POIName]["health"] ~= nil then
+				local gateHealth = REPorter_Round((RE.POINodes[POIName]["health"]/RE.POINodes[POIName]["maxHealth"])*100, 0);
+				return " - "..HEALTH..": "..gateHealth.."%";
+			end
 			return "";
 		else
 			local timeLeft = REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.POINodes[POIName]["timer"]), 0));
@@ -1036,6 +1225,8 @@ end
 function REPorter_ReportEstimator()
 	if RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer) ~= nil then
 		SendChatMessage(RE.IsWinning.." "..L["victory"]..": "..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer), 0))..RE.ReportPrefix, "BATTLEGROUND");
+	elseif RE.CurrentMap == "IsleofConquest" and RE.JoinedInProgress == false then
+		SendChatMessage(FACTION_ALLIANCE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."% - "..FACTION_HORDE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%"..RE.ReportPrefix, "BATTLEGROUND");
 	end
 end
 
@@ -1058,6 +1249,10 @@ function REPorter_OptionsOnLoad(REPanel)
 	REPorterOptions_opacityLow:SetText("5%");
 	REPorterOptions_opacityHigh:SetText("100%");
 	REPorterOptions_opacity:SetValueStep(0.05);
+	REPorterOptions_scaleText:SetText(L["Map scale"]);
+	REPorterOptions_scaleLow:SetText("0.5");
+	REPorterOptions_scaleHigh:SetText("1.5");
+	REPorterOptions_scale:SetValueStep(0.1);
 end
 
 function REPorter_OptionsReload(dontSaveSettings)
@@ -1065,11 +1260,13 @@ function REPorter_OptionsReload(dontSaveSettings)
 		REPSettings["locked"] = REPorterOptions_locked:GetChecked();
 		REPSettings["nameAdvert"] = REPorterOptions_nameAdvert:GetChecked();
 		REPSettings["opacity"] = REPorter_Round(REPorterOptions_opacity:GetValue(), 2);
+		REPSettings["scale"] = REPorter_Round(REPorterOptions_scale:GetValue(), 1);
 	end
 
 	REPorterOptions_locked:SetChecked(REPSettings["locked"]);
 	REPorterOptions_nameAdvert:SetChecked(REPSettings["nameAdvert"]);
 	REPorterOptions_opacity:SetValue(REPSettings["opacity"]);
+	REPorterOptions_scale:SetValue(REPSettings["scale"]);
 
 	if REPSettings.nameAdvert then
 		RE.ReportPrefix = " - [REPorter]";
@@ -1077,9 +1274,15 @@ function REPorter_OptionsReload(dontSaveSettings)
 		RE.ReportPrefix = "";
 	end
 	REPorterExternal:SetAlpha(REPSettings["opacity"]);
+	REPorterExternal:SetScale(REPSettings["scale"]);
 end
 
 function REPorter_AlphaSlider()
 	REPorterOptions_opacityValue:SetText(REPorter_Round(REPorterOptions_opacity:GetValue(), 2));
 	REPorterExternal:SetAlpha(REPorterOptions_opacity:GetValue());
+end
+
+function REPorter_ScaleSlider()
+	REPorterOptions_scaleValue:SetText(REPorter_Round(REPorterOptions_scale:GetValue(), 1));
+	REPorterExternal:SetScale(REPorter_Round(REPorterOptions_scale:GetValue(), 1));
 end
