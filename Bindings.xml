@@ -23,7 +23,4 @@
   <Binding name="REPORTERCLEAR" header="REPORTERB">
     REPorter_BigButton(false);
   </Binding>
-  <Binding name="REPORTERSHOW" header="REPORTERB">
-    REPorter_Toggle();
-  </Binding>	
 </Bindings>

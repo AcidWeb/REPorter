@@ -12,10 +12,10 @@ local L = {
 	["players in area"] = true,
 	["victory"] = true,
 
-	["Toggle map"] = true,
 	["Map alpha"] = true,
 	["Map scale"] = true,
 	["Lock map"] = true,
+	["Show report bar above map"] = true,
 	["Add \"[REPorter]\" to end of each report"] = true,
 
 	["West"] = true,

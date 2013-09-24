@@ -55,6 +55,20 @@
 		</Layers>
 	</Frame>
 
+	<Frame name="REPorterVehicleTemplate" hidden="true" virtual="true">
+		<Size>
+			<AbsDimension x="65" y="65"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture name="$parentTexture" setAllPoints="true"/>
+			</Layer>
+		</Layers>
+	</Frame>
+
 	<Frame name="REPorter_ReportDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="true" />
 	<Frame name="REPorter_OptionsDropDown" inherits="UIDropDownMenuTemplate" id="2" hidden="true" />
 
@@ -209,7 +223,6 @@
 			<OnShow function="REPorter_OnShow"/>
 			<OnHide function="REPorter_OnHide"/>
 			<OnEvent function="REPorter_OnEvent"/>
-			<OnUpdate function="REPorter_OnUpdate"/>
 		</Scripts>
 	</ScrollFrame>
 
@@ -217,13 +230,6 @@
 		<Size>
 			<AbsDimension x="404" y="45"/>
 		</Size>
-		<Anchors>
-			<Anchor point="TOP" relativeTo="REPorterBorder" relativePoint="BOTTOM">
-				<Offset>
-					<AbsDimension x="0" y="-3"/>
-				</Offset>
-			</Anchor>
-		</Anchors>	
 		<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
 			<EdgeSize>
 				<AbsValue val="20"/>
@@ -517,11 +523,20 @@
 					</Anchor>
 				</Anchors>
 			</CheckButton>
-			<CheckButton name="$parent_nameAdvert" inherits="OptionsCheckButtonTemplate">
+			<CheckButton name="$parent_reportBarAnchor" inherits="OptionsCheckButtonTemplate">
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
 							<AbsDimension x="10" y="-35"></AbsDimension>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</CheckButton>
+			<CheckButton name="$parent_nameAdvert" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="10" y="-60"></AbsDimension>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -533,7 +548,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="16" y="-75"/>
+							<AbsDimension x="16" y="-100"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -557,7 +572,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="16" y="-125"/>
+							<AbsDimension x="16" y="-150"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
