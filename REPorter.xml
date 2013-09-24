@@ -178,7 +178,6 @@
 					</OnDragStart>
 					<OnDragStop>
 						REPorterExternal:StopMovingOrSizing();
-						ValidateFramePosition(REPorterExternal);
 						REPSettings[REPorterNamespace["CurrentMap"]] = {};
 						REPSettings[REPorterNamespace["CurrentMap"]].x, REPSettings[REPorterNamespace["CurrentMap"]].y = REPorterExternal:GetCenter();
 					</OnDragStop>
