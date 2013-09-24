@@ -35,7 +35,7 @@ RE.ClickedPOI = "";
 RE.ReportPrefix = "";
 
 RE.FoundNewVersion = false;
-RE.AddonVersionCheck = 81;
+RE.AddonVersionCheck = 82;
 RE.Debug = 0;
 
 RE.DefaultConfig = {
@@ -174,7 +174,7 @@ function REPorter_TimerJoinCheck()
 		RE.PlayedFromStart = false;
 		if RE.CurrentMap == "StrandoftheAncients" or RE.CurrentMap == "IsleofConquest" then
 			RE.GateSyncRequested = true;
-			SendAddonMessage("REPorter", "GateSyncRequest;", "BATTLEGROUND");
+			SendAddonMessage("REPorter", "GateSyncRequest;", "INSTANCE_CHAT");
 		end
 	end
 	RE.SyncTimer = nil;
@@ -389,7 +389,7 @@ function REPorter_OnEvent(self, event, ...)
 					message = message..RE.POINodes[tableInternal[i]]["id"]..";"..RE.POINodes[tableInternal[i]]["health"]..";";
 				end
 			end	
-			SendAddonMessage("REPorter", message, "BATTLEGROUND");
+			SendAddonMessage("REPorter", message, "INSTANCE_CHAT");
 		elseif RE.GateSyncRequested and REMessageEx[1] == "GateSync" then
 			RE.GateSyncRequested = false;
 			local tableCount, tableInternal = REPorter_TableCount(RE.POINodes);
@@ -517,7 +517,7 @@ function REPorter_OnEvent(self, event, ...)
 				print("\124cFF74D06C[REPorter]\124r Preupdate - EVENT!");
 			end
 			REPorter_Update();
-			SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "BATTLEGROUND");
+			SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "INSTANCE_CHAT");
 		end
 		if IsInGuild() then
 			SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "GUILD");
@@ -758,8 +758,8 @@ function REPorter_OnUpdate(self, elapsed)
 				local unit = "raid"..i;
 				local partyX, partyY = GetPlayerMapPosition(unit);
 				local partyMemberFrame = _G["REPorterRaid"..(playerCount + 1)];
-				if (partyX ~= 0 and partyY ~= 0) and not UnitIsUnit("raid"..i, "player") then
-					local _, partyMemberClass = UnitClass(unit);
+				local _, partyMemberClass = UnitClass(unit);
+				if (partyX ~= 0 and partyY ~= 0) and not UnitIsUnit("raid"..i, "player") and partyMemberClass ~= nil then
 					partyX, partyY = REPorter_GetRealCoords(partyX, partyY);
 					partyMemberFrame:SetPoint("CENTER", "REPorterOverlay", "TOPLEFT", partyX, partyY);
 					partyMemberFrame.unit = unit;
@@ -1401,7 +1401,7 @@ function REPorter_SmallButton(number, otherNode)
 			else
 				message = strupper(L["Incoming"].." 5+");
 			end
-			SendChatMessage(message..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "BATTLEGROUND");
+			SendChatMessage(message..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
 		else
 			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."]);
 		end
@@ -1421,9 +1421,9 @@ function REPorter_BigButton(isHelp, otherNode)
 		end
 		if name and name ~= "" then
 			if isHelp then
-				SendChatMessage(strupper(L["Help"])..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "BATTLEGROUND");
+				SendChatMessage(strupper(L["Help"])..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
 			else
-				SendChatMessage(strupper(L["Clear"])..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "BATTLEGROUND");
+				SendChatMessage(strupper(L["Clear"])..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
 			end
 		else
 			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."]);
@@ -1435,17 +1435,17 @@ end
 
 function REPorter_ReportEstimator()
 	if RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer) then
-		SendChatMessage(RE.IsWinning.." "..L["victory"]..": "..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer), 0))..RE.ReportPrefix, "BATTLEGROUND");
+		SendChatMessage(RE.IsWinning.." "..L["victory"]..": "..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer), 0))..RE.ReportPrefix, "INSTANCE_CHAT");
 	elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
-		SendChatMessage(FACTION_ALLIANCE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."% - "..FACTION_HORDE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%"..RE.ReportPrefix, "BATTLEGROUND");
+		SendChatMessage(FACTION_ALLIANCE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."% - "..FACTION_HORDE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%"..RE.ReportPrefix, "INSTANCE_CHAT");
 	end
 end
 
 function REPorter_ReportDropDownClick(reportType)
 	if reportType ~= "" then
-		SendChatMessage(strupper(L[reportType])..REPorter_POIOwner(RE.ClickedPOI)..REPorter_POIStatus(RE.ClickedPOI)..REPorter_POIPlayers(RE.ClickedPOI)..RE.ReportPrefix, "BATTLEGROUND");
+		SendChatMessage(strupper(L[reportType])..REPorter_POIOwner(RE.ClickedPOI)..REPorter_POIStatus(RE.ClickedPOI)..REPorter_POIPlayers(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT");
 	else
-		SendChatMessage(REPorter_POIOwner(RE.ClickedPOI, true)..REPorter_POIStatus(RE.ClickedPOI)..REPorter_POIPlayers(RE.ClickedPOI)..RE.ReportPrefix, "BATTLEGROUND");
+		SendChatMessage(REPorter_POIOwner(RE.ClickedPOI, true)..REPorter_POIStatus(RE.ClickedPOI)..REPorter_POIPlayers(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT");
 	end
 end
 

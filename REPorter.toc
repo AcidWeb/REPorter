@@ -1,7 +1,7 @@
-## Interface: 50001
+## Interface: 50100
 ## Title: REPorter
 ## Notes: Provide battleground map.
-## Version: 0.8.1
+## Version: 0.8.2
 ## Author: AcidWeb
 ## SavedVariablesPerCharacter: REPSettings
 Locals\enUS.lua
