@@ -35,8 +35,8 @@ RE.ClickedPOI = "";
 RE.ReportPrefix = "";
 
 RE.FoundNewVersion = false;
-RE.AddonVersionCheck = 85;
-RE.Debug = 0;
+RE.AddonVersionCheck = 84;
+RE.Debug = 1;
 
 RE.DefaultConfig = {
 	firstTime = 1,
