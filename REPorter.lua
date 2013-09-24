@@ -8,6 +8,7 @@ RE.POIIconSize = 30;
 RE.MapUpdateRate = 0.05;
 RE.BGVehicles = {};
 RE.POINodes = {};
+RE.PlayersTip = {};
 RE.BGPOISNum = 0;
 
 RE.DefaultTimer = 60;
@@ -34,8 +35,8 @@ RE.ClickedPOI = "";
 RE.ReportPrefix = "";
 
 RE.FoundNewVersion = false;
-RE.AddonVersionCheck = 71;
-RE.Debug = 1;
+RE.AddonVersionCheck = 80;
+RE.Debug = 0;
 
 RE.DefaultConfig = {
 	firstTime = 1,
@@ -54,7 +55,8 @@ RE.BlipCoords = {
 	["SHAMAN"] = { 0.75, 0.875, 0, 0.25 },
 	["MAGE"] = { 0.875, 1, 0, 0.25 },
 	["WARLOCK"] = { 0, 0.125, 0.25, 0.5 },
-	["DRUID"] = { 0.25, 0.375, 0.25, 0.5 }
+	["DRUID"] = { 0.25, 0.375, 0.25, 0.5 },
+	["MONK"] = { 0.125, 0.25, 0.25, 0.5 }
 }
 RE.ClassColors = {
 	["HUNTER"] = "AAD372",
@@ -67,16 +69,19 @@ RE.ClassColors = {
 	["SHAMAN"] = "0070DD",
 	["WARRIOR"] = "C69B6D",
 	["DEATHKNIGHT"] = "C41E3A",
+	["MONK"] = "00FF96"
 };
 RE.MapSettings = {
-	["ArathiBasin"] = {["HE"] = 400, ["HO"] = 180, ["VE"] = 25, ["pointsToWin"] = 1600, ["WorldStateNum"] = 1, ["StartTimer"] = 240},
-	["WarsongGulch"] = {["HE"] = 490, ["HO"] = 185, ["VE"] = 10, ["StartTimer"] = 240},
-	["AlteracValley"] = {["HE"] = 465, ["HO"] = 180, ["VE"] = 30, ["StartTimer"] = 240},
-	["NetherstormArena"] = {["HE"] = 390, ["HO"] = 175, ["VE"] = 80, ["pointsToWin"] = 1600, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
-	["StrandoftheAncients"] = {["HE"] = 465, ["HO"] = 185, ["VE"] = 45, ["StartTimer"] = 240},
-	["IsleofConquest"] = {["HE"] = 455, ["HO"] = 190, ["VE"] = 35, ["StartTimer"] = 240},
-	["GilneasBattleground2"] = {["HE"] = 415, ["HO"] = 160, ["VE"] = 80, ["pointsToWin"] = 2000, ["WorldStateNum"] = 1, ["StartTimer"] = 240},
-	["TwinPeaks"] = {["HE"] = 470, ["HO"] = 200, ["VE"] = 15, ["StartTimer"] = 240}
+	["ArathiBasin"] = {["HE"] = 400, ["WI"] = 380, ["HO"] = 180, ["VE"] = 25, ["pointsToWin"] = 1600, ["WorldStateNum"] = 1, ["StartTimer"] = 240},
+	["WarsongGulch"] = {["HE"] = 460, ["WI"] = 275, ["HO"] = 270, ["VE"] = 40, ["StartTimer"] = 240},
+	["AlteracValley"] = {["HE"] = 460, ["WI"] = 200, ["HO"] = 270, ["VE"] = 35, ["StartTimer"] = 240},
+	["NetherstormArena"] = {["HE"] = 340, ["WI"] = 200, ["HO"] = 275, ["VE"] = 90, ["pointsToWin"] = 1600, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
+	["StrandoftheAncients"] = {["HE"] = 410, ["WI"] = 275, ["HO"] = 240, ["VE"] = 100, ["StartTimer"] = 240},
+	["IsleofConquest"] = {["HE"] = 370, ["WI"] = 325, ["HO"] = 230, ["VE"] = 85, ["StartTimer"] = 240},
+	["GilneasBattleground2"] = {["HE"] = 350, ["WI"] = 315, ["HO"] = 240, ["VE"] = 90, ["pointsToWin"] = 2000, ["WorldStateNum"] = 1, ["StartTimer"] = 240},
+	["TwinPeaks"] = {["HE"] = 435, ["WI"] = 250, ["HO"] = 280, ["VE"] = 40, ["StartTimer"] = 240},
+	["TempleofKotmogu"] = {["HE"] = 395, ["WI"] = 455, ["HO"] = 155, ["VE"] = 85, ["StartTimer"] = 240},
+	["STVDiamondMineBG"] = {["HE"] = 355, ["WI"] = 450, ["HO"] = 170, ["VE"] = 85, ["StartTimer"] = 240}
 };
 RE.EstimatorSettings = {
 	["ArathiBasin"] = { [0] = 0, [1] = 0.8333, [2] = 1.1111, [3] = 1.6667, [4] = 3.3333, [5] = 30},
@@ -292,6 +297,11 @@ end
 
 -- *** Event functions
 function REPorter_OnLoad(self)
+	if select(4, GetBuildInfo()) < 50001 then
+		print("\124cFF74D06C[REPorter]\124r This release require 5.x client!");
+		return;
+	end
+
 	self:RegisterEvent("ADDON_LOADED");
 	self:RegisterEvent("PLAYER_ENTERING_WORLD");
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA");
@@ -344,6 +354,8 @@ function REPorter_OnEvent(self, event, ...)
 
 		REPorterTab_BB1:SetText(L["Help"]); 
 		REPorterTab_BB2:SetText(L["Clear"]);
+		REPorterTabSmall_BB1:SetText(L["Help"]); 
+		REPorterTabSmall_BB2:SetText(L["Clear"]);
 
 		BINDING_HEADER_REPORTERB = "REPorter";
 		BINDING_NAME_REPORTERINC1 = L["Incoming"] .. " 1";
@@ -415,8 +427,17 @@ function REPorter_OnEvent(self, event, ...)
 
 		if AlliancePointNum and HordePointNum then
 			local timeLeft = 0;
-			AllianceTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - AlliancePointNum) / RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum];
-			HordeTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - HordePointNum) / RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum];
+
+			if RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum] == 0 then	
+				AllianceTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - AlliancePointNum);
+			else
+				AllianceTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - AlliancePointNum) / RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum];
+			end
+			if  RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum] == 0 then
+				HordeTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - HordePointNum);
+			else
+				HordeTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - HordePointNum) / RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum];
+			end
 			if RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer) then
 				timeLeft = RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer);
 			end
@@ -527,6 +548,14 @@ function REPorter_OnUpdate(self, elapsed)
 			REPorterTab_SB6:Enable();
 			REPorterTab_BB1:Enable();
 			REPorterTab_BB2:Enable();
+			REPorterTabSmall_SB1:Enable();
+			REPorterTabSmall_SB2:Enable();
+			REPorterTabSmall_SB3:Enable();
+			REPorterTabSmall_SB4:Enable();
+			REPorterTabSmall_SB5:Enable();
+			REPorterTabSmall_SB6:Enable();
+			REPorterTabSmall_BB1:Enable();
+			REPorterTabSmall_BB2:Enable();
 		else
 			REPorterTab_SB1:Disable();
 			REPorterTab_SB2:Disable();
@@ -536,6 +565,14 @@ function REPorter_OnUpdate(self, elapsed)
 			REPorterTab_SB6:Disable();
 			REPorterTab_BB1:Disable();
 			REPorterTab_BB2:Disable();
+			REPorterTabSmall_SB1:Disable();
+			REPorterTabSmall_SB2:Disable();
+			REPorterTabSmall_SB3:Disable();
+			REPorterTabSmall_SB4:Disable();
+			REPorterTabSmall_SB5:Disable();
+			REPorterTabSmall_SB6:Disable();
+			REPorterTabSmall_BB1:Disable();
+			REPorterTabSmall_BB2:Disable();
 		end
 
 		local numFlags = GetNumBattlefieldFlagPositions();
@@ -630,7 +667,7 @@ function REPorter_OnUpdate(self, elapsed)
 					end
 				end
 				if showInBattleMap and name and RE.POINodes[name] then
-					local x1, x2, y1, y2 = WorldMap_GetPOITextureCoords(textureIndex);
+					local x1, x2, y1, y2 = GetPOITextureCoords(textureIndex);
 					x, y = REPorter_GetRealCoords(x, y);
 					if RE.POINodes[name]["texture"] then
 						if RE.DoIEvenCareAboutNodes and RE.POINodes[name]["texture"] ~= textureIndex then
@@ -690,7 +727,7 @@ function REPorter_OnUpdate(self, elapsed)
 					if RE.CurrentMap == "IsleofConquest" and RE.POINodes[name]["texture"] >= 77 and RE.POINodes[name]["texture"] <= 82 then
 						_G[battlefieldPOIName.."WarZone"]:Hide();
 					else
-						if GetNumRaidMembers() > 0 then
+						if GetNumGroupMembers() > 0 then
 							for i=1, MAX_RAID_MEMBERS do
 								local unit = "raid"..i;
 								local partyX, partyY = GetPlayerMapPosition(unit);
@@ -716,7 +753,7 @@ function REPorter_OnUpdate(self, elapsed)
 		end
 
 		local playerCount = 0;
-		if GetNumRaidMembers() > 0 then
+		if GetNumGroupMembers() > 0 then
 			for i=1, MAX_RAID_MEMBERS do
 				local unit = "raid"..i;
 				local partyX, partyY = GetPlayerMapPosition(unit);
@@ -785,15 +822,20 @@ function REPorter_OnUpdate(self, elapsed)
 		if RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer) then
 			if RE.IsWinning == FACTION_ALLIANCE then
 				REPorterTab_Estimator_Text:SetText("|cFF00A9FF"..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r");
+				REPorterTabSmall_Estimator_Text:SetText("|cFF00A9FF"..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r");
 			elseif RE.IsWinning == FACTION_HORDE then
 				REPorterTab_Estimator_Text:SetText("|cFFFF141D"..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r");
+				REPorterTabSmall_Estimator_Text:SetText("|cFFFF141D"..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r");
 			else
 				REPorterTab_Estimator_Text:SetText("");
+				REPorterTabSmall_Estimator_Text:SetText("");
 			end
 		elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
 			REPorterTab_Estimator_Text:SetText(RE.IoCGateEstimatorText);
+			REPorterTabSmall_Estimator_Text:SetText(RE.IoCGateEstimatorText);
 		else
 			REPorterTab_Estimator_Text:SetText("");
+			REPorterTabSmall_Estimator_Text:SetText("");
 		end
 
 		RE.updateTimer = RE.MapUpdateRate;
@@ -812,25 +854,44 @@ function REPorterUnit_OnEnterPlayer(self)
 	end
 
 	local unitButton;
-	local newLineString = "";
 	local tooltipText = "";
+	local newLineString = "";
 
 	for i=1, MAX_RAID_MEMBERS do
 		unitButton = _G["REPorterRaid"..i];
+		if RE.PlayersTip[i] == nil then
+			RE.PlayersTip[i] = {};
+		end
+		RE.PlayersTip[i][1] = false;
 		if unitButton:IsVisible() and unitButton:IsMouseOver() then
 			local _, class = UnitClass(unitButton.unit);
-			--local enemyString = "";
-			--if UnitIsEnemy(unitButton.unit, unitButton.unit.."target") then
-			--	local _, classEnemy = UnitClass(unitButton.unit.."target");
-			--	local enemyHealth = (UnitHealth(unitButton.unit.."target")/UnitHealthMax(unitButton.unit.."target"))*100;
-			--	enemyString = " - |cFF"..RE.ClassColors[classEnemy]..UnitName(unitButton.unit.."target").."|r |cFFFFFFFF["..REPorter_Round(enemyHealth, 0).."%]|r";
-			--end
 			if class then
-				tooltipText = tooltipText..newLineString.."|cFF"..RE.ClassColors[class]..UnitName(unitButton.unit).."|r |cFFFFFFFF["..REPorter_Round(unitButton.health, 0).."%]|r";
-				newLineString = "\n";
+				RE.PlayersTip[i][1] = true;
+				RE.PlayersTip[i][2] = "|cFF"..RE.ClassColors[class]..UnitName(unitButton.unit).."|r |cFFFFFFFF["..REPorter_Round(unitButton.health, 0).."%]|r";
 			end
 		end
 	end
+	for i=1, MAX_RAID_MEMBERS do
+		if i == 1 then
+			if RE.PlayersTip[i][1] and RE.PlayersTip[i][2] ~= nil then
+					tooltipText = tooltipText..newLineString..RE.PlayersTip[i][2];
+					newLineString = "\n";
+			end
+		else
+			if RE.PlayersTip[i-1][2] ~= nil then
+				if RE.PlayersTip[i][1] and RE.PlayersTip[i-1][2] ~= RE.PlayersTip[i][2] and RE.PlayersTip[i][2] ~= nil then
+					tooltipText = tooltipText..newLineString..RE.PlayersTip[i][2];
+					newLineString = "\n";
+				end
+			else
+				if RE.PlayersTip[i][1] and RE.PlayersTip[i][2] ~= nil then
+					tooltipText = tooltipText..newLineString..RE.PlayersTip[i][2];
+					newLineString = "\n";
+				end
+			end
+		end
+	end
+
 	GameTooltip:SetText(tooltipText);
 	GameTooltip:Show();
 end
@@ -939,8 +1000,12 @@ function REPorter_Update(NotResetHealth)
 		REPorterTimerOverlay:Hide();
 		REPorterExternal:SetHeight(RE.MapSettings[mapFileName]["HE"]);
 		REPorterExternalOverlay:SetHeight(RE.MapSettings[mapFileName]["HE"]);
-		REPorterExternalPlayerArrow:SetHeight(RE.MapSettings[mapFileName]["HE"])
+		REPorterExternalPlayerArrow:SetHeight(RE.MapSettings[mapFileName]["HE"]);
 		REPorterBorder:SetHeight(RE.MapSettings[mapFileName]["HE"] + 5);
+		REPorterExternal:SetWidth(RE.MapSettings[mapFileName]["WI"]);
+		REPorterExternalOverlay:SetWidth(RE.MapSettings[mapFileName]["WI"]);
+		REPorterExternalPlayerArrow:SetWidth(RE.MapSettings[mapFileName]["WI"]);
+		REPorterBorder:SetWidth(RE.MapSettings[mapFileName]["WI"] + 5);
 		REPorterExternal:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"]);
 		REPorterExternal:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"]);
 		REPorterExternalOverlay:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"]);
@@ -952,10 +1017,21 @@ function REPorter_Update(NotResetHealth)
 		if not NotResetHealth then
 			RE.POINodes = {};
 		end
+		if RE.MapSettings[mapFileName]["WI"] < 400 then
+			REPorterTabSmall:Show();
+			REPorterTab:Hide();
+		else
+			REPorterTab:Show();
+			REPorterTabSmall:Hide();
+		end
 		local texName;
 		local numDetailTiles = GetNumberOfDetailTiles();
 		for i=1, numDetailTiles do
-			texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i;
+			if mapFileName == "STVDiamondMineBG" then
+				texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName.."1_"..i;
+			else
+				texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i;
+			end
 			_G["REPorter"..i]:SetTexture(texName);
 		end
 		RE.numPOIs = GetNumMapLandmarks();
@@ -973,7 +1049,7 @@ function REPorter_Update(NotResetHealth)
 			if i <= RE.numPOIs then
 				local name, description, textureIndex, x, y, _, showInBattleMap = GetMapLandmarkInfo(i);
 				if showInBattleMap and textureIndex ~= 0 then
-					local x1, x2, y1, y2 = WorldMap_GetPOITextureCoords(textureIndex);
+					local x1, x2, y1, y2 = GetPOITextureCoords(textureIndex);
 					_G[battlefieldPOIName.."Texture"]:SetTexCoord(x1, x2, y1, y2);
 					x, y = REPorter_GetRealCoords(x, y);
 					
@@ -1249,7 +1325,7 @@ end
 function REPorter_POIPlayers(POIName)
 	local playerNumber = 0;
 	if RE.POINodes[POIName] then
-		if GetNumRaidMembers() > 0 then
+		if GetNumGroupMembers() > 0 then
 			for i=1, MAX_RAID_MEMBERS do
 				local unit = "raid"..i;
 				local partyX, partyY = GetPlayerMapPosition(unit);
@@ -1412,10 +1488,13 @@ function REPorter_OptionsReload(dontSaveSettings)
 		RE.ReportPrefix = "";
 	end
 	REPorterTab:ClearAllPoints();
+	REPorterTabSmall:ClearAllPoints();
 	if REPSettings.reportBarAnchor then
 		REPorterTab:SetPoint("BOTTOM", REPorterBorder, "TOP", 0, 3);
+		REPorterTabSmall:SetPoint("BOTTOM", REPorterBorder, "TOP", 0, 3);
 	else
 		REPorterTab:SetPoint("TOP", REPorterBorder, "BOTTOM", 0, -3);
+		REPorterTabSmall:SetPoint("TOP", REPorterBorder, "BOTTOM", 0, -3);
 	end
 	REPorterExternal:SetAlpha(REPSettings["opacity"]);
 	REPorterExternal:SetScale(REPSettings["scale"]);

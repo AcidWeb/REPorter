@@ -2,25 +2,25 @@
   <Binding name="REPORTERINC1" header="REPORTERB">
     REPorter_SmallButton(1);
   </Binding>
-  <Binding name="REPORTERINC2" header="REPORTERB">
+  <Binding name="REPORTERINC2">
     REPorter_SmallButton(2);
   </Binding>
-  <Binding name="REPORTERINC3" header="REPORTERB">
+  <Binding name="REPORTERINC3">
     REPorter_SmallButton(3);
   </Binding>
-  <Binding name="REPORTERINC4" header="REPORTERB">
+  <Binding name="REPORTERINC4">
     REPorter_SmallButton(4);
   </Binding>
-  <Binding name="REPORTERINC5" header="REPORTERB">
+  <Binding name="REPORTERINC5">
     REPorter_SmallButton(5);
   </Binding>
-  <Binding name="REPORTERINC6" header="REPORTERB">
+  <Binding name="REPORTERINC6">
     REPorter_SmallButton(6);
   </Binding>
-  <Binding name="REPORTERHELP" header="REPORTERB">
+  <Binding name="REPORTERHELP">
     REPorter_BigButton(true);
   </Binding>
-  <Binding name="REPORTERCLEAR" header="REPORTERB">
+  <Binding name="REPORTERCLEAR">
     REPorter_BigButton(false);
   </Binding>
 </Bindings>
