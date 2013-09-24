@@ -1,0 +1,551 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\..\FrameXML\UI.xsd">
+
+	<Script file="REPorter.lua"/>
+
+	<Frame name="REPorterUnitTemplate" parent="REPorterOverlay" enableMouse="false" virtual="true" hidden="true">
+		<Size>
+			<AbsDimension x="25" y="25"/>
+		</Size>
+		<Layers>
+			<Layer>
+				<Texture name="$parentIcon" file="Interface\Minimap\PartyRaidBlips" setAllPoints="true" parentKey="icon"/>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnEnter>
+				REPorterUnit_OnEnterPlayer(self);
+			</OnEnter>
+			<OnLeave>
+				REPorter_HideTooltip();
+			</OnLeave>
+			<OnLoad>
+				self.unit = "raid"..self:GetID();
+			</OnLoad>
+		</Scripts>
+	</Frame>
+
+	<Frame name="REPorterPlayerTemplate" parent="REPorterPlayerArrow" enableMouse="false" virtual="true" hidden="true">
+		<Size>
+			<AbsDimension x="50" y="50"/>
+		</Size>
+		<Layers>
+			<Layer>
+				<Texture name="$parentIcon" file="Interface\Minimap\PartyRaidBlips" setAllPoints="true" parentKey="icon"/>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="REPorterPOITimerTemplate" parent="REPorterTimerOverlay" virtual="true">
+		<Size>
+			<AbsDimension x="25" y="15"/>
+		</Size>
+		<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" tile="true">
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+		</Backdrop>
+		<Layers>
+			<Layer>
+				<FontString name="$Parent_Caption" justifyH="CENTER" inherits="SystemFont_Shadow_Small">
+					<Anchors>
+						<Anchor point="CENTER" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
+
+	<Frame name="REPorter_ReportDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="true" />
+	<Frame name="REPorter_OptionsDropDown" inherits="UIDropDownMenuTemplate" id="2" hidden="true" />
+
+	<ScrollFrame name="REPorterExternal" frameStrata="BACKGROUND" resizable="false" hidden="true" parent="UIParent" movable="true">
+		<Size>
+			<AbsDimension x="400" />
+		</Size>
+		<ScrollChild>
+			<Frame name="REPorter">
+				<Size>
+					<AbsDimension x="800" y="600"/>
+				</Size>
+				<Layers>
+					<Layer level="BACKGROUND">
+						<Texture name="REPorter1">
+							<Size>
+								<AbsDimension x="200" y="200"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT" />
+							</Anchors>
+						</Texture>
+						<Texture name="REPorter2">
+							<Size>
+								<AbsDimension x="200" y="200"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeTo="REPorter1" relativePoint="TOPRIGHT" />
+							</Anchors>
+						</Texture>
+						<Texture name="REPorter3">
+							<Size>
+								<AbsDimension x="200" y="200"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeTo="REPorter2" relativePoint="TOPRIGHT" />
+							</Anchors>
+						</Texture>
+						<Texture name="REPorter4">
+							<Size>
+								<AbsDimension x="200" y="200"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeTo="REPorter3" relativePoint="TOPRIGHT" />
+							</Anchors>
+						</Texture>
+						<Texture name="REPorter5">
+							<Size>
+								<AbsDimension x="200" y="200"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeTo="REPorter1" relativePoint="BOTTOMLEFT" />
+							</Anchors>
+						</Texture>
+						<Texture name="REPorter6">
+							<Size>
+								<AbsDimension x="200" y="200"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeTo="REPorter5" relativePoint="TOPRIGHT" />
+							</Anchors>
+						</Texture>
+						<Texture name="REPorter7">
+							<Size>
+								<AbsDimension x="200" y="200"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeTo="REPorter6" relativePoint="TOPRIGHT" />
+							</Anchors>
+						</Texture>
+						<Texture name="REPorter8">
+							<Size>
+								<AbsDimension x="200" y="200"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeTo="REPorter7" relativePoint="TOPRIGHT" />
+							</Anchors>
+						</Texture>
+						<Texture name="REPorter9">
+							<Size>
+								<AbsDimension x="200" y="200"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeTo="REPorter5" relativePoint="BOTTOMLEFT" />
+							</Anchors>
+						</Texture>
+						<Texture name="REPorter10">
+							<Size>
+								<AbsDimension x="200" y="200"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeTo="REPorter9" relativePoint="TOPRIGHT" />
+							</Anchors>
+						</Texture>
+						<Texture name="REPorter11">
+							<Size>
+								<AbsDimension x="200" y="200"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeTo="REPorter10" relativePoint="TOPRIGHT" />
+							</Anchors>
+						</Texture>
+						<Texture name="REPorter12">
+							<Size>
+								<AbsDimension x="200" y="200"/>
+							</Size>
+							<Anchors>
+								<Anchor point="TOPLEFT" relativeTo="REPorter11" relativePoint="TOPRIGHT" />
+							</Anchors>
+						</Texture>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnLoad>
+						self:RegisterForDrag("LeftButton");
+					</OnLoad>
+					<OnDragStart>
+						if not REPSettings.locked then
+							REPorterExternal:StartMoving();
+						end
+					</OnDragStart>
+					<OnDragStop>
+						REPorterExternal:StopMovingOrSizing();
+						ValidateFramePosition(REPorterExternal);
+						REPSettings[REPorterNamespace["CurrentMap"]] = {};
+						REPSettings[REPorterNamespace["CurrentMap"]].x, REPSettings[REPorterNamespace["CurrentMap"]].y = REPorterExternal:GetCenter();
+					</OnDragStop>
+					<OnLeave>
+						CloseDropDownMenus();
+					</OnLeave>
+				</Scripts>
+			</Frame>
+		</ScrollChild>
+		<Frames>
+			<Frame name="REPorterBorder">
+				<Anchors>
+					<Anchor point="CENTER" />
+				</Anchors>
+				<Size>
+					<AbsDimension x="405" />
+				</Size>
+				<Backdrop edgeFile="Interface\DialogFrame\UI-DialogBox-Border">
+					<EdgeSize>
+						<AbsValue val="20"/>
+					</EdgeSize>
+				</Backdrop>
+			</Frame>
+		</Frames>
+		<Scripts>
+			<OnLoad>
+				REPorter_OnLoad(self);
+			</OnLoad>
+			<OnShow function="REPorter_OnShow"/>
+			<OnHide function="REPorter_OnHide"/>
+			<OnEvent function="REPorter_OnEvent"/>
+			<OnUpdate function="REPorter_OnUpdate"/>
+		</Scripts>
+	</ScrollFrame>
+
+	<Frame name="REPorterTab" parent="REPorterExternal">
+		<Size>
+			<AbsDimension x="404" y="45"/>
+		</Size>
+		<Anchors>
+			<Anchor point="TOP" relativeTo="REPorterBorder" relativePoint="BOTTOM">
+				<Offset>
+					<AbsDimension x="0" y="-3"/>
+				</Offset>
+			</Anchor>
+		</Anchors>	
+		<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<EdgeSize>
+				<AbsValue val="20"/>
+			</EdgeSize>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+		</Backdrop>
+		<Frames>
+			<Button name="$parent_SB1" text="1" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="25" y="25"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="12" y="-10"/>
+						</Offset>	
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>REPorter_SmallButton(1)</OnClick>
+				</Scripts>		
+			</Button>
+			<Button name="$parent_SB2" text="2" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="25" y="25"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="48" y="-10"/>
+						</Offset>	
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>REPorter_SmallButton(2)</OnClick>
+				</Scripts>		
+			</Button>
+			<Button name="$parent_SB3" text="3" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="25" y="25"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="83" y="-10"/>
+						</Offset>	
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>REPorter_SmallButton(3)</OnClick>
+				</Scripts>		
+			</Button>
+			<Button name="$parent_SB4" text="4" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="25" y="25"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="118" y="-10"/>
+						</Offset>	
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>REPorter_SmallButton(4)</OnClick>
+				</Scripts>		
+			</Button>
+			<Button name="$parent_SB5" text="5" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="25" y="25"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="153" y="-10"/>
+						</Offset>	
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>REPorter_SmallButton(5)</OnClick>
+				</Scripts>		
+			</Button>
+			<Button name="$parent_SB6" text="5+" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="25" y="25"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="188" y="-10"/>
+						</Offset>	
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>REPorter_SmallButton(6)</OnClick>
+				</Scripts>		
+			</Button>
+			<Button name="$parent_BB1" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="50" y="25"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPRIGHT">
+						<Offset>
+							<AbsDimension x="-12" y="-10"/>
+						</Offset>	
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>REPorter_BigButton(true)</OnClick>
+				</Scripts>		
+			</Button>
+			<Button name="$parent_BB2" inherits="UIPanelButtonTemplate">
+				<Size>
+					<AbsDimension x="50" y="25"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPRIGHT">
+						<Offset>
+							<AbsDimension x="-72" y="-10"/>
+						</Offset>	
+					</Anchor>
+				</Anchors>
+				<Scripts>
+					<OnClick>REPorter_BigButton(false)</OnClick>
+				</Scripts>		
+			</Button>
+			<Frame name="$parent_Estimator">
+				<Size>
+					<AbsDimension x="55" y="27"/>
+				</Size>
+				<Backdrop edgeFile="Interface\DialogFrame\UI-DialogBox-Border">
+					<EdgeSize>
+						<AbsValue val="20"/>
+					</EdgeSize>
+				</Backdrop>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="220" y="-9"/>
+						</Offset>	
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer>
+						<FontString name="$Parent_Text" justifyH="CENTER" inherits="SystemFont_Shadow_Med3" setAllPoints="true" />
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnMouseUp>REPorter_ReportEstimator()</OnMouseUp>
+				</Scripts>
+			</Frame>
+		</Frames>
+
+	</Frame>
+
+	<Frame name="REPorterTimerOverlay" frameStrata="MEDIUM" parent="REPorterExternal" />
+
+	<ScrollFrame name="REPorterExternalOverlay" frameStrata="MEDIUM" parent="REPorterExternal" >
+		<Size>
+			<AbsDimension x="400" />
+		</Size>
+		<ScrollChild>
+			<Frame name="REPorterOverlay">
+				<Size>
+					<AbsDimension x="800" y="600"/>
+				</Size>
+				<Frames>
+					<Frame name="REPorterRaid1" inherits="REPorterUnitTemplate" id="1"/>
+					<Frame name="REPorterRaid2" inherits="REPorterUnitTemplate" id="2"/>
+					<Frame name="REPorterRaid3" inherits="REPorterUnitTemplate" id="3"/>
+					<Frame name="REPorterRaid4" inherits="REPorterUnitTemplate" id="4"/>
+					<Frame name="REPorterRaid5" inherits="REPorterUnitTemplate" id="5"/>
+					<Frame name="REPorterRaid6" inherits="REPorterUnitTemplate" id="6"/>
+					<Frame name="REPorterRaid7" inherits="REPorterUnitTemplate" id="7"/>
+					<Frame name="REPorterRaid8" inherits="REPorterUnitTemplate" id="8"/>
+					<Frame name="REPorterRaid9" inherits="REPorterUnitTemplate" id="9"/>
+					<Frame name="REPorterRaid10" inherits="REPorterUnitTemplate" id="10"/>
+					<Frame name="REPorterRaid11" inherits="REPorterUnitTemplate" id="11"/>
+					<Frame name="REPorterRaid12" inherits="REPorterUnitTemplate" id="12"/>
+					<Frame name="REPorterRaid13" inherits="REPorterUnitTemplate" id="13"/>
+					<Frame name="REPorterRaid14" inherits="REPorterUnitTemplate" id="14"/>
+					<Frame name="REPorterRaid15" inherits="REPorterUnitTemplate" id="15"/>
+					<Frame name="REPorterRaid16" inherits="REPorterUnitTemplate" id="16"/>
+					<Frame name="REPorterRaid17" inherits="REPorterUnitTemplate" id="17"/>
+					<Frame name="REPorterRaid18" inherits="REPorterUnitTemplate" id="18"/>
+					<Frame name="REPorterRaid19" inherits="REPorterUnitTemplate" id="19"/>
+					<Frame name="REPorterRaid20" inherits="REPorterUnitTemplate" id="20"/>
+					<Frame name="REPorterRaid21" inherits="REPorterUnitTemplate" id="21"/>
+					<Frame name="REPorterRaid22" inherits="REPorterUnitTemplate" id="22"/>
+					<Frame name="REPorterRaid23" inherits="REPorterUnitTemplate" id="23"/>
+					<Frame name="REPorterRaid24" inherits="REPorterUnitTemplate" id="24"/>
+					<Frame name="REPorterRaid25" inherits="REPorterUnitTemplate" id="25"/>
+					<Frame name="REPorterRaid26" inherits="REPorterUnitTemplate" id="26"/>
+					<Frame name="REPorterRaid27" inherits="REPorterUnitTemplate" id="27"/>
+					<Frame name="REPorterRaid28" inherits="REPorterUnitTemplate" id="28"/>
+					<Frame name="REPorterRaid29" inherits="REPorterUnitTemplate" id="29"/>
+					<Frame name="REPorterRaid30" inherits="REPorterUnitTemplate" id="30"/>
+					<Frame name="REPorterRaid31" inherits="REPorterUnitTemplate" id="31"/>
+					<Frame name="REPorterRaid32" inherits="REPorterUnitTemplate" id="32"/>
+					<Frame name="REPorterRaid33" inherits="REPorterUnitTemplate" id="33"/>
+					<Frame name="REPorterRaid34" inherits="REPorterUnitTemplate" id="34"/>
+					<Frame name="REPorterRaid35" inherits="REPorterUnitTemplate" id="35"/>
+					<Frame name="REPorterRaid36" inherits="REPorterUnitTemplate" id="36"/>
+					<Frame name="REPorterRaid37" inherits="REPorterUnitTemplate" id="37"/>
+					<Frame name="REPorterRaid38" inherits="REPorterUnitTemplate" id="38"/>
+					<Frame name="REPorterRaid39" inherits="REPorterUnitTemplate" id="39"/>
+					<Frame name="REPorterRaid40" inherits="REPorterUnitTemplate" id="40"/>
+					<Frame name="REPorterFlag1" inherits="WorldMapFlagTemplate" id="1">
+						<Size>
+							<AbsDimension x="35" y="35"/>
+						</Size>
+					</Frame>
+					<Frame name="REPorterFlag2" inherits="WorldMapFlagTemplate" id="2">
+						<Size>
+							<AbsDimension x="35" y="35"/>
+						</Size>
+					</Frame>
+				</Frames>
+			</Frame>
+		</ScrollChild>
+	</ScrollFrame>
+
+	<ScrollFrame name="REPorterExternalPlayerArrow" frameStrata="HIGH" parent="REPorterExternal" >
+		<Size>
+			<AbsDimension x="400" />
+		</Size>
+		<ScrollChild>
+			<Frame name="REPorterPlayerArrow">
+				<Size>
+					<AbsDimension x="800" y="600"/>
+				</Size>
+				<Frames>
+					<Frame name="REPorterPlayer" inherits="REPorterPlayerTemplate"/>
+				</Frames>
+			</Frame>
+		</ScrollChild>
+	</ScrollFrame>
+
+	<Frame name="REPorterTutorial" frameStrata="DIALOG" parent="UIParent" hidden="true" resizable="false" movable="false">
+		<Size>
+			<AbsDimension x="400" y="400"/>
+		</Size>
+		<Anchors>
+			<Anchor point="CENTER"/>
+		</Anchors>
+		<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+			<EdgeSize>
+				<AbsValue val="20"/>
+			</EdgeSize>
+			<TileSize>
+				<AbsValue val="32"/>
+			</TileSize>
+		</Backdrop>
+		<Layers>
+			<Layer>
+				<Texture name="$parentTexture" file="Interface\Addons\REPorter\Textures\REPorterTutorial">
+					<Size>
+						<AbsDimension x="512" y="512"/>
+					</Size>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</Texture>
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnMouseUp>REPorterTutorial:Hide();</OnMouseUp>
+		</Scripts>
+	</Frame>
+
+	<Frame name="REPorterOptions">
+		<Scripts>
+			<OnLoad>REPorter_OptionsOnLoad(self);</OnLoad>
+		</Scripts>
+		<Frames>
+			<CheckButton name="$parent_locked" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="10" y="-10"></AbsDimension>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</CheckButton>
+			<CheckButton name="$parent_nameAdvert" inherits="OptionsCheckButtonTemplate">
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="10" y="-35"></AbsDimension>
+						</Offset>
+					</Anchor>
+				</Anchors>
+			</CheckButton>
+			<Slider name="$parent_opacity" inherits="OptionsSliderTemplate" minValue="0.05" maxValue="1" orientation="HORIZONTAL">
+				<Size>
+					<AbsDimension x="200" y="16"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="16" y="-75"/>
+						</Offset>
+					</Anchor>
+				</Anchors>
+				<Layers>
+					<Layer level="ARTWORK">
+						<FontString name="$parentValue" inherits="GameFontHighlight">
+							<Anchors>
+								<Anchor point="TOP" relativePoint="BOTTOM"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+				</Layers>
+				<Scripts>
+					<OnValueChanged>REPorter_AlphaSlider();</OnValueChanged>
+				</Scripts>
+			</Slider>
+		</Frames>
+	</Frame>
+
+</Ui>
