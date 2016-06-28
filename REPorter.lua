@@ -1,6 +1,5 @@
 REPorterNamespace = {};
 local RE = REPorterNamespace;
-local L = REPorterLocale;
 
 RE.ShefkiTimer = LibStub("LibShefkiTimer-1.0");
 
@@ -35,7 +34,7 @@ RE.ClickedPOI = "";
 RE.ReportPrefix = "";
 
 RE.FoundNewVersion = false;
-RE.AddonVersionCheck = 84;
+RE.AddonVersionCheck = 100;
 RE.Debug = 1;
 
 RE.DefaultConfig = {
@@ -88,11 +87,10 @@ RE.EstimatorSettings = {
 	["ArathiBasin"] = { [0] = 0, [1] = 0.8333, [2] = 1.1111, [3] = 1.6667, [4] = 3.3333, [5] = 30},
 	["NetherstormArena"] = { [0] = 0, [1] = 0.5, [2] = 1, [3] = 2.5, [4] = 5},
 	["GilneasBattleground2"] = { [0] = 0, [1] = 1.1111, [2] = 3.3333, [3] = 30},
-	--TODO: 3 base value might be wrong
 	["GoldRush"] = { [0] = 0, [1] = 1.6, [2] = 3.2, [3] = 30}
 }
 RE.POIDropDown = {
-	{ text = L["Incoming"], hasArrow = true, notCheckable = true,
+	{ text = "Incoming", hasArrow = true, notCheckable = true,
 	menuList = {
 		{ text = "1", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(1, true); CloseDropDownMenus() end },
 		{ text = "2", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(2, true); CloseDropDownMenus() end },
@@ -101,15 +99,15 @@ RE.POIDropDown = {
 		{ text = "5", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(5, true); CloseDropDownMenus() end },
 		{ text = "5+", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(6, true); CloseDropDownMenus() end }
 	} },
-	{ text = L["Help"], notCheckable = true, func = function() REPorter_BigButton(true, true) end },
-	{ text = L["Clear"], notCheckable = true, func = function() REPorter_BigButton(false, true) end },
+	{ text = "Help", notCheckable = true, func = function() REPorter_BigButton(true, true) end },
+	{ text = "Clear", notCheckable = true, func = function() REPorter_BigButton(false, true) end },
 	{ text = "", notCheckable = true, disabled = true },
-	{ text = L["Attack"], notCheckable = true, func = function() REPorter_ReportDropDownClick("Attack") end },
-	{ text = L["Guard"], notCheckable = true, func = function() REPorter_ReportDropDownClick("Guard") end },
-	{ text = L["Heavily defended"], notCheckable = true, func = function() REPorter_ReportDropDownClick("Heavily defended") end },
-	{ text = L["Losing"], notCheckable = true, func = function() REPorter_ReportDropDownClick("Losing") end },
+	{ text = "Attack", notCheckable = true, func = function() REPorter_ReportDropDownClick("Attack") end },
+	{ text = "Guard", notCheckable = true, func = function() REPorter_ReportDropDownClick("Guard") end },
+	{ text = "Heavily defended", notCheckable = true, func = function() REPorter_ReportDropDownClick("Heavily defended") end },
+	{ text = "Losing", notCheckable = true, func = function() REPorter_ReportDropDownClick("Losing") end },
 	{ text = "", notCheckable = true, disabled = true },
-	{ text = L["Report status"], notCheckable = true, func = function() REPorter_ReportDropDownClick("") end }
+	{ text = "Report status", notCheckable = true, func = function() REPorter_ReportDropDownClick("") end }
 };
 
 -- *** Auxiliary functions
@@ -358,20 +356,20 @@ function REPorter_OnEvent(self, event, ...)
 
 		RegisterAddonMessagePrefix("REPorter");
 
-		REPorterTab_BB1:SetText(L["Help"]); 
-		REPorterTab_BB2:SetText(L["Clear"]);
-		REPorterTabSmall_BB1:SetText(L["Help"]); 
-		REPorterTabSmall_BB2:SetText(L["Clear"]);
+		REPorterTab_BB1:SetText("Help"); 
+		REPorterTab_BB2:SetText("Clear");
+		REPorterTabSmall_BB1:SetText("Help"); 
+		REPorterTabSmall_BB2:SetText("Clear");
 
 		BINDING_HEADER_REPORTERB = "REPorter";
-		BINDING_NAME_REPORTERINC1 = L["Incoming"] .. " 1";
-		BINDING_NAME_REPORTERINC2 = L["Incoming"] .. " 2";
-		BINDING_NAME_REPORTERINC3 = L["Incoming"] .. " 3";
-		BINDING_NAME_REPORTERINC4 = L["Incoming"] .. " 4";
-		BINDING_NAME_REPORTERINC5 = L["Incoming"] .. " 5";
-		BINDING_NAME_REPORTERINC6 = L["Incoming"] .. " 5+";
-		BINDING_NAME_REPORTERHELP = L["Help"];
-		BINDING_NAME_REPORTERCLEAR = L["Clear"];
+		BINDING_NAME_REPORTERINC1 = "Incoming 1";
+		BINDING_NAME_REPORTERINC2 = "Incoming 2";
+		BINDING_NAME_REPORTERINC3 = "Incoming 3";
+		BINDING_NAME_REPORTERINC4 = "Incoming 4";
+		BINDING_NAME_REPORTERINC5 = "Incoming 5";
+		BINDING_NAME_REPORTERINC6 = "Incoming 5+";
+		BINDING_NAME_REPORTERHELP = "Help";
+		BINDING_NAME_REPORTERCLEAR = "Clear";
 
 		WorldMapFrame:HookScript("OnHide", REPorter_WMOnHideUpdate);
 
@@ -384,7 +382,7 @@ function REPorter_OnEvent(self, event, ...)
 		local REMessageEx = {strsplit(";", REMessage)};
 		if REMessageEx[1] == "Version" then
 			if not RE.FoundNewVersion and tonumber(REMessageEx[2]) > RE.AddonVersionCheck then
-				print("\124cFF74D06C[REPorter]\124r " .. L["New version released!"]);
+				print("\124cFF74D06C[REPorter]\124r New version released!");
 				RE.FoundNewVersion = true;
 			end
 		elseif REMessageEx[1] == "GateSyncRequest" and RE.PlayedFromStart then
@@ -479,34 +477,34 @@ function REPorter_OnEvent(self, event, ...)
 		else
 			local gateID = strsub(guid, 7,10);
 			if gateID == "FBA8" then -- Horde East
-				RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] - damage;
-				if RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
-					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"];
+				RE.POINodes[RE.IoCHordeGateName.." - East"]["health"] = RE.POINodes[RE.IoCHordeGateName.." - East"]["health"] - damage;
+				if RE.POINodes[RE.IoCHordeGateName.." - East"]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
+					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - East"]["health"];
 				end
 			elseif gateID == "FBA6" then -- Horde Central
-				RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] - damage;
-				if RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
-					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"];
+				RE.POINodes[RE.IoCHordeGateName.." - Front"]["health"] = RE.POINodes[RE.IoCHordeGateName.." - Front"]["health"] - damage;
+				if RE.POINodes[RE.IoCHordeGateName.." - Front"]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
+					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - Front"]["health"];
 				end
 			elseif gateID == "FBA7" then -- Horde West
-				RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] - damage;
-				if RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
-					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"];
+				RE.POINodes[RE.IoCHordeGateName.." - West"]["health"] = RE.POINodes[RE.IoCHordeGateName.." - West"]["health"] - damage;
+				if RE.POINodes[RE.IoCHordeGateName.." - West"]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
+					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - West"]["health"];
 				end
 			elseif gateID == "FC74" then -- Alliance East
-				RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] - damage;
-				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"];
+				RE.POINodes[RE.IoCAllianceGateName.." - East"]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - East"]["health"] - damage;
+				if RE.POINodes[RE.IoCAllianceGateName.." - East"]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - East"]["health"];
 				end
 			elseif gateID == "FC73" then -- Alliance West
-				RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] - damage;
-				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"];
+				RE.POINodes[RE.IoCAllianceGateName.." - West"]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - West"]["health"] - damage;
+				if RE.POINodes[RE.IoCAllianceGateName.." - West"]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - West"]["health"];
 				end
 			elseif gateID == "FC72" then -- Alliance Center
-				RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] - damage;
-				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"];
+				RE.POINodes[RE.IoCAllianceGateName.." - Front"]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - Front"]["health"] - damage;
+				if RE.POINodes[RE.IoCAllianceGateName.." - Front"]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - Front"]["health"];
 				end
 			end
 			REPorter_UpdateIoCEstimator();
@@ -649,17 +647,17 @@ function REPorter_OnUpdate(self, elapsed)
 				local name, description, textureIndex, x, y, _, showInBattleMap = GetMapLandmarkInfo(i);
 				if RE.CurrentMap == "IsleofConquest" and name then
 					if i == 1 then
-						name = name.." - "..L["East"];
+						name = name.." - East";
 					elseif i == 2 then
-						name = name.." - "..L["West"];
+						name = name.." - West";
 					elseif i == 3 then
-						name = name.." - "..L["Front"];
+						name = name.." - Front";
 					elseif i == 7 then
-						name = name.." - "..L["Front"];
+						name = name.." - Front";
 					elseif i == 8 then
-						name = name.." - "..L["East"];
+						name = name.." - East";
 					elseif i == 9 then
-						name = name.." - "..L["West"];
+						name = name.." - West";
 					end
 				end
 				if RE.CurrentMap == "StrandoftheAncients" and name then
@@ -1077,26 +1075,26 @@ function REPorter_Update(NotResetHealth)
 					if mapFileName == "IsleofConquest" then
 						if i == 1 then
 							RE.IoCAllianceGateName = name;
-							name = name.." - "..L["East"];
+							name = name.." - East";
 							x = x + 13;
 						elseif i == 2 then
-							name = name.." - "..L["West"];
+							name = name.." - West";
 							x = x - 13;
 						elseif i == 3 then
-							name = name.." - "..L["Front"];
+							name = name.." - Front";
 							y = y + 13;
 						elseif i == 4 then
 							y = y - 5;
 						elseif i == 7 then
 							RE.IoCHordeGateName = name;
-							name = name.." - "..L["Front"];
+							name = name.." - Front";
 							y = y - 10;
 							x = x + 1;
 						elseif i == 8 then
-							name = name.." - "..L["East"];
+							name = name.." - East";
 							x = x + 10;
 						elseif i == 9 then
-							name = name.." - "..L["West"];
+							name = name.." - West";
 							x = x - 10;
 						elseif i == 10 then
 							y = y + 10;
@@ -1358,7 +1356,7 @@ function REPorter_POIPlayers(POIName)
 				end
 			end
 			if playerNumber ~= 0 then
-				return " - "..UnitFactionGroup("player").." "..L["players in area"]..": "..playerNumber;
+				return " - "..UnitFactionGroup("player").." players in area: "..playerNumber;
 			else
 				return "";
 			end
@@ -1377,7 +1375,7 @@ function REPorter_POIStatus(POIName)
 			return "";
 		else
 			local timeLeft = REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.POINodes[POIName]["timer"]), 0));
-			return " - "..L["To cap"]..": "..timeLeft;
+			return " - To cap: "..timeLeft;
 		end
 	end
 	return "";
@@ -1418,16 +1416,16 @@ function REPorter_SmallButton(number, otherNode)
 		local message = "";
 		if name and name ~= "" then
 			if number < 6 then
-				message = strupper(L["Incoming"].." "..number);	
+				message = "INCOMING "..number;	
 			else
-				message = strupper(L["Incoming"].." 5+");
+				message = "INCOMING 5+";
 			end
 			SendChatMessage(message..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
 		else
-			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."]);
+			print("\124cFF74D06C[REPorter]\124r This location don't have name. Action canceled.");
 		end
 	else
-		print("\124cFF74D06C[REPorter]\124r "..L["This addon work only on battlegrounds."]);
+		print("\124cFF74D06C[REPorter]\124r This addon work only on battlegrounds.");
 	end
 end
 
@@ -1442,21 +1440,21 @@ function REPorter_BigButton(isHelp, otherNode)
 		end
 		if name and name ~= "" then
 			if isHelp then
-				SendChatMessage(strupper(L["Help"])..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
+				SendChatMessage("HELP"..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
 			else
-				SendChatMessage(strupper(L["Clear"])..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
+				SendChatMessage("CLEAR"..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
 			end
 		else
-			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."]);
+			print("\124cFF74D06C[REPorter]\124r This location don't have name. Action canceled.");
 		end
 	else
-		print("\124cFF74D06C[REPorter]\124r "..L["This addon work only on battlegrounds."]);
+		print("\124cFF74D06C[REPorter]\124r This addon work only on battlegrounds.");
 	end
 end
 
 function REPorter_ReportEstimator()
 	if RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer) then
-		SendChatMessage(RE.IsWinning.." "..L["victory"]..": "..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer), 0))..RE.ReportPrefix, "INSTANCE_CHAT");
+		SendChatMessage(RE.IsWinning.." victory: "..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer), 0))..RE.ReportPrefix, "INSTANCE_CHAT");
 	elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
 		SendChatMessage(FACTION_ALLIANCE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."% - "..FACTION_HORDE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%"..RE.ReportPrefix, "INSTANCE_CHAT");
 	end
@@ -1464,7 +1462,7 @@ end
 
 function REPorter_ReportDropDownClick(reportType)
 	if reportType ~= "" then
-		SendChatMessage(strupper(L[reportType])..REPorter_POIOwner(RE.ClickedPOI)..REPorter_POIStatus(RE.ClickedPOI)..REPorter_POIPlayers(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT");
+		SendChatMessage(strupper(reportType)..REPorter_POIOwner(RE.ClickedPOI)..REPorter_POIStatus(RE.ClickedPOI)..REPorter_POIPlayers(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT");
 	else
 		SendChatMessage(REPorter_POIOwner(RE.ClickedPOI, true)..REPorter_POIStatus(RE.ClickedPOI)..REPorter_POIPlayers(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT");
 	end
@@ -1475,14 +1473,14 @@ function REPorter_OptionsOnLoad(REPanel)
 	REPanel.okay = REPorter_OptionsReload;
 	InterfaceOptions_AddCategory(REPanel);
 
-	REPorterOptions_lockedText:SetText(L["Lock map"]);
-	REPorterOptions_reportBarAnchorText:SetText(L["Show report bar above map"]);
-	REPorterOptions_nameAdvertText:SetText(L["Add \"[REPorter]\" to end of each report"]);
-	REPorterOptions_opacityText:SetText(L["Map alpha"]);
+	REPorterOptions_lockedText:SetText("Lock map");
+	REPorterOptions_reportBarAnchorText:SetText("Show report bar above map");
+	REPorterOptions_nameAdvertText:SetText("Add \"[REPorter]\" to end of each report");
+	REPorterOptions_opacityText:SetText("Map alpha");
 	REPorterOptions_opacityLow:SetText("5%");
 	REPorterOptions_opacityHigh:SetText("100%");
 	REPorterOptions_opacity:SetValueStep(0.05);
-	REPorterOptions_scaleText:SetText(L["Map scale"]);
+	REPorterOptions_scaleText:SetText("Map scale");
 	REPorterOptions_scaleLow:SetText("0.5");
 	REPorterOptions_scaleHigh:SetText("1.5");
 	REPorterOptions_scale:SetValueStep(0.1);

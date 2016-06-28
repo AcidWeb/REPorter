@@ -5,18 +5,6 @@
 ## Author: AcidWeb
 ## SavedVariablesPerCharacter: REPSettings
 
-Locals\enUS.lua
-Locals\koKR.lua
-Locals\ruRU.lua
-Locals\zhCN.lua
-Locals\deDE.lua
-Locals\itIT.lua
-Locals\ptBR.lua
-Locals\esMX.lua
-Locals\esES.lua
-Locals\itIT.lua
-Locals\zhTW.lua
-
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 Libs\LibShefkiTimer-1.0\LibShefkiTimer-1.0.lua
