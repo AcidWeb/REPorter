@@ -1,9 +1,10 @@
-## Interface: 50400
-## Title: REPorter
+## Interface: 60200
+## Title: |cFF74D06CRE|rPorter
 ## Notes: Provide battleground map.
-## Version: 0.8.5
+## Version: 1.0.0
 ## Author: AcidWeb
 ## SavedVariablesPerCharacter: REPSettings
+
 Locals\enUS.lua
 Locals\koKR.lua
 Locals\ruRU.lua
