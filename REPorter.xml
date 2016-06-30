@@ -250,12 +250,12 @@
 					<Anchor point="TOPLEFT">
 						<Offset>
 							<AbsDimension x="12" y="-10"/>
-						</Offset>	
+						</Offset>
 					</Anchor>
 				</Anchors>
 				<Scripts>
 					<OnClick>REPorter_SmallButton(1)</OnClick>
-				</Scripts>		
+				</Scripts>
 			</Button>
 			<Button name="$parent_SB2" text="2" inherits="UIPanelButtonTemplate">
 				<Size>
@@ -265,12 +265,12 @@
 					<Anchor point="TOPLEFT">
 						<Offset>
 							<AbsDimension x="48" y="-10"/>
-						</Offset>	
+						</Offset>
 					</Anchor>
 				</Anchors>
 				<Scripts>
 					<OnClick>REPorter_SmallButton(2)</OnClick>
-				</Scripts>		
+				</Scripts>
 			</Button>
 			<Button name="$parent_SB3" text="3" inherits="UIPanelButtonTemplate">
 				<Size>
@@ -280,12 +280,12 @@
 					<Anchor point="TOPLEFT">
 						<Offset>
 							<AbsDimension x="83" y="-10"/>
-						</Offset>	
+						</Offset>
 					</Anchor>
 				</Anchors>
 				<Scripts>
 					<OnClick>REPorter_SmallButton(3)</OnClick>
-				</Scripts>		
+				</Scripts>
 			</Button>
 			<Button name="$parent_SB4" text="4" inherits="UIPanelButtonTemplate">
 				<Size>
@@ -295,12 +295,12 @@
 					<Anchor point="TOPLEFT">
 						<Offset>
 							<AbsDimension x="118" y="-10"/>
-						</Offset>	
+						</Offset>
 					</Anchor>
 				</Anchors>
 				<Scripts>
 					<OnClick>REPorter_SmallButton(4)</OnClick>
-				</Scripts>		
+				</Scripts>
 			</Button>
 			<Button name="$parent_SB5" text="5" inherits="UIPanelButtonTemplate">
 				<Size>
@@ -310,12 +310,12 @@
 					<Anchor point="TOPLEFT">
 						<Offset>
 							<AbsDimension x="153" y="-10"/>
-						</Offset>	
+						</Offset>
 					</Anchor>
 				</Anchors>
 				<Scripts>
 					<OnClick>REPorter_SmallButton(5)</OnClick>
-				</Scripts>		
+				</Scripts>
 			</Button>
 			<Button name="$parent_SB6" text="5+" inherits="UIPanelButtonTemplate">
 				<Size>
@@ -325,14 +325,14 @@
 					<Anchor point="TOPLEFT">
 						<Offset>
 							<AbsDimension x="188" y="-10"/>
-						</Offset>	
+						</Offset>
 					</Anchor>
 				</Anchors>
 				<Scripts>
 					<OnClick>REPorter_SmallButton(6)</OnClick>
-				</Scripts>		
+				</Scripts>
 			</Button>
-			<Button name="$parent_BB1" inherits="UIPanelButtonTemplate">
+			<Button name="$parent_BB1" inherits="UIPanelButtonTemplate" text="Help">
 				<Size>
 					<AbsDimension x="50" y="25"/>
 				</Size>
@@ -340,14 +340,14 @@
 					<Anchor point="TOPRIGHT">
 						<Offset>
 							<AbsDimension x="-12" y="-10"/>
-						</Offset>	
+						</Offset>
 					</Anchor>
 				</Anchors>
 				<Scripts>
 					<OnClick>REPorter_BigButton(true)</OnClick>
-				</Scripts>		
+				</Scripts>
 			</Button>
-			<Button name="$parent_BB2" inherits="UIPanelButtonTemplate">
+			<Button name="$parent_BB2" inherits="UIPanelButtonTemplate" text="Clear">
 				<Size>
 					<AbsDimension x="50" y="25"/>
 				</Size>
@@ -355,12 +355,12 @@
 					<Anchor point="TOPRIGHT">
 						<Offset>
 							<AbsDimension x="-72" y="-10"/>
-						</Offset>	
+						</Offset>
 					</Anchor>
 				</Anchors>
 				<Scripts>
 					<OnClick>REPorter_BigButton(false)</OnClick>
-				</Scripts>		
+				</Scripts>
 			</Button>
 			<Frame name="$parent_Estimator">
 				<Size>
@@ -375,171 +375,7 @@
 					<Anchor point="TOPLEFT">
 						<Offset>
 							<AbsDimension x="220" y="-9"/>
-						</Offset>	
-					</Anchor>
-				</Anchors>
-				<Layers>
-					<Layer>
-						<FontString name="$Parent_Text" justifyH="CENTER" inherits="SystemFont_Shadow_Med3" setAllPoints="true" />
-					</Layer>
-				</Layers>
-				<Scripts>
-					<OnMouseUp>REPorter_ReportEstimator()</OnMouseUp>
-				</Scripts>
-			</Frame>
-		</Frames>
-	</Frame>
-
-	<Frame name="REPorterTabSmall" parent="REPorterExternal">
-		<Size>
-			<AbsDimension x="202" y="75"/>
-		</Size>
-		<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-			<EdgeSize>
-				<AbsValue val="20"/>
-			</EdgeSize>
-			<TileSize>
-				<AbsValue val="32"/>
-			</TileSize>
-			<BackgroundInsets>
-				<AbsInset left="6" right="6" top="6" bottom="6"/>
-			</BackgroundInsets>
-		</Backdrop>
-		<Frames>
-			<Button name="$parent_SB1" text="1" inherits="UIPanelButtonTemplate">
-				<Size>
-					<AbsDimension x="25" y="25"/>
-				</Size>
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="12" y="-10"/>
-						</Offset>	
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnClick>REPorter_SmallButton(1)</OnClick>
-				</Scripts>		
-			</Button>
-			<Button name="$parent_SB2" text="2" inherits="UIPanelButtonTemplate">
-				<Size>
-					<AbsDimension x="25" y="25"/>
-				</Size>
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="41" y="-10"/>
-						</Offset>	
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnClick>REPorter_SmallButton(2)</OnClick>
-				</Scripts>		
-			</Button>
-			<Button name="$parent_SB3" text="3" inherits="UIPanelButtonTemplate">
-				<Size>
-					<AbsDimension x="25" y="25"/>
-				</Size>
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="72" y="-10"/>
-						</Offset>	
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnClick>REPorter_SmallButton(3)</OnClick>
-				</Scripts>		
-			</Button>
-			<Button name="$parent_SB4" text="4" inherits="UIPanelButtonTemplate">
-				<Size>
-					<AbsDimension x="25" y="25"/>
-				</Size>
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="103" y="-10"/>
-						</Offset>	
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnClick>REPorter_SmallButton(4)</OnClick>
-				</Scripts>		
-			</Button>
-			<Button name="$parent_SB5" text="5" inherits="UIPanelButtonTemplate">
-				<Size>
-					<AbsDimension x="25" y="25"/>
-				</Size>
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="134" y="-10"/>
-						</Offset>	
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnClick>REPorter_SmallButton(5)</OnClick>
-				</Scripts>		
-			</Button>
-			<Button name="$parent_SB6" text="5+" inherits="UIPanelButtonTemplate">
-				<Size>
-					<AbsDimension x="25" y="25"/>
-				</Size>
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="165" y="-10"/>
-						</Offset>	
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnClick>REPorter_SmallButton(6)</OnClick>
-				</Scripts>		
-			</Button>
-			<Button name="$parent_BB1" inherits="UIPanelButtonTemplate">
-				<Size>
-					<AbsDimension x="50" y="25"/>
-				</Size>
-				<Anchors>
-					<Anchor point="BOTTOMLEFT">
-						<Offset>
-							<AbsDimension x="12" y="10"/>
-						</Offset>	
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnClick>REPorter_BigButton(true)</OnClick>
-				</Scripts>		
-			</Button>
-			<Button name="$parent_BB2" inherits="UIPanelButtonTemplate">
-				<Size>
-					<AbsDimension x="50" y="25"/>
-				</Size>
-				<Anchors>
-					<Anchor point="BOTTOMRIGHT">
-						<Offset>
-							<AbsDimension x="-12" y="10"/>
-						</Offset>	
-					</Anchor>
-				</Anchors>
-				<Scripts>
-					<OnClick>REPorter_BigButton(false)</OnClick>
-				</Scripts>		
-			</Button>
-			<Frame name="$parent_Estimator">
-				<Size>
-					<AbsDimension x="55" y="27"/>
-				</Size>
-				<Backdrop edgeFile="Interface\DialogFrame\UI-DialogBox-Border">
-					<EdgeSize>
-						<AbsValue val="20"/>
-					</EdgeSize>
-				</Backdrop>
-				<Anchors>
-					<Anchor point="BOTTOM">
-						<Offset>
-							<AbsDimension x="0" y="10"/>
-						</Offset>	
+						</Offset>
 					</Anchor>
 				</Anchors>
 				<Layers>
