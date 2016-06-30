@@ -454,40 +454,39 @@ function REPorter_OnEvent(self, event, ...)
 		if RE.CurrentMap ~= "IsleofConquest" then
 			RE.POINodes[gateName]["health"] = RE.POINodes[gateName]["health"] - damage;
 		else
-			local gateID = strsub(guid, 7,10);
-			-- TODO
-			print('GATE!')
-			print(...)
-			if gateID == "FBA8" then -- Horde East
+			local gateID = {strsplit("-", guid)}
+			if gateID[6] == "195496" then -- Horde East
 				RE.POINodes[RE.IoCHordeGateName.." - East"]["health"] = RE.POINodes[RE.IoCHordeGateName.." - East"]["health"] - damage;
 				if RE.POINodes[RE.IoCHordeGateName.." - East"]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
 					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - East"]["health"];
 				end
-			elseif gateID == "FBA6" then -- Horde Central
+			elseif gateID[6] == "195494" then -- Horde Central
 				RE.POINodes[RE.IoCHordeGateName.." - Front"]["health"] = RE.POINodes[RE.IoCHordeGateName.." - Front"]["health"] - damage;
 				if RE.POINodes[RE.IoCHordeGateName.." - Front"]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
 					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - Front"]["health"];
 				end
-			elseif gateID == "FBA7" then -- Horde West
+			elseif gateID[6] == "195495" then -- Horde West
 				RE.POINodes[RE.IoCHordeGateName.." - West"]["health"] = RE.POINodes[RE.IoCHordeGateName.." - West"]["health"] - damage;
 				if RE.POINodes[RE.IoCHordeGateName.." - West"]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
 					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - West"]["health"];
 				end
-			elseif gateID == "FC74" then -- Alliance East
+			elseif gateID[6] == "195698" then -- Alliance East
 				RE.POINodes[RE.IoCAllianceGateName.." - East"]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - East"]["health"] - damage;
 				if RE.POINodes[RE.IoCAllianceGateName.." - East"]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
 					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - East"]["health"];
 				end
-			elseif gateID == "FC72" then -- Alliance Center
+			elseif gateID[6] == "195700" then -- Alliance Center
 				RE.POINodes[RE.IoCAllianceGateName.." - Front"]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - Front"]["health"] - damage;
 				if RE.POINodes[RE.IoCAllianceGateName.." - Front"]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
 					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - Front"]["health"];
 				end
-			elseif gateID == "FC73" then -- Alliance West
+			elseif gateID[6] == "195699" then -- Alliance West
 				RE.POINodes[RE.IoCAllianceGateName.." - West"]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - West"]["health"] - damage;
 				if RE.POINodes[RE.IoCAllianceGateName.." - West"]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
 					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - West"]["health"];
 				end
+			elseif RE.Debug > 0 then
+				print("\124cFF74D06C[REPorter]\124r Unknown gate - "..gateID);
 			end
 			REPorter_UpdateIoCEstimator();
 		end
@@ -1026,12 +1025,11 @@ function REPorter_Update(NotResetHealth)
 							x = x - 10;
 						elseif i == 11 then
 							name = name.." - Front";
-							y = y + 10;
+							y = y + 15;
 						elseif i == 6 then
 							RE.IoCHordeGateName = name;
 							name = name.." - Front";
-							y = y - 10;
-							x = x + 1;
+							y = y - 15;
 						elseif i == 7 then
 							name = name.." - East";
 							x = x + 10;
