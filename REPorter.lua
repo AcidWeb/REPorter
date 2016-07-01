@@ -81,15 +81,16 @@ RE.MapSettings = {
 	["IsleofConquest"] = {["HE"] = 370, ["WI"] = 325, ["HO"] = 230, ["VE"] = 85, ["StartTimer"] = 120},
 	["GilneasBattleground2"] = {["HE"] = 350, ["WI"] = 315, ["HO"] = 240, ["VE"] = 90, ["pointsToWin"] = 2000, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
 	["TwinPeaks"] = {["HE"] = 435, ["WI"] = 250, ["HO"] = 280, ["VE"] = 40, ["StartTimer"] = 120},
-	["TempleofKotmogu"] = {["HE"] = 250, ["WI"] = 400, ["HO"] = 185, ["VE"] = 155, ["StartTimer"] = 120},
-	["STVDiamondMineBG"] = {["HE"] = 325, ["WI"] = 435, ["HO"] = 175, ["VE"] = 95, ["StartTimer"] = 120},
-	["GoldRush"] = {["HE"] = 410, ["WI"] = 510, ["HO"] = 155, ["VE"] = 50, ["pointsToWin"] = 1600, ["WorldStateNum"] = 2, ["StartTimer"] = 120}
+	["TempleofKotmogu"] = {["HE"] = 250, ["WI"] = 400, ["HO"] = 185, ["VE"] = 155, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
+	["STVDiamondMineBG"] = {["HE"] = 325, ["WI"] = 435, ["HO"] = 175, ["VE"] = 95, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
+	["GoldRush"] = {["HE"] = 410, ["WI"] = 510, ["HO"] = 155, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120}
 };
 RE.EstimatorSettings = {
 	["ArathiBasin"] = { [0] = 0, [1] = 0.8333, [2] = 1.1111, [3] = 1.6667, [4] = 3.3333, [5] = 30},
 	["NetherstormArena"] = { [0] = 0, [1] = 0.5, [2] = 1, [3] = 2.5, [4] = 5},
 	["GilneasBattleground2"] = { [0] = 0, [1] = 1.1111, [2] = 3.3333, [3] = 30},
-	["GoldRush"] = { [0] = 0, [1] = 1.6, [2] = 3.2, [3] = 26}
+	["GoldRush"] = { [0] = 0, [1] = 1.6, [2] = 3.2, [3] = 26},
+	["TempleofKotmogu"] = {["CenterP"] = 1, ["InnerP"] = 0.8, ["OuterP"] = 0.6}
 }
 RE.POIDropDown = {
 	{ text = "Incoming", hasArrow = true, notCheckable = true,
@@ -298,6 +299,37 @@ function REPorter_SOTAStartCheck()
 	local sideCheck = {GetMapLandmarkInfo(10)};
 	return (startCheck[3] == 46 or startCheck[3] == 48), sideCheck[3] == 102
 end
+
+function REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin, RefreshTimer)
+	local RefreshTimer = RefreshTimer or 10;
+	local TimeLeft = 0;
+	if RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer) then
+		TimeLeft = RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer);
+	end
+	if AllianceTimeToWin > 1 and HordeTimeToWin > 1 then
+		if AllianceTimeToWin < HordeTimeToWin then
+			if RE.IsWinning ~= FACTION_ALLIANCE or (TimeLeft - AllianceTimeToWin > RefreshTimer) or (TimeLeft - AllianceTimeToWin < -RefreshTimer) then
+				RE.ShefkiTimer:CancelTimer(RE.EstimatorTimer, true);
+				RE.EstimatorTimer = nil;
+				RE.IsWinning = FACTION_ALLIANCE;
+				RE.EstimatorTimer = RE.ShefkiTimer:ScheduleTimer(REPorter_EstimatorTimerNull, REPorter_Round(AllianceTimeToWin, 0));
+			end
+		elseif AllianceTimeToWin > HordeTimeToWin then
+			if RE.IsWinning ~= FACTION_HORDE or (TimeLeft - HordeTimeToWin > RefreshTimer) or (TimeLeft - HordeTimeToWin < -RefreshTimer) then
+				RE.ShefkiTimer:CancelTimer(RE.EstimatorTimer, true);
+				RE.EstimatorTimer = nil;
+				RE.IsWinning = FACTION_HORDE;
+				RE.EstimatorTimer = RE.ShefkiTimer:ScheduleTimer(REPorter_EstimatorTimerNull, REPorter_Round(HordeTimeToWin, 0));
+			end
+		else
+			RE.IsWinning = "";
+		end
+	elseif AlliancePointNum == RE.MapSettings[RE.CurrentMap]["pointsToWin"] or HordePointNum == RE.MapSettings[RE.CurrentMap]["pointsToWin"] then
+		RE.ShefkiTimer:CancelTimer(RE.EstimatorTimer, true);
+		RE.EstimatorTimer = nil;
+		RE.IsWinning = "";
+	end
+end
 --
 
 -- *** Event functions
@@ -389,64 +421,107 @@ function REPorter_OnEvent(self, event, ...)
 			end
 		end
 	elseif event == "UPDATE_WORLD_STATES" and RE.MapSettings[RE.CurrentMap] then
-		local AllianceBaseNum, AlliancePointNum, HordeBaseNum, HordePointNum, AllianceTimeToWin, HordeTimeToWin = 0, nil, 0, nil, 0, 0;
-		local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings[RE.CurrentMap]["WorldStateNum"]);
-		if text ~= nil then
-			local Mes1 = {strsplit("/", text)};
-			if Mes1[2] then
-				local Mes2 = {strsplit(":", Mes1[1])};
-				local Mes3 = {strsplit(" ", Mes2[2])};
-				AllianceBaseNum = tonumber(Mes3[2]);
-				AlliancePointNum = tonumber(Mes2[3]);
-			end
-		end
-		_, _, _, text = GetWorldStateUIInfo(RE.MapSettings[RE.CurrentMap]["WorldStateNum"]+1);
-		if text ~= nil then
-			local Mes1 = {strsplit("/", text)};
-			if Mes1[2] then
-				Mes2 = {strsplit(":", Mes1[1])};
-				Mes3 = {strsplit(" ", Mes2[2])};
-				HordeBaseNum = tonumber(Mes3[2]);
-				HordePointNum = tonumber(Mes2[3]);
-			end
-		end
-		if AlliancePointNum and HordePointNum and AllianceBaseNum and HordeBaseNum then
-			local timeLeft = 0;
-			if RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum] == 0 then
-				AllianceTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - AlliancePointNum);
-			else
-				AllianceTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - AlliancePointNum) / RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum];
-			end
-			if  RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum] == 0 then
-				HordeTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - HordePointNum);
-			else
-				HordeTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - HordePointNum) / RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum];
-			end
-			if RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer) then
-				timeLeft = RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer);
-			end
-			if AllianceTimeToWin > 1 and HordeTimeToWin > 1 then
-				if AllianceTimeToWin < HordeTimeToWin then
-					if (RE.IsWinning ~= FACTION_ALLIANCE) or (timeLeft - AllianceTimeToWin > 10) or (timeLeft - AllianceTimeToWin < -10) then
-						RE.ShefkiTimer:CancelTimer(RE.EstimatorTimer, true);
-						RE.EstimatorTimer = nil;
-						RE.IsWinning = FACTION_ALLIANCE;
-						RE.EstimatorTimer = RE.ShefkiTimer:ScheduleTimer(REPorter_EstimatorTimerNull, REPorter_Round(AllianceTimeToWin, 0));
-					end
-				elseif AllianceTimeToWin > HordeTimeToWin then
-					if (RE.IsWinning ~= FACTION_HORDE) or (timeLeft - HordeTimeToWin > 10) or (timeLeft - HordeTimeToWin < -10) then
-						RE.ShefkiTimer:CancelTimer(RE.EstimatorTimer, true);
-						RE.EstimatorTimer = nil;
-						RE.IsWinning = FACTION_HORDE;
-						RE.EstimatorTimer = RE.ShefkiTimer:ScheduleTimer(REPorter_EstimatorTimerNull, REPorter_Round(HordeTimeToWin, 0));
-					end
-				else
-					RE.IsWinning = "";
+		if RE.CurrentMap == "TempleofKotmogu" then
+			local AlliancePointsNeeded, AlliancePointsPerSec, AllianceTimeToWin, HordePointsNeeded, HordePointsPerSec, HordeTimeToWin = nil, 0, 0, nil, 0, 0;
+			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["TempleofKotmogu"]["WorldStateNum"]);
+			if text ~= nil then
+				local Message = {strsplit("/", text)};
+				if Message[1] then
+					Message = {strsplit(" ", Message[1])};
+					AlliancePointsNeeded = RE.MapSettings["TempleofKotmogu"]["pointsToWin"] - tonumber(Message[3]);
 				end
-			elseif AlliancePointNum == RE.MapSettings[RE.CurrentMap]["pointsToWin"] or HordePointNum == RE.MapSettings[RE.CurrentMap]["pointsToWin"] then
-				RE.ShefkiTimer:CancelTimer(RE.EstimatorTimer, true);
-				RE.EstimatorTimer = nil;
-				RE.IsWinning = "";
+			end
+			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["TempleofKotmogu"]["WorldStateNum"]+1);
+			if text ~= nil then
+				local Message = {strsplit("/", text)};
+				if Message[1] then
+					Message = {strsplit(" ", Message[1])};
+					HordePointsNeeded = RE.MapSettings["TempleofKotmogu"]["pointsToWin"] - tonumber(Message[3]);
+				end
+			end
+			if AlliancePointsNeeded and HordePointsNeeded then
+				local numFlags = GetNumBattlefieldFlagPositions();
+				for i=1, NUM_WORLDMAP_FLAGS do
+					if i <= numFlags then
+						local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i);
+						if flagX > 0 and flagY > 0 then
+							flagX, flagY = REPorter_GetRealCoords(flagX, flagY);
+							if flagToken == "AllianceFlag" then
+								if flagX < 420 and flagX > 350 and flagY < -255 and flagY > -305 then
+									AlliancePointsPerSec = AlliancePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"]["CenterP"]
+								elseif flagX < 470 and flagX > 300 and flagY < -210 and flagY > -350 then
+									AlliancePointsPerSec = AlliancePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"]["InnerP"]
+								else
+									AlliancePointsPerSec = AlliancePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"]["OuterP"]
+								end
+							else
+								if flagX < 420 and flagX > 350 and flagY < -255 and flagY > -305 then
+									HordePointsPerSec = HordePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"]["CenterP"]
+								elseif flagX < 470 and flagX > 300 and flagY < -210 and flagY > -350 then
+									HordePointsPerSec = HordePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"]["InnerP"]
+								else
+									HordePointsPerSec = HordePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"]["OuterP"]
+								end
+							end
+						end
+					end
+				end
+				if AlliancePointsPerSec > 0 then
+					AllianceTimeToWin = AlliancePointsNeeded / AlliancePointsPerSec;
+				else
+					AllianceTimeToWin = 1000000;
+				end
+				if HordePointsPerSec > 0 then
+					HordeTimeToWin = HordePointsNeeded / HordePointsPerSec;
+				else
+					HordeTimeToWin = 1000000;
+				end
+				REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 5)
+			end
+			-- TODO
+			-- Calculate TimeToWin
+		elseif RE.CurrentMap == "STVDiamondMineBG" then
+			local AllianceNeeded, AlliancePointsPerSec, AllianceTimeToWin, HordePointsNeeded, HordePointsPerSec, HordeTimeToWin = 0, 0, 0, 0, 0, 0;
+			-- TODO
+			-- Fill AllianceNeeded, HordePointsNeeded
+			-- Enumerate all carts, check owner, update PointsPerSec
+			-- Calculate TimeToWin
+			-- REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin)
+			print("UPDATE_WORLD_STATES")
+		else
+			local AllianceBaseNum, AlliancePointNum, HordeBaseNum, HordePointNum, AllianceTimeToWin, HordeTimeToWin = 0, nil, 0, nil, 0, 0;
+			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings[RE.CurrentMap]["WorldStateNum"]);
+			if text ~= nil then
+				local Mes1 = {strsplit("/", text)};
+				if Mes1[2] then
+					local Mes2 = {strsplit(":", Mes1[1])};
+					local Mes3 = {strsplit(" ", Mes2[2])};
+					AllianceBaseNum = tonumber(Mes3[2]);
+					AlliancePointNum = tonumber(Mes2[3]);
+				end
+			end
+			_, _, _, text = GetWorldStateUIInfo(RE.MapSettings[RE.CurrentMap]["WorldStateNum"]+1);
+			if text ~= nil then
+				local Mes1 = {strsplit("/", text)};
+				if Mes1[2] then
+					Mes2 = {strsplit(":", Mes1[1])};
+					Mes3 = {strsplit(" ", Mes2[2])};
+					HordeBaseNum = tonumber(Mes3[2]);
+					HordePointNum = tonumber(Mes2[3]);
+				end
+			end
+			if AlliancePointNum and HordePointNum and AllianceBaseNum and HordeBaseNum then
+				if RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum] == 0 then
+					AllianceTimeToWin = 1000000;
+				else
+					AllianceTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - AlliancePointNum) / RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum];
+				end
+				if  RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum] == 0 then
+					HordeTimeToWin = 1000000;
+				else
+					HordeTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - HordePointNum) / RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum];
+				end
+				REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin)
 			end
 		end
 	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" and select(2, ...) == "SPELL_BUILDING_DAMAGE" then
@@ -1113,7 +1188,7 @@ function REPorter_Update(NotResetHealth)
 		else
 			RE.DoIEvenCareAboutNodes = false;
 		end
-		if mapFileName == "GilneasBattleground2" or mapFileName == "NetherstormArena" or mapFileName == "ArathiBasin" or mapFileName == "GoldRush" then
+		if mapFileName == "GilneasBattleground2" or mapFileName == "NetherstormArena" or mapFileName == "ArathiBasin" or mapFileName == "GoldRush" or mapFileName == "STVDiamondMineBG" or mapFileName == "TempleofKotmogu" then
 			RE.DoIEvenCareAboutPoints = true;
 			REPorterExternal:RegisterEvent("UPDATE_WORLD_STATES");
 		else
