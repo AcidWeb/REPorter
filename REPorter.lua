@@ -457,25 +457,57 @@ function REPorter_OnEvent(self, event, ...)
 				if AlliancePointsPerSec > 0 then
 					AllianceTimeToWin = AlliancePointsNeeded / AlliancePointsPerSec;
 				else
-					AllianceTimeToWin = 1000000;
+					AllianceTimeToWin = 10000;
 				end
 				if HordePointsPerSec > 0 then
 					HordeTimeToWin = HordePointsNeeded / HordePointsPerSec;
 				else
-					HordeTimeToWin = 1000000;
+					HordeTimeToWin = 10000;
 				end
 				REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 5)
 			end
-			-- TODO
-			-- Calculate TimeToWin
 		elseif RE.CurrentMap == "STVDiamondMineBG" then
-			local AllianceNeeded, AlliancePointsPerSec, AllianceTimeToWin, HordePointsNeeded, HordePointsPerSec, HordeTimeToWin = 0, 0, 0, 0, 0, 0;
-			-- TODO
-			-- Fill AllianceNeeded, HordePointsNeeded
-			-- Enumerate all carts, check owner, update PointsPerSec
-			-- Calculate TimeToWin
-			-- REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin)
-			print("UPDATE_WORLD_STATES")
+			local AlliancePointsNeeded, AlliancePointsPerSec, AllianceTimeToWin, HordePointsNeeded, HordePointsPerSec, HordeTimeToWin = nil, 0, 0, nil, 0, 0;
+			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["STVDiamondMineBG"]["WorldStateNum"]);
+			if text ~= nil then
+				local Message = {strsplit("/", text)};
+				if Message[1] then
+					Message = {strsplit(" ", Message[1])};
+					AlliancePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["pointsToWin"] - tonumber(Message[2]);
+				end
+			end
+			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["STVDiamondMineBG"]["WorldStateNum"]+1);
+			if text ~= nil then
+				local Message = {strsplit("/", text)};
+				if Message[1] then
+					Message = {strsplit(" ", Message[1])};
+					HordePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["pointsToWin"] - tonumber(Message[2]);
+				end
+			end
+			if AlliancePointsNeeded and HordePointsNeeded then
+				for i=1, GetNumBattlefieldVehicles() do
+					local vehicleX, vehicleY, _, isPossessed, vehicleType = GetBattlefieldVehicleInfo(i);
+					if vehicleX and vehicleY then
+						local vehicleName = WorldMap_GetVehicleTexture(vehicleType, isPossessed);
+						if vehicleName == "Interface\\Minimap\\Vehicle-SilvershardMines-MineCartBlue" then
+							AlliancePointsPerSec = AlliancePointsPerSec + 1
+						elseif vehicleName == "Interface\\Minimap\\Vehicle-SilvershardMines-MineCartRed" then
+							HordePointsPerSec = HordePointsPerSec + 1
+						end
+					end
+				end
+				if AlliancePointsPerSec > 0 then
+					AllianceTimeToWin = AlliancePointsNeeded / AlliancePointsPerSec;
+				else
+					AllianceTimeToWin = 10000;
+				end
+				if HordePointsPerSec > 0 then
+					HordeTimeToWin = HordePointsNeeded / HordePointsPerSec;
+				else
+					HordeTimeToWin = 10000;
+				end
+				REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin)
+			end
 		else
 			local AllianceBaseNum, AlliancePointNum, HordeBaseNum, HordePointNum, AllianceTimeToWin, HordeTimeToWin = 0, nil, 0, nil, 0, 0;
 			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings[RE.CurrentMap]["WorldStateNum"]);
@@ -500,12 +532,12 @@ function REPorter_OnEvent(self, event, ...)
 			end
 			if AlliancePointNum and HordePointNum and AllianceBaseNum and HordeBaseNum then
 				if RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum] == 0 then
-					AllianceTimeToWin = 1000000;
+					AllianceTimeToWin = 10000;
 				else
 					AllianceTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - AlliancePointNum) / RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum];
 				end
 				if  RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum] == 0 then
-					HordeTimeToWin = 1000000;
+					HordeTimeToWin = 10000;
 				else
 					HordeTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - HordePointNum) / RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum];
 				end
