@@ -1352,7 +1352,7 @@ function REPorter_POIPlayers(POIName)
 				local unit = "raid"..i;
 				local partyX, partyY = GetPlayerMapPosition(unit);
 				partyX, partyY = REPorter_GetRealCoords(partyX, partyY);
-				if (partyX ~= 0 or partyY ~= 0) then
+				if (partyX ~= 0 or partyY ~= 0) and UnitIsDeadOrGhost(unit) ~= 1 then
 					if REPorter_PointDistance(RE.POINodes[POIName]["x"], RE.POINodes[POIName]["y"], partyX, partyY) < 33 then
 						playerNumber = playerNumber + 1;
 					end
