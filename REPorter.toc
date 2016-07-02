@@ -7,6 +7,6 @@
 
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
-Libs\LibShefkiTimer-1.0\LibShefkiTimer-1.0.lua
+Libs\AceTimer-3.0\AceTimer-3.0.lua
 
 REPorter.xml

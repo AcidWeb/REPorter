@@ -1,7 +1,6 @@
-REPorterNamespace = {};
+REPorterNamespace = {["AceTimer"] = {}};
 local RE = REPorterNamespace;
-
-RE.ShefkiTimer = LibStub("LibShefkiTimer-1.0");
+LibStub("AceTimer-3.0"):Embed(RE.AceTimer);
 
 RE.POIIconSize = 30;
 RE.MapUpdateRate = 0.05;
@@ -161,29 +160,6 @@ function REPorter_PointDistance(x1, y1, x2, y2)
 	return math.sqrt(math.pow(dx,2) + math.pow(dy,2));
 end
 
-function REPorter_TimerNull(nodeName)
-	RE.POINodes[nodeName]["timer"] = nil;
-end
-
-function REPorter_EstimatorTimerNull()
-	RE.EstimatorTimer = nil;
-end
-
-function REPorter_TimerJoinCheck()
-	local BGTime = GetBattlefieldInstanceRunTime()/1000;
-	if RE.Debug > 0 then
-		print("\124cFF74D06C[REPorter]\124r TimerJoinCheck - "..BGTime);
-	end
-	if BGTime > RE.MapSettings[RE.CurrentMap]["StartTimer"] then
-		RE.PlayedFromStart = false;
-		if RE.CurrentMap == "StrandoftheAncients" or RE.CurrentMap == "IsleofConquest" then
-			RE.GateSyncRequested = true;
-			SendAddonMessage("REPorter", "GateSyncRequest;", "INSTANCE_CHAT");
-		end
-	end
-	RE.SyncTimer = nil;
-end
-
 function REPorter_TableCount(Table)
 	local RENum = 0;
 	local RETable = {};
@@ -195,8 +171,7 @@ function REPorter_TableCount(Table)
 end
 
 function REPorter_ClearTextures()
-	RE.ShefkiTimer:CancelTimer(RE.EstimatorTimer, true);
-	RE.EstimatorTimer = nil;
+	RE.AceTimer:CancelTimer(RE.EstimatorTimer);
 	REPorterPlayer:Hide();
 	for i=1, MAX_RAID_MEMBERS do
 		local partyMemberFrame = _G["REPorterRaid"..(i)];
@@ -210,8 +185,7 @@ function REPorter_ClearTextures()
 		_G[battlefieldPOIName.."Timer"]:Hide()
 		local tableCount, tableInternal = REPorter_TableCount(RE.POINodes);
 		for i=1, tableCount do
-			RE.ShefkiTimer:CancelTimer(RE.POINodes[tableInternal[i]]["timer"], true);
-			RE.POINodes[tableInternal[i]]["timer"] = nil;
+			RE.AceTimer:CancelTimer(RE.POINodes[tableInternal[i]]["timer"]);
 		end
 	end
 	for i=1, NUM_WORLDMAP_FLAGS do
@@ -303,33 +277,46 @@ end
 
 function REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin, RefreshTimer)
 	local RefreshTimer = RefreshTimer or 10;
-	local TimeLeft = 0;
-	if RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer) then
-		TimeLeft = RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer);
-	end
+	local TimeLeft = RE.AceTimer:TimeLeft(RE.EstimatorTimer);
 	if AllianceTimeToWin > 1 and HordeTimeToWin > 1 then
 		if AllianceTimeToWin < HordeTimeToWin then
 			if RE.IsWinning ~= FACTION_ALLIANCE or (TimeLeft - AllianceTimeToWin > RefreshTimer) or (TimeLeft - AllianceTimeToWin < -RefreshTimer) then
-				RE.ShefkiTimer:CancelTimer(RE.EstimatorTimer, true);
-				RE.EstimatorTimer = nil;
+				RE.AceTimer:CancelTimer(RE.EstimatorTimer);
 				RE.IsWinning = FACTION_ALLIANCE;
-				RE.EstimatorTimer = RE.ShefkiTimer:ScheduleTimer(REPorter_EstimatorTimerNull, REPorter_Round(AllianceTimeToWin, 0));
+				RE.EstimatorTimer = RE.AceTimer:ScheduleTimer("Null", REPorter_Round(AllianceTimeToWin, 0));
 			end
 		elseif AllianceTimeToWin > HordeTimeToWin then
 			if RE.IsWinning ~= FACTION_HORDE or (TimeLeft - HordeTimeToWin > RefreshTimer) or (TimeLeft - HordeTimeToWin < -RefreshTimer) then
-				RE.ShefkiTimer:CancelTimer(RE.EstimatorTimer, true);
-				RE.EstimatorTimer = nil;
+				RE.AceTimer:CancelTimer(RE.EstimatorTimer);
 				RE.IsWinning = FACTION_HORDE;
-				RE.EstimatorTimer = RE.ShefkiTimer:ScheduleTimer(REPorter_EstimatorTimerNull, REPorter_Round(HordeTimeToWin, 0));
+				RE.EstimatorTimer = RE.AceTimer:ScheduleTimer("Null", REPorter_Round(HordeTimeToWin, 0));
 			end
 		else
 			RE.IsWinning = "";
 		end
 	elseif AlliancePointNum == RE.MapSettings[RE.CurrentMap]["pointsToWin"] or HordePointNum == RE.MapSettings[RE.CurrentMap]["pointsToWin"] then
-		RE.ShefkiTimer:CancelTimer(RE.EstimatorTimer, true);
-		RE.EstimatorTimer = nil;
+		RE.AceTimer:CancelTimer(RE.EstimatorTimer);
 		RE.IsWinning = "";
 	end
+end
+
+function RE.AceTimer.Null()
+	-- And Now His Watch is Ended
+end
+
+function RE.AceTimer.JoinCheck()
+	local BGTime = GetBattlefieldInstanceRunTime()/1000;
+	if RE.Debug > 0 then
+		print("\124cFF74D06C[REPorter]\124r TimerJoinCheck - "..BGTime);
+	end
+	if BGTime > RE.MapSettings[RE.CurrentMap]["StartTimer"] then
+		RE.PlayedFromStart = false;
+		if RE.CurrentMap == "StrandoftheAncients" or RE.CurrentMap == "IsleofConquest" then
+			RE.GateSyncRequested = true;
+			SendAddonMessage("REPorter", "GateSyncRequest;", "INSTANCE_CHAT");
+		end
+	end
+	RE.SyncTimer = nil;
 end
 --
 
@@ -714,7 +701,7 @@ function REPorter_OnUpdate(self, elapsed)
 					end
 					RE.POINodes[name]["status"] = description;
 					_G[battlefieldPOIName.."Texture"]:SetTexCoord(x1, x2, y1, y2);
-					if RE.ShefkiTimer:TimeLeft(RE.POINodes[name]["timer"]) == nil then
+					if RE.AceTimer:TimeLeft(RE.POINodes[name]["timer"]) == 0 then
 						if strfind(description, FACTION_HORDE) then
 							_G[battlefieldPOIName.."TextureBG"]:SetTexture(1,0,0,0.3);
 						elseif strfind(description, FACTION_ALLIANCE) then
@@ -740,7 +727,7 @@ function REPorter_OnUpdate(self, elapsed)
 							_G[battlefieldPOIName.."Timer"]:Hide();
 						end
 					else
-						local timeLeft = RE.ShefkiTimer:TimeLeft(RE.POINodes[name]["timer"]);
+						local timeLeft = RE.AceTimer:TimeLeft(RE.POINodes[name]["timer"]);
 						_G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize - ((timeLeft / RE.DefaultTimer) * RE.POIIconSize));
 						_G[battlefieldPOIName.."TextureBGofBG"]:Show();
 						_G[battlefieldPOIName.."TextureBGofBG"]:SetWidth((timeLeft / RE.DefaultTimer) * RE.POIIconSize);
@@ -759,7 +746,7 @@ function REPorter_OnUpdate(self, elapsed)
 							_G[battlefieldPOIName.."TextureBGTop2"]:Hide();
 						end
 						_G[battlefieldPOIName.."Timer"]:Show();
-						_G[battlefieldPOIName.."Timer_Caption"]:SetText(REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.POINodes[name]["timer"]), 0)));
+						_G[battlefieldPOIName.."Timer_Caption"]:SetText(REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[name]["timer"]), 0)));
 					end
 					if RE.CurrentMap == "IsleofConquest" and RE.POINodes[name]["texture"] >= 77 and RE.POINodes[name]["texture"] <= 82 then
 						_G[battlefieldPOIName.."WarZone"]:Hide();
@@ -856,11 +843,11 @@ function REPorter_OnUpdate(self, elapsed)
 			partyMemberFrame:Hide();
 		end
 
-		if RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer) then
+		if RE.AceTimer:TimeLeft(RE.EstimatorTimer) > 0 then
 			if RE.IsWinning == FACTION_ALLIANCE then
-				REPorterTab_Estimator_Text:SetText("|cFF00A9FF"..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r");
+				REPorterTab_Estimator_Text:SetText("|cFF00A9FF"..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r");
 			elseif RE.IsWinning == FACTION_HORDE then
-				REPorterTab_Estimator_Text:SetText("|cFFFF141D"..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r");
+				REPorterTab_Estimator_Text:SetText("|cFFFF141D"..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r");
 			else
 				REPorterTab_Estimator_Text:SetText("");
 			end
@@ -995,10 +982,10 @@ function REPorterUnit_OnEnterPOI(self)
 					status = "\n["..REPorter_Round((RE.POINodes[unitButton.name]["health"]/RE.POINodes[unitButton.name]["maxHealth"])*100, 0).."%]";
 				end
 			end
-			if RE.ShefkiTimer:TimeLeft(RE.POINodes[unitButton.name]["timer"]) == nil then
+			if RE.AceTimer:TimeLeft(RE.POINodes[unitButton.name]["timer"]) == 0 then
 				tooltipText = tooltipText..newLineString..unitButton.name.."|cFFFFFFFF"..status.."|r";
 			else
-				tooltipText = tooltipText..newLineString..unitButton.name.."|cFFFFFFFF ["..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.POINodes[unitButton.name]["timer"]), 0)).."]"..status.."|r";
+				tooltipText = tooltipText..newLineString..unitButton.name.."|cFFFFFFFF ["..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[unitButton.name]["timer"]), 0)).."]"..status.."|r";
 			end
 			newLineString = "\n";
 		end
@@ -1224,7 +1211,7 @@ function REPorter_Update(NotResetHealth)
 		if RE.PlayedFromStartOneTimeTrigger then
 			RE.PlayedFromStartOneTimeTrigger = false;
 			if RE.SyncTimer == nil then
-				RE.SyncTimer = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerJoinCheck, 5);
+				RE.SyncTimer = RE.AceTimer:ScheduleTimer("JoinCheck", 5);
 			end
 		end
 
@@ -1233,126 +1220,125 @@ function REPorter_Update(NotResetHealth)
 end
 
 function REPorter_NodeChange(newTexture, nodeName)
-	RE.ShefkiTimer:CancelTimer(RE.POINodes[nodeName]["timer"], true);
-	RE.POINodes[nodeName]["timer"] = nil;
+	RE.AceTimer:CancelTimer(RE.POINodes[nodeName]["timer"]);
 	if RE.CurrentMap == "AlteracValley" then
 		if newTexture == 9 then -- Tower Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 12 then -- Tower Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		elseif newTexture == 4 then -- GY Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 14 then -- GY Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		end
 	elseif RE.CurrentMap == "NetherstormArena" then
 		if newTexture == 9 then -- Tower Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 12 then -- Tower Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		end
 	elseif RE.CurrentMap == "GilneasBattleground2" then
 		if newTexture == 9 then -- Lighthouse Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 12 then -- Lighthouse Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		elseif newTexture == 27 then -- Waterworks Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 29 then -- Waterworks Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		elseif newTexture == 17 then -- Mine Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 19 then -- Mine Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		end
 	elseif RE.CurrentMap == "IsleofConquest" then
 		if newTexture == 9 then -- Keep Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 12 then -- Keep Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		elseif newTexture == 152 then -- Oil Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 154 then -- Oil Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		elseif newTexture == 147 then -- Dock Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 149 then -- Dock Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		elseif newTexture == 137 then -- Workshop Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 139 then -- Workshop Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		elseif newTexture == 142 then -- Air Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 144 then -- Air Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		elseif newTexture == 17 then -- Quary Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 19 then -- Quary Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		end
 	elseif RE.CurrentMap == "ArathiBasin" then
 		if newTexture == 32 then -- Farm Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 34 then -- Farm Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		elseif newTexture == 17 then -- Mine Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 19 then -- Mine Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		elseif newTexture == 37 then -- Stables Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 39 then -- Stables Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		elseif newTexture == 27 then -- Blacksmith Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 29 then -- Blacksmith Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		elseif newTexture == 22 then -- Lumbermill Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 24 then -- Lumbermill Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		end
 	elseif RE.CurrentMap == "GoldRush" then
 		if newTexture == 17 then -- Mine Ally
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE;
 		elseif newTexture == 19 then -- Mine Horde
-			RE.POINodes[nodeName]["timer"] = RE.ShefkiTimer:ScheduleTimer(REPorter_TimerNull, RE.DefaultTimer, nodeName);
+			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer);
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE;
 		end
 	end
@@ -1384,14 +1370,14 @@ end
 
 function REPorter_POIStatus(POIName)
 	if RE.POINodes[POIName]then
-		if RE.ShefkiTimer:TimeLeft(RE.POINodes[POIName]["timer"]) == nil then
+		if RE.AceTimer:TimeLeft(RE.POINodes[POIName]["timer"]) == 0 then
 			if RE.POINodes[POIName]["health"] and not RE.GateSyncRequested then
 				local gateHealth = REPorter_Round((RE.POINodes[POIName]["health"]/RE.POINodes[POIName]["maxHealth"])*100, 0);
 				return " - "..HEALTH..": "..gateHealth.."%";
 			end
 			return "";
 		else
-			local timeLeft = REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.POINodes[POIName]["timer"]), 0));
+			local timeLeft = REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[POIName]["timer"]), 0));
 			return " - To cap: "..timeLeft;
 		end
 	end
@@ -1474,8 +1460,8 @@ function REPorter_BigButton(isHelp, otherNode)
 end
 
 function REPorter_ReportEstimator()
-	if RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer) then
-		SendChatMessage(RE.IsWinning.." victory: "..REPorter_ShortTime(REPorter_Round(RE.ShefkiTimer:TimeLeft(RE.EstimatorTimer), 0))..RE.ReportPrefix, "INSTANCE_CHAT");
+	if RE.AceTimer:TimeLeft(RE.EstimatorTimer) > 0 then
+		SendChatMessage(RE.IsWinning.." victory: "..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0))..RE.ReportPrefix, "INSTANCE_CHAT");
 	elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
 		SendChatMessage(FACTION_ALLIANCE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."% - "..FACTION_HORDE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%"..RE.ReportPrefix, "INSTANCE_CHAT");
 	end
