@@ -44,7 +44,6 @@ RE.DefaultConfig = {
 	scale = 1,
 	version = RE.AddonVersionCheck
 };
--- TODO - Legion
 RE.BlipCoords = {
 	["WARRIOR"] = { 0, 0.125, 0, 0.25 },
 	["PALADIN"] = { 0.125, 0.25, 0, 0.25 },
@@ -56,9 +55,9 @@ RE.BlipCoords = {
 	["MAGE"] = { 0.875, 1, 0, 0.25 },
 	["WARLOCK"] = { 0, 0.125, 0.25, 0.5 },
 	["DRUID"] = { 0.25, 0.375, 0.25, 0.5 },
-	["MONK"] = { 0.125, 0.25, 0.25, 0.5 }
+	["MONK"] = { 0.125, 0.25, 0.25, 0.5 },
+	["DEMONHUNTER"]	= { 0.375, 0.5, 0.25, 0.5 }
 }
--- TODO - Legion
 RE.ClassColors = {
 	["HUNTER"] = "AAD372",
 	["WARLOCK"] = "9482C9",
@@ -70,7 +69,8 @@ RE.ClassColors = {
 	["SHAMAN"] = "0070DD",
 	["WARRIOR"] = "C69B6D",
 	["DEATHKNIGHT"] = "C41E3A",
-	["MONK"] = "00FF96"
+	["MONK"] = "00FF96",
+	["DEMONHUNTER"] = "A330C9"
 };
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
