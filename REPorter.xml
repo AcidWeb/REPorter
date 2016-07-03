@@ -362,32 +362,28 @@
 					<OnClick>REPorter_BigButton(false)</OnClick>
 				</Scripts>
 			</Button>
-			<Frame name="$parent_Estimator">
-				<Size>
-					<AbsDimension x="55" y="27"/>
-				</Size>
-				<Backdrop edgeFile="Interface\DialogFrame\UI-DialogBox-Border">
-					<EdgeSize>
-						<AbsValue val="20"/>
-					</EdgeSize>
-				</Backdrop>
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="220" y="-9"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-				<Layers>
-					<Layer>
-						<FontString name="$Parent_Text" justifyH="CENTER" inherits="SystemFont_Shadow_Med3" setAllPoints="true" />
-					</Layer>
-				</Layers>
-				<Scripts>
-					<OnMouseUp>REPorter_ReportEstimator()</OnMouseUp>
-				</Scripts>
-			</Frame>
 		</Frames>
+	</Frame>
+
+	<Frame name="REPorterEstimator" frameStrata="DIALOG" parent="WorldStateAlwaysUpFrame" resizable="false" movable="false">
+		<Size>
+			<AbsDimension x="100" y="100"/>
+		</Size>
+		<Anchors>
+			<Anchor point="RIGHT" relativePoint="LEFT">
+				<Offset>
+					<AbsDimension x="-15" y="-5"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer>
+				<FontString name="$Parent_Text" justifyH="CENTER" inherits="SystemFont_Shadow_Med3" setAllPoints="true" />
+			</Layer>
+		</Layers>
+		<Scripts>
+			<OnMouseUp>REPorter_ReportEstimator()</OnMouseUp>
+		</Scripts>
 	</Frame>
 
 	<Frame name="REPorterTimerOverlay" frameStrata="MEDIUM" parent="REPorterExternal" />

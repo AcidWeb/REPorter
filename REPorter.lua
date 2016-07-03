@@ -355,6 +355,7 @@ function REPorter_OnHide(self)
 	RE.IsWinning = "";
 	REPorter_ClearTextures();
 	CloseDropDownMenus();
+	REPorterEstimator_Text:SetText("");
 end
 
 function REPorter_OnEvent(self, event, ...)
@@ -877,16 +878,16 @@ function REPorter_OnUpdate(self, elapsed)
 
 		if RE.AceTimer:TimeLeft(RE.EstimatorTimer) > 0 then
 			if RE.IsWinning == FACTION_ALLIANCE then
-				REPorterTab_Estimator_Text:SetText("|cFF00A9FF"..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r");
+				REPorterEstimator_Text:SetText("|cFF00A9FF"..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r");
 			elseif RE.IsWinning == FACTION_HORDE then
-				REPorterTab_Estimator_Text:SetText("|cFFFF141D"..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r");
+				REPorterEstimator_Text:SetText("|cFFFF141D"..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r");
 			else
-				REPorterTab_Estimator_Text:SetText("");
+				REPorterEstimator_Text:SetText("");
 			end
 		elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
-			REPorterTab_Estimator_Text:SetText(RE.IoCGateEstimatorText);
+			REPorterEstimator_Text:SetText(RE.IoCGateEstimatorText);
 		else
-			REPorterTab_Estimator_Text:SetText("");
+			REPorterEstimator_Text:SetText("");
 		end
 
 		RE.updateTimer = RE.MapUpdateRate;
