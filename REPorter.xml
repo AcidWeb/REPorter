@@ -195,7 +195,11 @@
 						REPSettings[REPorterNamespace["CurrentMap"]] = {};
 						REPSettings[REPorterNamespace["CurrentMap"]].x, REPSettings[REPorterNamespace["CurrentMap"]].y = REPorterExternal:GetCenter();
 					</OnDragStop>
+					<OnEnter>
+						REPorter_OnEnter(true);
+					</OnEnter>
 					<OnLeave>
+						REPorter_OnLeave(false);
 						CloseDropDownMenus();
 					</OnLeave>
 				</Scripts>
@@ -228,7 +232,7 @@
 
 	<Frame name="REPorterTab" parent="REPorterExternal">
 		<Size>
-			<AbsDimension x="404" y="45"/>
+			<AbsDimension x="255" y="45"/>
 		</Size>
 		<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
 			<EdgeSize>
@@ -249,7 +253,7 @@
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
-							<AbsDimension x="12" y="-10"/>
+							<AbsDimension x="10" y="-10"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -262,9 +266,9 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOPLEFT">
+					<Anchor point="LEFT" relativeTo="$parent_SB1" relativePoint="RIGHT">
 						<Offset>
-							<AbsDimension x="48" y="-10"/>
+							<AbsDimension x="5"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -277,9 +281,9 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOPLEFT">
+					<Anchor point="LEFT" relativeTo="$parent_SB2" relativePoint="RIGHT">
 						<Offset>
-							<AbsDimension x="83" y="-10"/>
+							<AbsDimension x="5"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -292,9 +296,9 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOPLEFT">
+					<Anchor point="LEFT" relativeTo="$parent_SB3" relativePoint="RIGHT">
 						<Offset>
-							<AbsDimension x="118" y="-10"/>
+							<AbsDimension x="5"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -307,9 +311,9 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOPLEFT">
+					<Anchor point="LEFT" relativeTo="$parent_SB4" relativePoint="RIGHT">
 						<Offset>
-							<AbsDimension x="153" y="-10"/>
+							<AbsDimension x="5"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -322,9 +326,9 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOPLEFT">
+					<Anchor point="LEFT" relativeTo="$parent_SB5" relativePoint="RIGHT">
 						<Offset>
-							<AbsDimension x="188" y="-10"/>
+							<AbsDimension x="5"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -332,14 +336,14 @@
 					<OnClick>REPorter_SmallButton(6)</OnClick>
 				</Scripts>
 			</Button>
-			<Button name="$parent_BB1" inherits="UIPanelButtonTemplate" text="Help">
+			<Button name="$parent_BB1" text="H" inherits="UIPanelButtonTemplate">
 				<Size>
-					<AbsDimension x="50" y="25"/>
+					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOPRIGHT">
+					<Anchor point="LEFT" relativeTo="$parent_SB6" relativePoint="RIGHT">
 						<Offset>
-							<AbsDimension x="-12" y="-10"/>
+							<AbsDimension x="5"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -347,14 +351,14 @@
 					<OnClick>REPorter_BigButton(true)</OnClick>
 				</Scripts>
 			</Button>
-			<Button name="$parent_BB2" inherits="UIPanelButtonTemplate" text="Clear">
+			<Button name="$parent_BB2" text="C" inherits="UIPanelButtonTemplate">
 				<Size>
-					<AbsDimension x="50" y="25"/>
+					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOPRIGHT">
+					<Anchor point="LEFT" relativeTo="$parent_BB1" relativePoint="RIGHT">
 						<Offset>
-							<AbsDimension x="-72" y="-10"/>
+							<AbsDimension x="5"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -363,6 +367,14 @@
 				</Scripts>
 			</Button>
 		</Frames>
+		<Scripts>
+			<OnEnter>
+				REPorter_OnEnter(true);
+			</OnEnter>
+			<OnLeave>
+				REPorter_OnLeave(false);
+			</OnLeave>
+		</Scripts>
 	</Frame>
 
 	<Frame name="REPorterEstimator" frameStrata="DIALOG" parent="WorldStateAlwaysUpFrame" resizable="false" movable="false">

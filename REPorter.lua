@@ -318,6 +318,10 @@ function RE.AceTimer.JoinCheck()
 	end
 	RE.SyncTimer = nil;
 end
+
+function RE.AceTimer.TabHider()
+	REPorterTab:SetAlpha(0.25);
+end
 --
 
 -- *** Event functions
@@ -338,6 +342,7 @@ function REPorter_OnShow(self)
 		REPSettings["firstTime"] = nil;
 		REPorterTutorial:Show();
 	end
+	REPorterTab:SetAlpha(0.25);
 end
 
 function REPorter_OnHide(self)
@@ -356,6 +361,16 @@ function REPorter_OnHide(self)
 	REPorter_ClearTextures();
 	CloseDropDownMenus();
 	REPorterEstimator_Text:SetText("");
+end
+
+function REPorter_OnEnter(self)
+	RE.AceTimer:CancelTimer(RE.TabHiderTimer);
+	REPorterTab:SetAlpha(REPSettings["opacity"]);
+end
+
+function REPorter_OnLeave(self)
+	RE.AceTimer:CancelTimer(RE.TabHiderTimer);
+	RE.TabHiderTimer = RE.AceTimer:ScheduleTimer("TabHider", 1.5);
 end
 
 function REPorter_OnEvent(self, event, ...)
@@ -1548,9 +1563,9 @@ function REPorter_OptionsReload(dontSaveSettings)
 	end
 	REPorterTab:ClearAllPoints();
 	if REPSettings.reportBarAnchor then
-		REPorterTab:SetPoint("BOTTOM", REPorterBorder, "TOP", 0, 3);
+		REPorterTab:SetPoint("BOTTOM", REPorterBorder, "TOP", 0, 0);
 	else
-		REPorterTab:SetPoint("TOP", REPorterBorder, "BOTTOM", 0, -3);
+		REPorterTab:SetPoint("TOP", REPorterBorder, "BOTTOM", 0, 0);
 	end
 	REPorterExternal:SetAlpha(REPSettings["opacity"]);
 	REPorterExternal:SetScale(REPSettings["scale"]);
