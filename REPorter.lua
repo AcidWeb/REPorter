@@ -78,7 +78,7 @@ RE.MapSettings = {
 	["NetherstormArena"] = {["HE"] = 340, ["WI"] = 200, ["HO"] = 275, ["VE"] = 90, ["pointsToWin"] = 1500, ["WorldStateNum"] = 3, ["StartTimer"] = 120},
 	["StrandoftheAncients"] = {["HE"] = 410, ["WI"] = 275, ["HO"] = 240, ["VE"] = 100, ["StartTimer"] = 120},
 	["IsleofConquest"] = {["HE"] = 370, ["WI"] = 325, ["HO"] = 230, ["VE"] = 85, ["StartTimer"] = 120},
-	["GilneasBattleground2"] = {["HE"] = 350, ["WI"] = 315, ["HO"] = 240, ["VE"] = 90, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
+	["GilneasBattleground2"] = {["HE"] = 360, ["WI"] = 325, ["HO"] = 230, ["VE"] = 90, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
 	["TwinPeaks"] = {["HE"] = 435, ["WI"] = 250, ["HO"] = 280, ["VE"] = 40, ["StartTimer"] = 120},
 	["TempleofKotmogu"] = {["HE"] = 250, ["WI"] = 400, ["HO"] = 185, ["VE"] = 155, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
 	["STVDiamondMineBG"] = {["HE"] = 325, ["WI"] = 435, ["HO"] = 175, ["VE"] = 95, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
@@ -264,7 +264,7 @@ end
 
 function REPorter_WMOnHideUpdate()
 	local _, instanceType = IsInInstance();
-	if instanceType == "pvp" and (REPorter_SOTAStartCheck() or RE.CurrentMap ~= "StrandoftheAncients") then
+	if instanceType == "pvp" and (REPorter_SOTAStartCheck() or RE.CurrentMap ~= "StrandoftheAncients") and RE.CurrentMap ~= "AlteracValley" then
 		REPorter_Update(true);
 	end
 end
@@ -552,7 +552,7 @@ function REPorter_OnEvent(self, event, ...)
 				else
 					AllianceTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - AlliancePointNum) / RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum];
 				end
-				if  RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum] == 0 then
+				if RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum] == 0 then
 					HordeTimeToWin = 10000;
 				else
 					HordeTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - HordePointNum) / RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum];
@@ -628,9 +628,7 @@ function REPorter_OnEvent(self, event, ...)
 			REPorterTimerOverlay:Hide();
 			REPorterTimerOverlay:SetFrameStrata("MEDIUM");
 		end
-	elseif event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" then
-		REPorter_Update(true);
-	elseif event == "CHAT_MSG_BG_SYSTEM_ALLIANCE" or event == "CHAT_MSG_BG_SYSTEM_HORDE" or event == "CHAT_MSG_RAID_BOSS_EMOTE" then
+	elseif event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" or event == "CHAT_MSG_BG_SYSTEM_ALLIANCE" or event == "CHAT_MSG_BG_SYSTEM_HORDE" or event == "CHAT_MSG_RAID_BOSS_EMOTE" then
 		REPorter_Update();
 	end
 end
@@ -741,6 +739,46 @@ function REPorter_OnUpdate(self, elapsed)
 				if showInBattleMap and name and RE.POINodes[name] then
 					local x1, x2, y1, y2 = GetPOITextureCoords(textureIndex);
 					x, y = REPorter_GetRealCoords(x, y);
+					if RE.CurrentMap == "IsleofConquest" then
+						if i == 9 then
+							x = x + 10;
+						elseif i == 10 then
+							x = x - 10;
+						elseif i == 11 then
+							y = y + 15;
+						elseif i == 6 then
+							y = y - 15;
+						elseif i == 7 then
+							x = x + 10;
+						elseif i == 8 then
+							x = x - 10;
+						end
+					end
+					if RE.CurrentMap == "AlteracValley" then
+						if x > 343 and x < 346 then
+							x = 350;
+							y = -108;
+						elseif x > 330 and x < 343 then
+							x = 318;
+						elseif x > 402 and x < 405 then
+							x = 412;
+						elseif x > 383 and x < 387 and y > -80 then
+							x = 388;
+							y = -85;
+						elseif y < -186 and y > -189 then
+							y = -192;
+						elseif y < -398 and y > -402 then
+							x = 398;
+						elseif y < -439 and y > -442 and x > 383 and x < 386 then
+							x = 410;
+					  	y = -440;
+						elseif y < -460 then
+							y = -472;
+						end
+					end
+					battlefieldPOI:SetPoint("CENTER", "REPorter", "TOPLEFT", x, y);
+					battlefieldPOI.name = name;
+					_G[battlefieldPOIName.."WarZone"]:SetPoint("CENTER", "REPorter", "TOPLEFT", x, y);
 					if RE.POINodes[name]["texture"] then
 						if RE.DoIEvenCareAboutNodes and RE.POINodes[name]["texture"] ~= textureIndex then
 							REPorter_NodeChange(textureIndex, name);
@@ -796,7 +834,10 @@ function REPorter_OnUpdate(self, elapsed)
 						_G[battlefieldPOIName.."Timer"]:Show();
 						_G[battlefieldPOIName.."Timer_Caption"]:SetText(REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[name]["timer"]), 0)));
 					end
-					if RE.CurrentMap == "IsleofConquest" and RE.POINodes[name]["texture"] >= 77 and RE.POINodes[name]["texture"] <= 82 then
+					if RE.CurrentMap == "AlteracValley" then
+						battlefieldPOI:Show();
+						_G[battlefieldPOIName.."WarZone"]:Hide();
+					elseif RE.CurrentMap == "IsleofConquest" and RE.POINodes[name]["texture"] >= 77 and RE.POINodes[name]["texture"] <= 82 then
 						_G[battlefieldPOIName.."WarZone"]:Hide();
 					else
 						if GetNumGroupMembers() > 0 then
@@ -1011,32 +1052,28 @@ function REPorterUnit_OnEnterPOI(self)
 		GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
 	end
 
-	local unitButton;
 	local newLineString = "";
 	local tooltipText = "";
-	for i=1, RE.numPOIs do
-		local battlefieldPOIName = "REPorterPOI"..i;
-		local battlefieldPOI = _G[battlefieldPOIName];
-		unitButton = battlefieldPOI;
-		if unitButton:IsVisible() and unitButton:IsMouseOver() and unitButton.name ~= "" then
-			local status = ""
-			if RE.POINodes[unitButton.name]["status"] and RE.POINodes[unitButton.name]["status"] ~= "" then
-				status = "\n"..RE.POINodes[unitButton.name]["status"];
-			end
-			if RE.POINodes[unitButton.name]["health"] then
-				if RE.GateSyncRequested then
-					status = "\n[|r|cFFFF141D"..REPorter_Round((RE.POINodes[unitButton.name]["health"]/RE.POINodes[unitButton.name]["maxHealth"])*100, 0).."%|r|cFFFFFFFF]";
-				else
-					status = "\n["..REPorter_Round((RE.POINodes[unitButton.name]["health"]/RE.POINodes[unitButton.name]["maxHealth"])*100, 0).."%]";
-				end
-			end
-			if RE.AceTimer:TimeLeft(RE.POINodes[unitButton.name]["timer"]) == 0 then
-				tooltipText = tooltipText..newLineString..unitButton.name.."|cFFFFFFFF"..status.."|r";
-			else
-				tooltipText = tooltipText..newLineString..unitButton.name.."|cFFFFFFFF ["..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[unitButton.name]["timer"]), 0)).."]"..status.."|r";
-			end
-			newLineString = "\n";
+	local battlefieldPOIName = self:GetName();
+	local battlefieldPOI = _G[battlefieldPOIName];
+	if battlefieldPOI:IsVisible() and battlefieldPOI:IsMouseOver() and battlefieldPOI.name ~= "" then
+		local status = ""
+		if RE.POINodes[battlefieldPOI.name]["status"] and RE.POINodes[battlefieldPOI.name]["status"] ~= "" then
+			status = "\n"..RE.POINodes[battlefieldPOI.name]["status"];
 		end
+		if RE.POINodes[battlefieldPOI.name]["health"] then
+			if RE.GateSyncRequested then
+				status = "\n[|r|cFFFF141D"..REPorter_Round((RE.POINodes[battlefieldPOI.name]["health"]/RE.POINodes[battlefieldPOI.name]["maxHealth"])*100, 0).."%|r|cFFFFFFFF]";
+			else
+				status = "\n["..REPorter_Round((RE.POINodes[battlefieldPOI.name]["health"]/RE.POINodes[battlefieldPOI.name]["maxHealth"])*100, 0).."%]";
+			end
+		end
+		if RE.AceTimer:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]) == 0 then
+			tooltipText = tooltipText..newLineString..battlefieldPOI.name.."|cFFFFFFFF"..status.."|r";
+		else
+			tooltipText = tooltipText..newLineString..battlefieldPOI.name.."|cFFFFFFFF ["..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]), 0)).."]"..status.."|r";
+		end
+		newLineString = "\n";
 	end
 	GameTooltip:SetText(tooltipText);
 	GameTooltip:Show();
@@ -1112,20 +1149,6 @@ function REPorter_Update(NotResetHealth)
 					local x1, x2, y1, y2 = GetPOITextureCoords(textureIndex);
 					_G[battlefieldPOIName.."Texture"]:SetTexCoord(x1, x2, y1, y2);
 					x, y = REPorter_GetRealCoords(x, y);
-
-					if mapFileName == "AlteracValley" then
-						if i == 4 then
-							x = x + 3;
-							y = y - 5;
-						elseif i == 3 then
-							x = x + 3;
-							y = y + 5;
-						elseif i == 5 then
-							x = x + 9;
-						elseif i == 22 then
-							x = x - 9;
-						end
-					end
 					if mapFileName == "IsleofConquest" then
 						if i == 9 then
 							RE.IoCAllianceGateName = name;
@@ -1158,14 +1181,20 @@ function REPorter_Update(NotResetHealth)
 					battlefieldPOI:Show();
 
 					if not NotResetHealth then
-						RE.POINodes[name] = {["id"] = i, ["name"] = name, ["status"] = description, ["x"]= x, ["y"] = y, ["texture"] = textureIndex};
+						RE.POINodes[name] = {["id"] = i, ["name"] = name, ["status"] = description, ["x"] = x, ["y"] = y, ["texture"] = textureIndex};
 					else
-						RE.POINodes[name]["id"] = i;
-						RE.POINodes[name]["name"] = name;
-						RE.POINodes[name]["status"] = description;
-						RE.POINodes[name]["x"] = x;
-						RE.POINodes[name]["y"] = y;
-						RE.POINodes[name]["texture"] = textureIndex;
+						if RE.CurrentMap == "AlteracValley" and RE.POINodes[name] == nil then
+							if RE.Debug > 0 then
+								print("\124cFF74D06C[REPorter]\124r Dropped node - "..name);
+							end
+						else
+							RE.POINodes[name]["id"] = i;
+							RE.POINodes[name]["name"] = name;
+							RE.POINodes[name]["status"] = description;
+							RE.POINodes[name]["x"] = x;
+							RE.POINodes[name]["y"] = y;
+							RE.POINodes[name]["texture"] = textureIndex;
+						end
 					end
 
 					if mapFileName == "IsleofConquest" and not NotResetHealth then
