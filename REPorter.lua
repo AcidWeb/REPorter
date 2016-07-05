@@ -300,6 +300,25 @@ function REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin, RefreshTimer)
 	end
 end
 
+function REPorter_GetNearestPOI()
+	local playerX, playerY = GetPlayerMapPosition("player");
+	local node = "";
+	if playerX ~= 0 and playerY ~= 0 then
+	    playerX, playerY = REPorter_GetRealCoords(playerX, playerY);
+	    for i=1, GetNumMapLandmarks() do
+	        local name, _, _, x, y, _, showInBattleMap = GetMapLandmarkInfo(i);
+	        if name and showInBattleMap then
+	            x, y = REPorter_GetRealCoords(x, y);
+	            if REPorter_PointDistance(playerX, playerY, x, y) < 50 then
+					node = name;
+	                break;
+	            end
+			end
+	    end
+	end
+	return node;
+end
+
 function RE.AceTimer.Null()
 	-- And Now His Watch is Ended
 end
@@ -637,24 +656,14 @@ function REPorter_OnUpdate(self, elapsed)
 	if RE.updateTimer < 0 then
 		REPorter_BlinkPOI();
 		local subZoneName = GetSubZoneText();
-		if subZoneName and subZoneName ~= "" and RE.CurrentMap ~= "GoldRush" then
-			REPorterTab_SB1:Enable();
-			REPorterTab_SB2:Enable();
-			REPorterTab_SB3:Enable();
-			REPorterTab_SB4:Enable();
-			REPorterTab_SB5:Enable();
-			REPorterTab_SB6:Enable();
-			REPorterTab_BB1:Enable();
-			REPorterTab_BB2:Enable();
+		if (subZoneName and subZoneName ~= "" and RE.CurrentMap ~= "GoldRush") or (RE.CurrentMap == "GoldRush" and REPorter_GetNearestPOI() ~= "") then
+			for _, i in pairs({"SB1", "SB2", "SB3", "SB4", "SB5", "SB6", "BB1", "BB2"}) do
+				_G["REPorterTab_"..i]:Enable();
+			end
 		else
-			REPorterTab_SB1:Disable();
-			REPorterTab_SB2:Disable();
-			REPorterTab_SB3:Disable();
-			REPorterTab_SB4:Disable();
-			REPorterTab_SB5:Disable();
-			REPorterTab_SB6:Disable();
-			REPorterTab_BB1:Disable();
-			REPorterTab_BB2:Disable();
+			for _, i in pairs({"SB1", "SB2", "SB3", "SB4", "SB5", "SB6", "BB1", "BB2"}) do
+				_G["REPorterTab_"..i]:Disable();
+			end
 		end
 
 		local numFlags = GetNumBattlefieldFlagPositions();
@@ -1491,7 +1500,7 @@ function REPorter_SmallButton(number, otherNode)
 		if otherNode then
 			name = RE.ClickedPOI;
 		elseif RE.CurrentMap == "GoldRush" then
-			name = "";
+			name = REPorter_GetNearestPOI();
 		else
 			name = GetSubZoneText();
 		end
@@ -1518,7 +1527,7 @@ function REPorter_BigButton(isHelp, otherNode)
 		if otherNode then
 			name = RE.ClickedPOI;
 		elseif RE.CurrentMap == "GoldRush" then
-			name = "";
+			name = REPorter_GetNearestPOI();
 		else
 			name = GetSubZoneText();
 		end
