@@ -37,7 +37,7 @@
 
 	<Frame name="REPorterPOITimerTemplate" parent="REPorterTimerOverlay" virtual="true">
 		<Size>
-			<AbsDimension x="25" y="15"/>
+			<AbsDimension x="30" y="17"/>
 		</Size>
 		<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" tile="true">
 			<TileSize>
@@ -186,20 +186,20 @@
 						self:RegisterForDrag("LeftButton");
 					</OnLoad>
 					<OnDragStart>
-						if not REPSettings.locked then
+						if REPorterSettings.locked ~= true then
 							REPorterExternal:StartMoving();
 						end
 					</OnDragStart>
 					<OnDragStop>
 						REPorterExternal:StopMovingOrSizing();
-						REPSettings[REPorterNamespace["CurrentMap"]] = {};
-						REPSettings[REPorterNamespace["CurrentMap"]].x, REPSettings[REPorterNamespace["CurrentMap"]].y = REPorterExternal:GetCenter();
+						REPorterSettings[REPorterNamespace["CurrentMap"]] = {};
+						REPorterSettings[REPorterNamespace["CurrentMap"]].x, REPorterSettings[REPorterNamespace["CurrentMap"]].y = REPorterExternal:GetCenter();
 					</OnDragStop>
 					<OnEnter>
-						REPorter_OnEnter(true);
+						REPorter_OnEnter();
 					</OnEnter>
 					<OnLeave>
-						REPorter_OnLeave(false);
+						REPorter_OnLeave();
 						CloseDropDownMenus();
 					</OnLeave>
 				</Scripts>
@@ -232,7 +232,7 @@
 
 	<Frame name="REPorterTab" parent="REPorterExternal">
 		<Size>
-			<AbsDimension x="255" y="45"/>
+			<AbsDimension x="45" y="220"/>
 		</Size>
 		<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
 			<EdgeSize>
@@ -258,7 +258,9 @@
 					</Anchor>
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_SmallButton(1)</OnClick>
+					<OnClick>
+						REPorter_SmallButton(1);
+					</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB2" text="2" inherits="UIPanelButtonTemplate">
@@ -266,14 +268,12 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="LEFT" relativeTo="$parent_SB1" relativePoint="RIGHT">
-						<Offset>
-							<AbsDimension x="5"/>
-						</Offset>
-					</Anchor>
+					<Anchor point="TOP" relativeTo="$parent_SB1" relativePoint="BOTTOM" />
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_SmallButton(2)</OnClick>
+					<OnClick>
+						REPorter_SmallButton(2);
+					</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB3" text="3" inherits="UIPanelButtonTemplate">
@@ -281,14 +281,12 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="LEFT" relativeTo="$parent_SB2" relativePoint="RIGHT">
-						<Offset>
-							<AbsDimension x="5"/>
-						</Offset>
-					</Anchor>
+					<Anchor point="TOP" relativeTo="$parent_SB2" relativePoint="BOTTOM" />
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_SmallButton(3)</OnClick>
+					<OnClick>
+						REPorter_SmallButton(3);
+					</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB4" text="4" inherits="UIPanelButtonTemplate">
@@ -296,14 +294,12 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="LEFT" relativeTo="$parent_SB3" relativePoint="RIGHT">
-						<Offset>
-							<AbsDimension x="5"/>
-						</Offset>
-					</Anchor>
+					<Anchor point="TOP" relativeTo="$parent_SB3" relativePoint="BOTTOM" />
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_SmallButton(4)</OnClick>
+					<OnClick>
+						REPorter_SmallButton(4);
+					</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB5" text="5" inherits="UIPanelButtonTemplate">
@@ -311,29 +307,25 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="LEFT" relativeTo="$parent_SB4" relativePoint="RIGHT">
-						<Offset>
-							<AbsDimension x="5"/>
-						</Offset>
-					</Anchor>
+					<Anchor point="TOP" relativeTo="$parent_SB4" relativePoint="BOTTOM" />
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_SmallButton(5)</OnClick>
+					<OnClick>
+						REPorter_SmallButton(5);
+					</OnClick>
 				</Scripts>
 			</Button>
-			<Button name="$parent_SB6" text="5+" inherits="UIPanelButtonTemplate">
+			<Button name="$parent_SB6" text="Z" inherits="UIPanelButtonTemplate">
 				<Size>
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="LEFT" relativeTo="$parent_SB5" relativePoint="RIGHT">
-						<Offset>
-							<AbsDimension x="5"/>
-						</Offset>
-					</Anchor>
+					<Anchor point="TOP" relativeTo="$parent_SB5" relativePoint="BOTTOM" />
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_SmallButton(6)</OnClick>
+					<OnClick>
+						REPorter_SmallButton(6);
+					</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_BB1" text="H" inherits="UIPanelButtonTemplate">
@@ -341,14 +333,12 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="LEFT" relativeTo="$parent_SB6" relativePoint="RIGHT">
-						<Offset>
-							<AbsDimension x="5"/>
-						</Offset>
-					</Anchor>
+					<Anchor point="TOP" relativeTo="$parent_SB6" relativePoint="BOTTOM" />
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_BigButton(true)</OnClick>
+					<OnClick>
+						REPorter_BigButton(true);
+					</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_BB2" text="C" inherits="UIPanelButtonTemplate">
@@ -356,23 +346,21 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="LEFT" relativeTo="$parent_BB1" relativePoint="RIGHT">
-						<Offset>
-							<AbsDimension x="5"/>
-						</Offset>
-					</Anchor>
+					<Anchor point="TOP" relativeTo="$parent_BB1" relativePoint="BOTTOM" />
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_BigButton(false)</OnClick>
+					<OnClick>
+						REPorter_BigButton(false);
+					</OnClick>
 				</Scripts>
 			</Button>
 		</Frames>
 		<Scripts>
 			<OnEnter>
-				REPorter_OnEnter(true);
+				REPorter_OnEnter();
 			</OnEnter>
 			<OnLeave>
-				REPorter_OnLeave(false);
+				REPorter_OnLeave();
 			</OnLeave>
 		</Scripts>
 	</Frame>
@@ -394,7 +382,9 @@
 			</Layer>
 		</Layers>
 		<Scripts>
-			<OnMouseUp>REPorter_ReportEstimator()</OnMouseUp>
+			<OnMouseUp>
+				REPorter_ReportEstimator();
+			</OnMouseUp>
 		</Scripts>
 	</Frame>
 
@@ -522,91 +512,10 @@
 			</Layer>
 		</Layers>
 		<Scripts>
-			<OnMouseUp>REPorterTutorial:Hide();</OnMouseUp>
+			<OnMouseUp>
+				REPorterTutorial:Hide();
+			</OnMouseUp>
 		</Scripts>
-	</Frame>
-
-	<Frame name="REPorterOptions">
-		<Scripts>
-			<OnLoad>REPorter_OptionsOnLoad(self);</OnLoad>
-		</Scripts>
-		<Frames>
-			<CheckButton name="$parent_locked" inherits="OptionsCheckButtonTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="10" y="-10"></AbsDimension>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</CheckButton>
-			<CheckButton name="$parent_reportBarAnchor" inherits="OptionsCheckButtonTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="10" y="-35"></AbsDimension>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</CheckButton>
-			<CheckButton name="$parent_nameAdvert" inherits="OptionsCheckButtonTemplate">
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="10" y="-60"></AbsDimension>
-						</Offset>
-					</Anchor>
-				</Anchors>
-			</CheckButton>
-			<Slider name="$parent_opacity" inherits="OptionsSliderTemplate" minValue="0.05" maxValue="1" orientation="HORIZONTAL">
-				<Size>
-					<AbsDimension x="200" y="16"/>
-				</Size>
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="16" y="-100"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-				<Layers>
-					<Layer level="ARTWORK">
-						<FontString name="$parentValue" inherits="GameFontHighlight">
-							<Anchors>
-								<Anchor point="TOP" relativePoint="BOTTOM"/>
-							</Anchors>
-						</FontString>
-					</Layer>
-				</Layers>
-				<Scripts>
-					<OnValueChanged>REPorter_AlphaSlider();</OnValueChanged>
-				</Scripts>
-			</Slider>
-			<Slider name="$parent_scale" inherits="OptionsSliderTemplate" minValue="0.5" maxValue="1.5" orientation="HORIZONTAL">
-				<Size>
-					<AbsDimension x="200" y="16"/>
-				</Size>
-				<Anchors>
-					<Anchor point="TOPLEFT">
-						<Offset>
-							<AbsDimension x="16" y="-150"/>
-						</Offset>
-					</Anchor>
-				</Anchors>
-				<Layers>
-					<Layer level="ARTWORK">
-						<FontString name="$parentValue" inherits="GameFontHighlight">
-							<Anchors>
-								<Anchor point="TOP" relativePoint="BOTTOM"/>
-							</Anchors>
-						</FontString>
-					</Layer>
-				</Layers>
-				<Scripts>
-					<OnValueChanged>REPorter_ScaleSlider();</OnValueChanged>
-				</Scripts>
-			</Slider>
-		</Frames>
 	</Frame>
 
 </Ui>

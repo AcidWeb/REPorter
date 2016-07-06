@@ -1,5 +1,6 @@
 REPorterNamespace = {["AceTimer"] = {}};
 local RE = REPorterNamespace;
+local RES = REPorterSettings;
 LibStub("AceTimer-3.0"):Embed(RE.AceTimer);
 
 RE.POIIconSize = 30;
@@ -29,19 +30,11 @@ RE.BlinkPOIUp = true;
 
 RE.CurrentMap = "";
 RE.ClickedPOI = "";
-RE.ReportPrefix = "";
 
 RE.FoundNewVersion = false;
 RE.AddonVersionCheck = 90;
 RE.Debug = 1;
 
-RE.DefaultConfig = {
-	firstTime = 1,
-	opacity = 0.85,
-	nameAdvert = 1,
-	scale = 1,
-	version = RE.AddonVersionCheck
-};
 RE.BlipCoords = {
 	["WARRIOR"] = { 0, 0.125, 0, 0.25 },
 	["PALADIN"] = { 0.125, 0.25, 0, 0.25 },
@@ -110,6 +103,91 @@ RE.POIDropDown = {
 	{ text = "Losing", notCheckable = true, func = function() REPorter_ReportDropDownClick("Losing") end },
 	{ text = "", notCheckable = true, disabled = true },
 	{ text = "Report status", notCheckable = true, func = function() REPorter_ReportDropDownClick("") end }
+};
+RE.DefaultConfig = {
+	barHandle = 1,
+	firstTime = true,
+	locked = false,
+	nameAdvert = false,
+	opacity = 0.75,
+	scale = 1
+};
+RE.ReportBarAnchor = {
+	[1] = {"BOTTOMLEFT", "BOTTOMRIGHT"},
+	[2] = {"LEFT", "RIGHT"},
+	[3] = {"TOPLEFT", "TOPRIGHT"},
+	[4] = {"BOTTOMRIGHT", "BOTTOMLEFT"},
+	[5] = {"RIGHT", "LEFT"},
+	[6] = {"TOPRIGHT", "TOPLEFT"}
+};
+RE.AceConfig = {
+  type = "group",
+  args = {
+		locked = {
+			name = "Lock map",
+			desc = "When checked map is locked in place.",
+			type = "toggle",
+			width = "full",
+			order = 1,
+			set = function(_, val) RES.locked = val end,
+			get = function(_) return RES.locked end
+		},
+    nameAdvert = {
+      name = "Add \"[REPorter]\" to end of each report",
+			desc = "When checked shameless ad is added to each battleground report.",
+      type = "toggle",
+			width = "full",
+			order = 2,
+      set = function(_, val) RES.nameAdvert = val; REPorter_UpdateConfig() end,
+      get = function(_) return RES.nameAdvert end
+    },
+		barHandle = {
+			name = "Report bar location",
+			desc = "Anchor point of bar with quick report buttons.",
+			type = "select",
+			width = "double",
+			order = 3,
+			values = {
+				[1] = "Bottom left",
+				[2] = "Left",
+				[3] = "Top left",
+				[4] = "Bottom right",
+				[5] = "Right",
+				[6] = "Top right"
+			},
+			set = function(_, val) RES.barHandle = val; REPorter_UpdateConfig() end,
+			get = function(_) return RES.barHandle end
+		},
+		scale = {
+			name = "Map scale",
+			desc = "This option control map size.",
+			type = "range",
+			width = "double",
+			min = 0.5,
+			max = 1.5,
+			step = 0.05,
+			set = function(_, val) RES.scale = val; REPorter_UpdateConfig() end,
+			get = function(_) return RES.scale end
+		},
+		opacity = {
+			name = "Map alpha",
+			desc = "This option control map transparency.",
+			type = "range",
+			width = "double",
+			isPercent = true,
+			min = 0.1,
+			max = 1,
+			step = 0.01,
+			set = function(_, val) RES.opacity = val; REPorter_UpdateConfig() end,
+			get = function(_) return RES.opacity end
+		},
+		help = {
+			name = "Map position is saved separately for each battleground.",
+			type = "description",
+			fontSize = "medium",
+			order = 0
+		}
+  }
 };
 
 -- *** Auxiliary functions
@@ -329,7 +407,7 @@ function RE.AceTimer.JoinCheck()
 end
 
 function RE.AceTimer.TabHider()
-	REPorterTab:SetAlpha(0.25);
+	REPorterTab:SetAlpha(0.20);
 end
 --
 
@@ -346,9 +424,8 @@ end
 function REPorter_OnShow(self)
 	SetMapToCurrentZone();
 	REPorterExternal:SetScrollChild(REPorter);
-	REPorter_OptionsReload(true);
-	if REPSettings["firstTime"] then
-		REPSettings["firstTime"] = nil;
+	if RES.firstTime then
+		RES.firstTime = nil;
 		REPorterTutorial:Show();
 	end
 	REPorterTab:SetAlpha(0.25);
@@ -371,7 +448,7 @@ end
 
 function REPorter_OnEnter(self)
 	RE.AceTimer:CancelTimer(RE.TabHiderTimer);
-	REPorterTab:SetAlpha(REPSettings["opacity"]);
+	REPorterTab:SetAlpha(RES.opacity);
 end
 
 function REPorter_OnLeave(self)
@@ -381,12 +458,13 @@ end
 
 function REPorter_OnEvent(self, event, ...)
 	if event == "ADDON_LOADED" and ... == "REPorter" then
-		if (not REPSettings) then
-			REPSettings = RE.DefaultConfig;
+		if not REPorterSettings then
+			REPorterSettings = RE.DefaultConfig;
 		end
-		if REPSettings[""] ~= nil then
-			REPSettings[""] = nil;
-		end
+		RES = REPorterSettings;
+		LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", RE.AceConfig);
+		LibStub("AceConfigDialog-3.0"):AddToBlizOptions("REPorter", "REPorter");
+		REPorter_UpdateConfig();
 		RegisterAddonMessagePrefix("REPorter");
 		BINDING_HEADER_REPORTERB = "REPorter";
 		BINDING_NAME_REPORTERINC1 = "Incoming 1";
@@ -397,10 +475,9 @@ function REPorter_OnEvent(self, event, ...)
 		BINDING_NAME_REPORTERINC6 = "Incoming 5+";
 		BINDING_NAME_REPORTERHELP = "Help";
 		BINDING_NAME_REPORTERCLEAR = "Clear";
-		REPorter_OptionsReload(true);
-	    for i=1, RE.POINumber do
-	        REPorter_CreatePOI(i);
-	    end
+    for i=1, RE.POINumber do
+        REPorter_CreatePOI(i);
+    end
 	elseif event == "CHAT_MSG_ADDON" and ... == "REPorter" then
 		local _, REMessage, _, RESender = ...;
 		if RE.Debug > 0 then
@@ -1128,9 +1205,9 @@ function REPorter_Create(isSecond)
 		end
 		RE.CurrentMap = mapFileName;
 		RE.POINodes = {};
-		if REPSettings[mapFileName] then
+		if RES[mapFileName] then
 			REPorterExternal:ClearAllPoints();
-			REPorterExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", REPSettings[mapFileName].x, REPSettings[mapFileName].y);
+			REPorterExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RES[mapFileName].x, RES[mapFileName].y);
 		else
 			REPorterExternal:ClearAllPoints();
 			REPorterExternal:SetPoint("CENTER", "UIParent", "CENTER", 0, 0);
@@ -1457,60 +1534,28 @@ function REPorter_ReportDropDownClick(reportType)
 	end
 end
 
-function REPorter_OptionsOnLoad(REPanel)
-	REPanel.name = "REPorter";
-	REPanel.okay = REPorter_OptionsReload;
-	InterfaceOptions_AddCategory(REPanel);
-
-	REPorterOptions_lockedText:SetText("Lock map");
-	REPorterOptions_reportBarAnchorText:SetText("Show report bar above map");
-	REPorterOptions_nameAdvertText:SetText("Add \"[REPorter]\" to end of each report");
-	REPorterOptions_opacityText:SetText("Map alpha");
-	REPorterOptions_opacityLow:SetText("5%");
-	REPorterOptions_opacityHigh:SetText("100%");
-	REPorterOptions_opacity:SetValueStep(0.05);
-	REPorterOptions_scaleText:SetText("Map scale");
-	REPorterOptions_scaleLow:SetText("0.5");
-	REPorterOptions_scaleHigh:SetText("1.5");
-	REPorterOptions_scale:SetValueStep(0.1);
-end
-
-function REPorter_OptionsReload(dontSaveSettings)
-	if not dontSaveSettings then
-		REPSettings["locked"] = REPorterOptions_locked:GetChecked();
-		REPSettings["reportBarAnchor"] = REPorterOptions_reportBarAnchor:GetChecked();
-		REPSettings["nameAdvert"] = REPorterOptions_nameAdvert:GetChecked();
-		REPSettings["opacity"] = REPorter_Round(REPorterOptions_opacity:GetValue(), 2);
-		REPSettings["scale"] = REPorter_Round(REPorterOptions_scale:GetValue(), 1);
-	end
-
-	REPorterOptions_locked:SetChecked(REPSettings["locked"]);
-	REPorterOptions_reportBarAnchor:SetChecked(REPSettings["reportBarAnchor"]);
-	REPorterOptions_nameAdvert:SetChecked(REPSettings["nameAdvert"]);
-	REPorterOptions_opacity:SetValue(REPSettings["opacity"]);
-	REPorterOptions_scale:SetValue(REPSettings["scale"]);
-
-	if REPSettings.nameAdvert then
+function REPorter_UpdateConfig()
+	local x, y = 0, 0;
+	REPorterExternal:SetAlpha(RES["opacity"]);
+	REPorterExternal:SetScale(RES["scale"]);
+	if RES.nameAdvert then
 		RE.ReportPrefix = " - [REPorter]";
 	else
 		RE.ReportPrefix = "";
 	end
 	REPorterTab:ClearAllPoints();
-	if REPSettings.reportBarAnchor then
-		REPorterTab:SetPoint("BOTTOM", REPorterBorder, "TOP", 0, 0);
+	if IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins") then
+		if RES.barHandle > 3 then
+			x, y = -2, 0;
+		else
+			x, y = 2, 0;
+		end
 	else
-		REPorterTab:SetPoint("TOP", REPorterBorder, "BOTTOM", 0, 0);
+		if RES.barHandle > 3 then
+			x, y = 2, 0;
+		else
+			x, y = -2, 0;
+		end
 	end
-	REPorterExternal:SetAlpha(REPSettings["opacity"]);
-	REPorterExternal:SetScale(REPSettings["scale"]);
-end
-
-function REPorter_AlphaSlider()
-	REPorterOptions_opacityValue:SetText(REPorter_Round(REPorterOptions_opacity:GetValue(), 2));
-	REPorterExternal:SetAlpha(REPorterOptions_opacity:GetValue());
-end
-
-function REPorter_ScaleSlider()
-	REPorterOptions_scaleValue:SetText(REPorter_Round(REPorterOptions_scale:GetValue(), 1));
-	REPorterExternal:SetScale(REPorter_Round(REPorterOptions_scale:GetValue(), 1));
+	REPorterTab:SetPoint(RE.ReportBarAnchor[RES.barHandle][1], REPorterBorder, RE.ReportBarAnchor[RES.barHandle][2], x, y);
 end
