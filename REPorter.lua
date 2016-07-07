@@ -481,9 +481,9 @@ function REPorter_OnEvent(self, event, ...)
 		BINDING_NAME_REPORTERINC6 = "Incoming 5+";
 		BINDING_NAME_REPORTERHELP = "Help";
 		BINDING_NAME_REPORTERCLEAR = "Clear";
-    for i=1, RE.POINumber do
-        REPorter_CreatePOI(i);
-    end
+		for i=1, RE.POINumber do
+			REPorter_CreatePOI(i);
+		end
 	elseif event == "CHAT_MSG_ADDON" and ... == "REPorter" then
 		local _, REMessage, _, RESender = ...;
 		if RE.Debug > 0 then
@@ -718,7 +718,7 @@ function REPorter_OnUpdate(self, elapsed)
 	if RE.updateTimer < 0 then
 		REPorter_BlinkPOI();
 		local subZoneName = GetSubZoneText();
-		if (subZoneName and subZoneName ~= "" and RE.CurrentMap ~= "GoldRush") or (RE.CurrentMap == "GoldRush" and REPorter_GetNearestPOI() ~= "") then
+		if (subZoneName and subZoneName ~= "" and RE.CurrentMap ~= "GoldRush" and RE.CurrentMap ~= "TempleofKotmogu") or (RE.CurrentMap == "GoldRush" and REPorter_GetNearestPOI() ~= "") then
 			for _, i in pairs({"SB1", "SB2", "SB3", "SB4", "SB5", "SB6", "BB1", "BB2"}) do
 				_G["REPorterTab_"..i]:Enable();
 			end
@@ -1538,6 +1538,8 @@ function REPorter_SmallButton(number, otherNode)
 			name = RE.ClickedPOI;
 		elseif RE.CurrentMap == "GoldRush" then
 			name = REPorter_GetNearestPOI();
+		elseif RE.CurrentMap == "TempleofKotmogu" then
+			name = "";
 		else
 			name = GetSubZoneText();
 		end
@@ -1565,6 +1567,8 @@ function REPorter_BigButton(isHelp, otherNode)
 			name = RE.ClickedPOI;
 		elseif RE.CurrentMap == "GoldRush" then
 			name = REPorter_GetNearestPOI();
+		elseif RE.CurrentMap == "TempleofKotmogu" then
+			name = "";
 		else
 			name = GetSubZoneText();
 		end
@@ -1610,18 +1614,18 @@ function REPorter_UpdateConfig()
 		RE.ReportPrefix = "";
 	end
 	REPorterTab:ClearAllPoints();
-	if IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins") then
-		if RES.barHandle > 3 then
-			x, y = -2, 0;
-		else
-			x, y = 2, 0;
-		end
+	--if IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins") then
+	--	if RES.barHandle > 3 then
+	--		x, y = -2, 0;
+	--	else
+	--		x, y = 2, 0;
+	--	end
+	--else
+	if RES.barHandle > 3 then
+		x, y = 2, 0;
 	else
-		if RES.barHandle > 3 then
-			x, y = 2, 0;
-		else
-			x, y = -2, 0;
-		end
+		x, y = -2, 0;
 	end
+	--end
 	REPorterTab:SetPoint(RE.ReportBarAnchor[RES.barHandle][1], REPorterBorder, RE.ReportBarAnchor[RES.barHandle][2], x, y);
 end
