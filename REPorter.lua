@@ -9,6 +9,7 @@ RE.MapUpdateRate = 0.05;
 RE.BGVehicles = {};
 RE.POINodes = {};
 RE.PlayersTip = {};
+RE.BGOverlayNum = 0;
 
 RE.DefaultTimer = 60;
 RE.DoIEvenCareAboutNodes = false;
@@ -19,6 +20,8 @@ RE.IoCAllianceGateName = "";
 RE.IoCHordeGateName = "";
 RE.IoCGateEstimator = {};
 RE.IoCGateEstimatorText = "";
+RE.SMEstimatorText = "";
+RE.SMEstimatorReport = "";
 RE.IsWinning = "";
 RE.GateSyncRequested = false;
 
@@ -82,7 +85,7 @@ RE.EstimatorSettings = {
 	["GilneasBattleground2"] = { [0] = 0, [1] = 1.1111, [2] = 3.3333, [3] = 30},
 	["GoldRush"] = { [0] = 0, [1] = 1.6, [2] = 3.2, [3] = 6.4},
 	["TempleofKotmogu"] = {["CenterP"] = 1, ["InnerP"] = 0.8, ["OuterP"] = 0.6},
-	["STVDiamondMineBG"] = {1}
+	["STVDiamondMineBG"] = 150
 }
 RE.POIDropDown = {
 	{ text = "Incoming", hasArrow = true, notCheckable = true,
@@ -276,6 +279,9 @@ function REPorter_ClearTextures()
 	local numDetailTiles = GetNumberOfDetailTiles();
 	for i=1, numDetailTiles do
 		_G["REPorter"..i]:SetTexture(nil);
+	end
+	for i=1, RE.BGOverlayNum do
+		_G["REPorterMapOverlay"..i]:SetTexture(nil);
 	end
 	RE.POINodes = {};
 end
@@ -568,7 +574,7 @@ function REPorter_OnEvent(self, event, ...)
 				REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 2);
 			end
 		elseif RE.CurrentMap == "STVDiamondMineBG" then
-			local AlliancePointsNeeded, AlliancePointsPerSec, AllianceTimeToWin, HordePointsNeeded, HordePointsPerSec, HordeTimeToWin = nil, 0, 0, nil, 0, 0;
+			local AlliancePointsNeeded, AllianceCartsNeeded, HordePointsNeeded, HordeCartsNeeded = nil, 15, nil, 15;
 			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["STVDiamondMineBG"]["WorldStateNum"]);
 			if text ~= nil then
 				local Message = {strsplit("/", text)};
@@ -586,28 +592,18 @@ function REPorter_OnEvent(self, event, ...)
 				end
 			end
 			if AlliancePointsNeeded and HordePointsNeeded then
-				for i=1, GetNumBattlefieldVehicles() do
-					local vehicleX, vehicleY, _, isPossessed, vehicleType = GetBattlefieldVehicleInfo(i);
-					if vehicleX and vehicleY then
-						local vehicleName = WorldMap_GetVehicleTexture(vehicleType, isPossessed);
-						if vehicleName == "Interface\\Minimap\\Vehicle-SilvershardMines-MineCartBlue" then
-							AlliancePointsPerSec = AlliancePointsPerSec + 1;
-						elseif vehicleName == "Interface\\Minimap\\Vehicle-SilvershardMines-MineCartRed" then
-							HordePointsPerSec = HordePointsPerSec + 1;
-						end
-					end
-				end
-				if AlliancePointsPerSec > 0 then
-					AllianceTimeToWin = AlliancePointsNeeded / AlliancePointsPerSec;
+				AllianceCartsNeeded = REPorter_Round(AlliancePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"], 1);
+				HordeCartsNeeded = REPorter_Round(HordePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"], 1);
+				if AllianceCartsNeeded > HordeCartsNeeded then
+					RE.SMEstimatorText = "|cFFFF141D"..HordeCartsNeeded.."\ncarts|r";
+					RE.SMEstimatorReport = FACTION_HORDE.." victory: "..HordeCartsNeeded.." carts";
+				elseif AllianceCartsNeeded < HordeCartsNeeded then
+					RE.SMEstimatorText = "|cFF00A9FF"..AllianceCartsNeeded.."\ncarts|r";
+					RE.SMEstimatorReport = FACTION_ALLIANCE.." victory: "..AllianceCartsNeeded.." carts";
 				else
-					AllianceTimeToWin = 10000;
+					RE.SMEstimatorText = "";
+					RE.SMEstimatorReport = "";
 				end
-				if HordePointsPerSec > 0 then
-					HordeTimeToWin = HordePointsNeeded / HordePointsPerSec;
-				else
-					HordeTimeToWin = 10000;
-				end
-				REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin);
 			end
 		else
 			local AllianceBaseNum, AlliancePointNum, HordeBaseNum, HordePointNum, AllianceTimeToWin, HordeTimeToWin = 0, nil, 0, nil, 0, 0;
@@ -975,6 +971,68 @@ function REPorter_OnUpdate(self, elapsed)
 			end
 		end
 
+		if RE.CurrentMap == "STVDiamondMineBG" then
+			local textureCount = 0;
+			local scale = 0.78;
+			for i=1, GetNumMapOverlays() do
+				local textureName, textureWidth, textureHeight, offsetX, offsetY = GetMapOverlayInfo(i);
+				if textureName ~= "" or textureWidth == 0 or textureHeight == 0 then
+					local numTexturesWide = ceil(textureWidth / 256);
+					local numTexturesTall = ceil(textureHeight / 256);
+					local neededTextures = textureCount + (numTexturesWide * numTexturesTall);
+					if neededTextures > RE.BGOverlayNum then
+						for j=RE.BGOverlayNum + 1, neededTextures do
+							REPorter:CreateTexture("REPorterMapOverlay"..j, "ARTWORK");
+						end
+						RE.BGOverlayNum = neededTextures;
+					end
+					local texturePixelWidth, textureFileWidth, texturePixelHeight, textureFileHeight;
+					for j=1, numTexturesTall do
+						if ( j < numTexturesTall ) then
+							texturePixelHeight = 256;
+							textureFileHeight = 256;
+						else
+							texturePixelHeight = mod(textureHeight, 256);
+							if ( texturePixelHeight == 0 ) then
+								texturePixelHeight = 256;
+							end
+							textureFileHeight = 16;
+							while(textureFileHeight < texturePixelHeight) do
+								textureFileHeight = textureFileHeight * 2;
+							end
+						end
+						for k=1, numTexturesWide do
+							textureCount = textureCount + 1;
+							local texture = _G["REPorterMapOverlay"..textureCount];
+							if ( k < numTexturesWide ) then
+								texturePixelWidth = 256;
+								textureFileWidth = 256;
+							else
+								texturePixelWidth = mod(textureWidth, 256);
+								if ( texturePixelWidth == 0 ) then
+									texturePixelWidth = 256;
+								end
+								textureFileWidth = 16;
+								while(textureFileWidth < texturePixelWidth) do
+									textureFileWidth = textureFileWidth * 2;
+								end
+							end
+							texture:SetWidth(texturePixelWidth * scale);
+							texture:SetHeight(texturePixelHeight * scale);
+							texture:SetTexCoord(0, texturePixelWidth / textureFileWidth, 0, texturePixelHeight / textureFileHeight);
+							texture:SetPoint("TOPLEFT", "REPorter", "TOPLEFT", (offsetX + (256 * (k - 1))) * scale, -((offsetY + (256 * (j - 1))) * scale));
+							texture:SetTexture(textureName..(((j - 1) * numTexturesWide) + k));
+							texture:SetAlpha(RES.opacity);
+							texture:Show();
+						end
+					end
+				end
+			end
+			for i=textureCount + 1, RE.BGOverlayNum do
+				_G["REPorterMapOverlay"..i]:Hide();
+			end
+		end
+
 		local playerCount = 0;
 		if GetNumGroupMembers() > 0 then
 			for i=1, MAX_RAID_MEMBERS do
@@ -1050,6 +1108,8 @@ function REPorter_OnUpdate(self, elapsed)
 			else
 				REPorterEstimator_Text:SetText("");
 			end
+		elseif RE.CurrentMap == "STVDiamondMineBG" then
+			REPorterEstimator_Text:SetText(RE.SMEstimatorText);
 		elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
 			REPorterEstimator_Text:SetText(RE.IoCGateEstimatorText);
 		else
@@ -1270,6 +1330,10 @@ function REPorter_Create(isSecond)
 		end
 		if mapFileName == "StrandoftheAncients" then
 			REPorterExternal:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL");
+		end
+		if mapFileName == "STVDiamondMineBG" then
+			RE.SMEstimatorText = "";
+			RE.SMEstimatorReport = "";
 		end
 		if not isSecond then
 			RE.AceTimer:ScheduleTimer("JoinCheck", 5);
@@ -1521,6 +1585,8 @@ end
 function REPorter_ReportEstimator()
 	if RE.AceTimer:TimeLeft(RE.EstimatorTimer) > 0 then
 		SendChatMessage(RE.IsWinning.." victory: "..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0))..RE.ReportPrefix, "INSTANCE_CHAT");
+	elseif RE.CurrentMap == "STVDiamondMineBG" and RE.SMEstimatorReport ~= "" then
+		SendChatMessage(RE.SMEstimatorReport, "INSTANCE_CHAT");
 	elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
 		SendChatMessage(FACTION_ALLIANCE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."% - "..FACTION_HORDE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%"..RE.ReportPrefix, "INSTANCE_CHAT");
 	end
