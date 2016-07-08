@@ -449,33 +449,43 @@ function REPorter_OnLoad(self)
 end
 
 function REPorter_OnShow(self)
-	SetMapToCurrentZone();
-	REPorterExternal:SetScrollChild(REPorter);
-	if RES.firstTime then
-		RES.firstTime = nil;
-		REPorterTutorial:Show();
-	end
-	REPorterTab:SetAlpha(0.25);
-	if RES.hideMinimap then
-	  MinimapCluster:Hide();
+	if RE.CurrentMap ~= GetMapInfo() then
+		if RE.Debug > 0 then
+			print("\124cFF74D06C[REPorter]\124r Show");
+		end
+		SetMapToCurrentZone();
+		REPorterExternal:SetScrollChild(REPorter);
+		if RES.firstTime then
+			RES.firstTime = nil;
+			REPorterTutorial:Show();
+		end
+		REPorterTab:SetAlpha(0.25);
+		if RES.hideMinimap then
+		  MinimapCluster:Hide();
+		end
 	end
 end
 
 function REPorter_OnHide(self)
-	REPorterExternal:SetScript("OnUpdate", nil);
-	RE.CurrentMap = "";
-	RE.DoIEvenCareAboutNodes = false;
-	RE.DoIEvenCareAboutPoints = false;
-	RE.DoIEvenCareAboutGates = false;
-	REPorterExternal:UnregisterEvent("UPDATE_WORLD_STATES");
-	REPorterExternal:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
-	REPorterExternal:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL");
-	RE.IsWinning = "";
-	REPorter_ClearTextures();
-	CloseDropDownMenus();
-	REPorterEstimator_Text:SetText("");
-	if not MinimapCluster:IsShown() and RES.hideMinimap then
-	  MinimapCluster:Show();
+	if RE.CurrentMap ~= GetMapInfo() then
+		if RE.Debug > 0 then
+			print("\124cFF74D06C[REPorter]\124r Hide");
+		end
+		REPorterExternal:SetScript("OnUpdate", nil);
+		RE.CurrentMap = "";
+		RE.DoIEvenCareAboutNodes = false;
+		RE.DoIEvenCareAboutPoints = false;
+		RE.DoIEvenCareAboutGates = false;
+		REPorterExternal:UnregisterEvent("UPDATE_WORLD_STATES");
+		REPorterExternal:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
+		REPorterExternal:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL");
+		RE.IsWinning = "";
+		REPorter_ClearTextures();
+		CloseDropDownMenus();
+		REPorterEstimator_Text:SetText("");
+		if not MinimapCluster:IsShown() and RES.hideMinimap then
+		  MinimapCluster:Show();
+		end
 	end
 end
 
@@ -513,7 +523,7 @@ function REPorter_OnEvent(self, event, ...)
 		end
 	elseif event == "CHAT_MSG_ADDON" and ... == "REPorter" then
 		local _, REMessage, _, RESender = ...;
-		if RE.Debug > 0 then
+		if RE.Debug > 1 then
 			print("\124cFF74D06C[REPorter]\124r "..RESender.." - "..REMessage);
 		end
 		local REMessageEx = {strsplit(";", REMessage)};
@@ -724,6 +734,9 @@ function REPorter_OnEvent(self, event, ...)
 			if IsInGuild() then
 				SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "GUILD");
 			end
+		elseif RE.CurrentMap ~= "" then
+			RE.CurrentMap = "";
+			REPorter_OnHide()
 		end
 	elseif event == "MODIFIER_STATE_CHANGED" and REPorterExternal:IsShown() then
 		if IsShiftKeyDown() and IsAltKeyDown() then
