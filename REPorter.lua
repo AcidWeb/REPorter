@@ -35,8 +35,8 @@ RE.CurrentMap = "";
 RE.ClickedPOI = "";
 
 RE.FoundNewVersion = false;
-RE.AddonVersionCheck = 90;
 RE.Debug = 1;
+RE.AddonVersionCheck = 91;
 
 RE.BlipCoords = {
 	["WARRIOR"] = { 0, 0.125, 0, 0.25 },
@@ -113,7 +113,8 @@ RE.DefaultConfig = {
 	locked = false,
 	nameAdvert = false,
 	opacity = 0.75,
-	scale = 1
+	scale = 1,
+	hideMinimap = false
 };
 RE.ReportBarAnchor = {
 	[1] = {"BOTTOMLEFT", "BOTTOMRIGHT"},
@@ -144,19 +145,28 @@ RE.AceConfig = {
       set = function(_, val) RES.nameAdvert = val; REPorter_UpdateConfig() end,
       get = function(_) return RES.nameAdvert end
     },
+		hideMinimap = {
+      name = "Hide minimap on battlegrounds",
+			desc = "When checked minimap will be hidden when player is on battleground.",
+      type = "toggle",
+			width = "full",
+			order = 3,
+      set = function(_, val) RES.hideMinimap = val; REPorter_UpdateConfig() end,
+      get = function(_) return RES.hideMinimap end
+    },
 		barHandle = {
 			name = "Report bar location",
 			desc = "Anchor point of bar with quick report buttons.",
 			type = "select",
 			width = "double",
-			order = 3,
+			order = 4,
 			values = {
-				[1] = "Bottom left",
-				[2] = "Left",
-				[3] = "Top left",
-				[4] = "Bottom right",
-				[5] = "Right",
-				[6] = "Top right"
+				[1] = "Bottom right",
+				[2] = "Right",
+				[3] = "Top right",
+				[4] = "Bottom left",
+				[5] = "Left",
+				[6] = "Top left"
 			},
 			set = function(_, val) RES.barHandle = val; REPorter_UpdateConfig() end,
 			get = function(_) return RES.barHandle end
@@ -446,6 +456,9 @@ function REPorter_OnShow(self)
 		REPorterTutorial:Show();
 	end
 	REPorterTab:SetAlpha(0.25);
+	if RES.hideMinimap then
+	  MinimapCluster:Hide();
+	end
 end
 
 function REPorter_OnHide(self)
@@ -461,6 +474,9 @@ function REPorter_OnHide(self)
 	REPorter_ClearTextures();
 	CloseDropDownMenus();
 	REPorterEstimator_Text:SetText("");
+	if not MinimapCluster:IsShown() and RES.hideMinimap then
+	  MinimapCluster:Show();
+	end
 end
 
 function REPorter_OnEnter(self)
@@ -1639,4 +1655,8 @@ function REPorter_UpdateConfig()
 	end
 	--end
 	REPorterTab:SetPoint(RE.ReportBarAnchor[RES.barHandle][1], REPorterBorder, RE.ReportBarAnchor[RES.barHandle][2], x, y);
+	local _, instanceType = IsInInstance();
+	if instanceType == "pvp" then
+		MinimapCluster:SetShown(not RES.hideMinimap);
+	end
 end
