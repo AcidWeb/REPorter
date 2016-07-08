@@ -379,17 +379,28 @@ function REPorter_GetNearestPOI()
 	local playerX, playerY = GetPlayerMapPosition("player");
 	local node = "";
 	if playerX ~= 0 and playerY ~= 0 then
-	    playerX, playerY = REPorter_GetRealCoords(playerX, playerY);
-	    for i=1, GetNumMapLandmarks() do
-	        local name, _, _, x, y, _, showInBattleMap = GetMapLandmarkInfo(i);
-	        if name and showInBattleMap then
-	            x, y = REPorter_GetRealCoords(x, y);
-	            if REPorter_PointDistance(playerX, playerY, x, y) < 50 then
-					node = name;
-	                break;
-	            end
+		if RE.CurrentMap == "STVDiamondMineBG" then
+			playerX, playerY = playerX * 100, playerY * 100;
+			if (playerX >= 10 and playerY >= 17 and playerX <= 30 and playerY <= 60) or (playerX >= 30 and playerY >= 17 and playerX <= 53 and playerY <= 43) or (playerX >= 53 and playerY >= 17 and playerX <= 68 and playerY <= 26) then
+				node = "Top"
+			elseif (playerX >= 30 and playerY >= 43 and playerX <= 50 and playerY <= 6) or (playerX >= 30 and playerY >= 60 and playerX <= 48 and playerY <= 100) then
+				node = "Water"
+			elseif (playerX >= 68 and playerY >= 25 and playerX <= 100 and playerY <= 43) or (playerX >= 62 and playerY >= 43 and playerX <= 100 and playerY <= 62) or (playerX >= 60 and playerY >= 62 and playerX <= 100 and playerY <= 100) then
+				node = "Lava"
 			end
-	    end
+		else
+			playerX, playerY = REPorter_GetRealCoords(playerX, playerY);
+			for i=1, GetNumMapLandmarks() do
+				local name, _, _, x, y, _, showInBattleMap = GetMapLandmarkInfo(i);
+				if name and showInBattleMap then
+					x, y = REPorter_GetRealCoords(x, y);
+					if REPorter_PointDistance(playerX, playerY, x, y) < 50 then
+						node = name;
+						break;
+					end
+				end
+			end
+		end
 	end
 	return node;
 end
@@ -718,7 +729,7 @@ function REPorter_OnUpdate(self, elapsed)
 	if RE.updateTimer < 0 then
 		REPorter_BlinkPOI();
 		local subZoneName = GetSubZoneText();
-		if (subZoneName and subZoneName ~= "" and RE.CurrentMap ~= "GoldRush" and RE.CurrentMap ~= "TempleofKotmogu") or (RE.CurrentMap == "GoldRush" and REPorter_GetNearestPOI() ~= "") then
+		if (subZoneName and subZoneName ~= "" and RE.CurrentMap ~= "GoldRush" and RE.CurrentMap ~= "STVDiamondMineBG" and RE.CurrentMap ~= "TempleofKotmogu") or ((RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG") and REPorter_GetNearestPOI() ~= "") then
 			for _, i in pairs({"SB1", "SB2", "SB3", "SB4", "SB5", "SB6", "BB1", "BB2"}) do
 				_G["REPorterTab_"..i]:Enable();
 			end
@@ -1536,7 +1547,7 @@ function REPorter_SmallButton(number, otherNode)
 		local name = "";
 		if otherNode then
 			name = RE.ClickedPOI;
-		elseif RE.CurrentMap == "GoldRush" then
+		elseif RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" then
 			name = REPorter_GetNearestPOI();
 		elseif RE.CurrentMap == "TempleofKotmogu" then
 			name = "";
@@ -1565,7 +1576,7 @@ function REPorter_BigButton(isHelp, otherNode)
 		local name = "";
 		if otherNode then
 			name = RE.ClickedPOI;
-		elseif RE.CurrentMap == "GoldRush" then
+		elseif RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" then
 			name = REPorter_GetNearestPOI();
 		elseif RE.CurrentMap == "TempleofKotmogu" then
 			name = "";
