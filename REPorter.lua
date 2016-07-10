@@ -629,14 +629,14 @@ function REPorter_OnEvent(self, event, ...)
 				end
 			end
 			if AlliancePointsNeeded and HordePointsNeeded then
-				AllianceCartsNeeded = REPorter_Round(AlliancePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"], 1);
-				HordeCartsNeeded = REPorter_Round(HordePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"], 1);
+				AllianceCartsNeeded = AlliancePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"];
+				HordeCartsNeeded = HordePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"];
 				if AllianceCartsNeeded > HordeCartsNeeded then
-					RE.SMEstimatorText = "|cFFFF141D"..HordeCartsNeeded.."\ncarts|r";
-					RE.SMEstimatorReport = FACTION_HORDE.." victory: "..HordeCartsNeeded.." carts";
+					RE.SMEstimatorText = "|cFFFF141D"..REPorter_Round(HordeCartsNeeded, 1).."\ncarts|r";
+					RE.SMEstimatorReport = FACTION_HORDE.." victory: "..REPorter_Round(HordeCartsNeeded, 1).." carts";
 				elseif AllianceCartsNeeded < HordeCartsNeeded then
-					RE.SMEstimatorText = "|cFF00A9FF"..AllianceCartsNeeded.."\ncarts|r";
-					RE.SMEstimatorReport = FACTION_ALLIANCE.." victory: "..AllianceCartsNeeded.." carts";
+					RE.SMEstimatorText = "|cFF00A9FF"..REPorter_Round(AllianceCartsNeeded, 1).."\ncarts|r";
+					RE.SMEstimatorReport = FACTION_ALLIANCE.." victory: "..REPorter_Round(AllianceCartsNeeded, 1).." carts";
 				else
 					RE.SMEstimatorText = "";
 					RE.SMEstimatorReport = "";
