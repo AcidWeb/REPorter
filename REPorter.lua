@@ -1654,19 +1654,19 @@ function REPorter_UpdateConfig()
 		RE.ReportPrefix = "";
 	end
 	REPorterTab:ClearAllPoints();
-	--if IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins") then
-	--	if RES.barHandle > 3 then
-	--		x, y = -2, 0;
-	--	else
-	--		x, y = 2, 0;
-	--	end
-	--else
-	if RES.barHandle > 3 then
-		x, y = 2, 0;
+	if IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins") then
+		if RES.barHandle > 3 then
+			x, y = -2, 0;
+		else
+			x, y = 2, 0;
+		end
 	else
-		x, y = -2, 0;
+		if RES.barHandle > 3 then
+			x, y = 2, 0;
+		else
+			x, y = -2, 0;
+		end
 	end
-	--end
 	REPorterTab:SetPoint(RE.ReportBarAnchor[RES.barHandle][1], REPorterBorder, RE.ReportBarAnchor[RES.barHandle][2], x, y);
 	local _, instanceType = IsInInstance();
 	if instanceType == "pvp" then
