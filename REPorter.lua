@@ -454,6 +454,7 @@ function REPorter_OnShow(self)
 			print("\124cFF74D06C[REPorter]\124r Show");
 		end
 		SetMapToCurrentZone();
+		REPorterEstimator:Show();
 		REPorterExternal:SetScrollChild(REPorter);
 		if RES.firstTime then
 			RES.firstTime = nil;
@@ -483,6 +484,7 @@ function REPorter_OnHide(self)
 		REPorter_ClearTextures();
 		CloseDropDownMenus();
 		REPorterEstimator_Text:SetText("");
+		REPorterEstimator:Hide();
 		if not MinimapCluster:IsShown() and RES.hideMinimap then
 		  MinimapCluster:Show();
 		end
@@ -1522,7 +1524,7 @@ function REPorter_POIPlayers(POIName)
 				end
 			end
 			if playerNumber ~= 0 then
-				return " - "..UnitFactionGroup("player").." players in area: "..playerNumber;
+				return " - Friendlies: "..playerNumber;
 			else
 				return "";
 			end

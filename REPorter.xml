@@ -365,7 +365,7 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="REPorterEstimator" frameStrata="DIALOG" parent="WorldStateAlwaysUpFrame" resizable="false" movable="false">
+	<Frame name="REPorterEstimator" frameStrata="DIALOG" parent="WorldStateAlwaysUpFrame" hidden="true" resizable="false" movable="false">
 		<Size>
 			<AbsDimension x="100" y="100"/>
 		</Size>
