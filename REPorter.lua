@@ -67,17 +67,17 @@ RE.ClassColors = {
 	["DEMONHUNTER"] = "A330C9"
 };
 RE.MapSettings = {
-	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
+	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
 	["WarsongGulch"] = {["HE"] = 460, ["WI"] = 275, ["HO"] = 270, ["VE"] = 40, ["StartTimer"] = 120},
 	["AlteracValley"] = {["HE"] = 460, ["WI"] = 200, ["HO"] = 270, ["VE"] = 35, ["StartTimer"] = 120},
-	["NetherstormArena"] = {["HE"] = 340, ["WI"] = 200, ["HO"] = 275, ["VE"] = 90, ["pointsToWin"] = 1500, ["WorldStateNum"] = 3, ["StartTimer"] = 120},
+	["NetherstormArena"] = {["HE"] = 340, ["WI"] = 200, ["HO"] = 275, ["VE"] = 90, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
 	["StrandoftheAncients"] = {["HE"] = 410, ["WI"] = 275, ["HO"] = 240, ["VE"] = 100, ["StartTimer"] = 120},
 	["IsleofConquest"] = {["HE"] = 370, ["WI"] = 325, ["HO"] = 230, ["VE"] = 85, ["StartTimer"] = 120},
-	["GilneasBattleground2"] = {["HE"] = 360, ["WI"] = 325, ["HO"] = 230, ["VE"] = 90, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
+	["GilneasBattleground2"] = {["HE"] = 360, ["WI"] = 325, ["HO"] = 230, ["VE"] = 90, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
 	["TwinPeaks"] = {["HE"] = 435, ["WI"] = 250, ["HO"] = 280, ["VE"] = 40, ["StartTimer"] = 120},
-	["TempleofKotmogu"] = {["HE"] = 250, ["WI"] = 400, ["HO"] = 185, ["VE"] = 155, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
-	["STVDiamondMineBG"] = {["HE"] = 325, ["WI"] = 435, ["HO"] = 175, ["VE"] = 95, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
-	["GoldRush"] = {["HE"] = 410, ["WI"] = 510, ["HO"] = 155, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120}
+	["TempleofKotmogu"] = {["HE"] = 250, ["WI"] = 400, ["HO"] = 185, ["VE"] = 155, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
+	["STVDiamondMineBG"] = {["HE"] = 325, ["WI"] = 435, ["HO"] = 175, ["VE"] = 95, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
+	["GoldRush"] = {["HE"] = 410, ["WI"] = 510, ["HO"] = 155, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120}
 };
 RE.EstimatorSettings = {
 	["ArathiBasin"] = { [0] = 0, [1] = 0.8333, [2] = 1.1111, [3] = 1.6667, [4] = 3.3333, [5] = 30},
@@ -312,23 +312,23 @@ function REPorter_CreatePOI(index)
 	texture:SetPoint("TOPLEFT", frameMain, "TOPLEFT");
 	texture:SetPoint("BOTTOMLEFT", frameMain, "BOTTOMLEFT");
 	texture:SetWidth(RE.POIIconSize);
-	texture:SetTexture(0,0,0,0.3, "BACKGROUND");
+	texture:SetColorTexture(0,0,0,0.3);
 	local texture = frameMain:CreateTexture(frameMain:GetName().."TextureBGofBG", "BACKGROUND");
 	texture:SetPoint("TOPRIGHT", frameMain, "TOPRIGHT");
 	texture:SetPoint("BOTTOMRIGHT", frameMain, "BOTTOMRIGHT");
 	texture:SetWidth(RE.POIIconSize);
-	texture:SetTexture(0,0,0,0.3, "BACKGROUND");
+	texture:SetColorTexture(0,0,0,0.3);
 	texture:Hide();
 	local texture = frameMain:CreateTexture(frameMain:GetName().."TextureBGTop1", "BORDER");
 	texture:SetPoint("TOPLEFT", frameMain, "TOPLEFT");
 	texture:SetWidth(RE.POIIconSize);
 	texture:SetHeight(3);
-	texture:SetTexture(0,1,0,1, "BORDER");
+	texture:SetColorTexture(0,1,0,1);
 	local texture = frameMain:CreateTexture(frameMain:GetName().."TextureBGTop2", "BORDER");
 	texture:SetPoint("BOTTOMLEFT", frameMain, "BOTTOMLEFT");
 	texture:SetWidth(RE.POIIconSize);
 	texture:SetHeight(3);
-	texture:SetTexture(0,1,0,1, "BORDER");
+	texture:SetColorTexture(0,1,0,1);
 	local frame = CreateFrame("Frame", "REPorterPOI"..index.."WarZone", REPorter);
 	frame:SetWidth(64);
 	frame:SetHeight(64);
@@ -357,7 +357,7 @@ end
 function REPorter_SOTAStartCheck()
 	local startCheck = {GetMapLandmarkInfo(7)};
 	local sideCheck = {GetMapLandmarkInfo(10)};
-	return (startCheck[3] == 46 or startCheck[3] == 48), sideCheck[3] == 102;
+	return (startCheck[4] == 46 or startCheck[4] == 48), sideCheck[4] == 102;
 end
 
 function REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin, RefreshTimer)
@@ -401,7 +401,7 @@ function REPorter_GetNearestPOI()
 		else
 			playerX, playerY = REPorter_GetRealCoords(playerX, playerY);
 			for i=1, GetNumMapLandmarks() do
-				local name, _, _, x, y, _, showInBattleMap = GetMapLandmarkInfo(i);
+				local _, name, _, _, x, y, _, showInBattleMap = GetMapLandmarkInfo(i);
 				if name and showInBattleMap then
 					x, y = REPorter_GetRealCoords(x, y);
 					if REPorter_PointDistance(playerX, playerY, x, y) < 50 then
@@ -645,8 +645,12 @@ function REPorter_OnEvent(self, event, ...)
 				end
 			end
 		else
+			local WorldStateId = RE.MapSettings[RE.CurrentMap]["WorldStateNum"];
+			-- if IsRatedBattleground() and RE.CurrentMap == "NetherstormArena" then
+			-- 	WorldStateId = 2;
+			-- end
 			local AllianceBaseNum, AlliancePointNum, HordeBaseNum, HordePointNum, AllianceTimeToWin, HordeTimeToWin = 0, nil, 0, nil, 0, 0;
-			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings[RE.CurrentMap]["WorldStateNum"]);
+			local _, _, _, text = GetWorldStateUIInfo(WorldStateId);
 			if text ~= nil then
 				local Mes1 = {strsplit("/", text)};
 				if Mes1[2] then
@@ -656,7 +660,7 @@ function REPorter_OnEvent(self, event, ...)
 					AlliancePointNum = tonumber(Mes2[3]);
 				end
 			end
-			_, _, _, text = GetWorldStateUIInfo(RE.MapSettings[RE.CurrentMap]["WorldStateNum"]+1);
+			_, _, _, text = GetWorldStateUIInfo(WorldStateId+1);
 			if text ~= nil then
 				local Mes1 = {strsplit("/", text)};
 				if Mes1[2] then
@@ -838,7 +842,7 @@ function REPorter_OnUpdate(self, elapsed)
 			local battlefieldPOIName = "REPorterPOI"..i;
 			local battlefieldPOI = _G[battlefieldPOIName];
 			local battlefieldPOIWarZone = _G[battlefieldPOIName.."WarZone"];
-			local name, description, textureIndex, x, y, _, showInBattleMap = GetMapLandmarkInfo(i);
+			local _, name, description, textureIndex, x, y, _, showInBattleMap = GetMapLandmarkInfo(i);
 			if name and showInBattleMap and textureIndex ~= 0 then
 				x, y = REPorter_GetRealCoords(x, y);
 				local x1, x2, y1, y2 = GetPOITextureCoords(textureIndex);
@@ -946,11 +950,11 @@ function REPorter_OnUpdate(self, elapsed)
 				_G[battlefieldPOIName.."WarZone"]:SetPoint("CENTER", "REPorter", "TOPLEFT", x, y);
 				if RE.AceTimer:TimeLeft(RE.POINodes[name]["timer"]) == 0 then
 					if strfind(description, FACTION_HORDE) then
-						_G[battlefieldPOIName.."TextureBG"]:SetTexture(1,0,0,0.3);
+						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,0.3);
 					elseif strfind(description, FACTION_ALLIANCE) then
-						_G[battlefieldPOIName.."TextureBG"]:SetTexture(0,0,1,0.3);
+						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,0.3);
 					else
-						_G[battlefieldPOIName.."TextureBG"]:SetTexture(0,0,0,0.3);
+						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,0,0.3);
 					end
 					_G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize);
 					_G[battlefieldPOIName.."TextureBGofBG"]:Hide();
@@ -975,9 +979,9 @@ function REPorter_OnUpdate(self, elapsed)
 					_G[battlefieldPOIName.."TextureBGofBG"]:Show();
 					_G[battlefieldPOIName.."TextureBGofBG"]:SetWidth((timeLeft / RE.DefaultTimer) * RE.POIIconSize);
 					if RE.POINodes[name]["isCapturing"] == FACTION_HORDE then
-						_G[battlefieldPOIName.."TextureBG"]:SetTexture(1,0,0,RE.BlinkPOI);
+						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,RE.BlinkPOI);
 					elseif RE.POINodes[name]["isCapturing"] == FACTION_ALLIANCE then
-						_G[battlefieldPOIName.."TextureBG"]:SetTexture(0,0,1,RE.BlinkPOI);
+						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,RE.BlinkPOI);
 					end
 					if timeLeft <= 10 then
 						_G[battlefieldPOIName.."TextureBGTop1"]:Show();
