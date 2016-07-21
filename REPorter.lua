@@ -36,7 +36,7 @@ RE.ClickedPOI = "";
 
 RE.FoundNewVersion = false;
 RE.Debug = 0;
-RE.AddonVersionCheck = 92;
+RE.AddonVersionCheck = 93;
 
 RE.BlipCoords = {
 	["WARRIOR"] = { 0, 0.125, 0, 0.25 },
@@ -112,7 +112,7 @@ RE.DefaultConfig = {
 	firstTime = true,
 	locked = false,
 	nameAdvert = false,
-	opacity = 0.75,
+	opacity = 0.80,
 	scale = 1,
 	hideMinimap = false
 };
@@ -244,7 +244,7 @@ function REPorter_GetRealCoords(rawX, rawY)
 end
 
 function REPorter_PointDistance(x1, y1, x2, y2)
-	local dx, dy, distance = 0, 0, 0;
+	local dx, dy = 0, 0;
 	dx = x2 - x1;
 	dy = y2 - y1;
 	return math.sqrt(math.pow(dx, 2) + math.pow(dy, 2));
@@ -360,21 +360,21 @@ function REPorter_SOTAStartCheck()
 	return (startCheck[4] == 46 or startCheck[4] == 48), sideCheck[4] == 102;
 end
 
-function REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin, RefreshTimer)
+function REPorter_EstimatorFill(ATimeToWin, HTimeToWin, RefreshTimer)
 	local RefreshTimer = RefreshTimer or 5;
 	local TimeLeft = RE.AceTimer:TimeLeft(RE.EstimatorTimer);
-	if AllianceTimeToWin > 1 and HordeTimeToWin > 1 then
-		if AllianceTimeToWin < HordeTimeToWin then
-			if RE.IsWinning ~= FACTION_ALLIANCE or (TimeLeft - AllianceTimeToWin > RefreshTimer) or (TimeLeft - AllianceTimeToWin < -RefreshTimer) then
+	if ATimeToWin > 1 and HTimeToWin > 1 then
+		if ATimeToWin < HTimeToWin then
+			if RE.IsWinning ~= FACTION_ALLIANCE or (TimeLeft - ATimeToWin > RefreshTimer) or (TimeLeft - ATimeToWin < -RefreshTimer) then
 				RE.AceTimer:CancelTimer(RE.EstimatorTimer);
 				RE.IsWinning = FACTION_ALLIANCE;
-				RE.EstimatorTimer = RE.AceTimer:ScheduleTimer("Null", REPorter_Round(AllianceTimeToWin, 0));
+				RE.EstimatorTimer = RE.AceTimer:ScheduleTimer("Null", REPorter_Round(ATimeToWin, 0));
 			end
-		elseif AllianceTimeToWin > HordeTimeToWin then
-			if RE.IsWinning ~= FACTION_HORDE or (TimeLeft - HordeTimeToWin > RefreshTimer) or (TimeLeft - HordeTimeToWin < -RefreshTimer) then
+		elseif ATimeToWin > HTimeToWin then
+			if RE.IsWinning ~= FACTION_HORDE or (TimeLeft - HTimeToWin > RefreshTimer) or (TimeLeft - HTimeToWin < -RefreshTimer) then
 				RE.AceTimer:CancelTimer(RE.EstimatorTimer);
 				RE.IsWinning = FACTION_HORDE;
-				RE.EstimatorTimer = RE.AceTimer:ScheduleTimer("Null", REPorter_Round(HordeTimeToWin, 0));
+				RE.EstimatorTimer = RE.AceTimer:ScheduleTimer("Null", REPorter_Round(HTimeToWin, 0));
 			end
 		else
 			RE.IsWinning = "";
@@ -434,7 +434,7 @@ function RE.AceTimer.JoinCheck()
 end
 
 function RE.AceTimer.TabHider()
-	REPorterTab:SetAlpha(0.20);
+	REPorterTab:SetAlpha(0.25);
 end
 --
 
@@ -664,8 +664,8 @@ function REPorter_OnEvent(self, event, ...)
 			if text ~= nil then
 				local Mes1 = {strsplit("/", text)};
 				if Mes1[2] then
-					Mes2 = {strsplit(":", Mes1[1])};
-					Mes3 = {strsplit(" ", Mes2[2])};
+					local Mes2 = {strsplit(":", Mes1[1])};
+					local Mes3 = {strsplit(" ", Mes2[2])};
 					HordeBaseNum = tonumber(Mes3[2]);
 					HordePointNum = tonumber(Mes2[3]);
 				end
@@ -778,16 +778,15 @@ function REPorter_OnUpdate(self, elapsed)
 		for i=1, NUM_WORLDMAP_FLAGS do
 			local flagFrameName = "REPorterFlag"..i;
 			local flagFrame = _G[flagFrameName];
+			local flagTexture = _G[flagFrameName.."Texture"];
 			if i <= numFlags then
 				local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i);
-				local flagTexture = _G[flagFrameName.."Texture"];
 				if flagX == 0 and flagY == 0 then
 					flagFrame:Hide();
 				else
 					flagX, flagY = REPorter_GetRealCoords(flagX, flagY);
-					flagFrame:SetPoint("CENTER", "REPorterOverlay", "TOPLEFT", flagX, flagY);
-					local flagTexture = _G[flagFrameName.."Texture"];
 					flagTexture:SetTexture("Interface\\WorldStateFrame\\"..flagToken);
+					flagFrame:SetPoint("CENTER", "REPorterOverlay", "TOPLEFT", flagX, flagY);
 					flagFrame:EnableMouse(false);
 					flagFrame:Show();
 				end
@@ -841,7 +840,6 @@ function REPorter_OnUpdate(self, elapsed)
 		for i=1, GetNumMapLandmarks() do
 			local battlefieldPOIName = "REPorterPOI"..i;
 			local battlefieldPOI = _G[battlefieldPOIName];
-			local battlefieldPOIWarZone = _G[battlefieldPOIName.."WarZone"];
 			local _, name, description, textureIndex, x, y, _, showInBattleMap = GetMapLandmarkInfo(i);
 			if name and showInBattleMap and textureIndex ~= 0 then
 				x, y = REPorter_GetRealCoords(x, y);
@@ -1169,8 +1167,8 @@ function REPorter_OnUpdate(self, elapsed)
 end
 
 function REPorterUnit_OnEnterPlayer(self)
-	local x, y = self:GetCenter();
-	local parentX, parentY = self:GetParent():GetCenter();
+	local x, _ = self:GetCenter();
+	local parentX, _ = self:GetParent():GetCenter();
 	if ( x > parentX ) then
 		GameTooltip:SetOwner(self, "ANCHOR_LEFT");
 	else
@@ -1221,8 +1219,8 @@ function REPorterUnit_OnEnterPlayer(self)
 end
 
 function REPorterUnit_OnEnterVehicle(self)
-	local x, y = self:GetCenter();
-	local parentX, parentY = self:GetParent():GetCenter();
+	local x, _ = self:GetCenter();
+	local parentX, _ = self:GetParent():GetCenter();
 	if ( x > parentX ) then
 		GameTooltip:SetOwner(self, "ANCHOR_LEFT");
 	else
@@ -1260,8 +1258,8 @@ function REPorterUnit_OnEnterVehicle(self)
 end
 
 function REPorterUnit_OnEnterPOI(self)
-	local x, y = self:GetCenter();
-	local parentX, parentY = self:GetParent():GetCenter();
+	local x, _ = self:GetCenter();
+	local parentX, _ = self:GetParent():GetCenter();
 	if ( x > parentX ) then
 		GameTooltip:SetOwner(self, "ANCHOR_LEFT");
 	else
