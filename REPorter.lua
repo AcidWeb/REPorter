@@ -52,6 +52,11 @@ RE.BlipCoords = {
 	["MONK"] = { 0.125, 0.25, 0.25, 0.5 },
 	["DEMONHUNTER"]	= { 0.375, 0.5, 0.25, 0.5 }
 }
+RE.RoleCoords = {
+	["TANK"] = { 0, 19/64, 22/64, 41/64 },
+	["HEALER"] = { 20/64, 39/64, 1/64, 20/64 },
+	["DAMAGER"] = { 20/64, 39/64, 22/64, 41/64 }
+}
 RE.ClassColors = {
 	["HUNTER"] = "AAD372",
 	["WARLOCK"] = "9482C9",
@@ -1077,52 +1082,37 @@ function REPorter_OnUpdate(self, elapsed)
 			for i=1, MAX_RAID_MEMBERS do
 				local unit = "raid"..i;
 				local partyX, partyY = GetPlayerMapPosition(unit);
-				local partyMemberFrame = _G["REPorterRaid"..(playerCount + 1)];
-				local _, partyMemberClass = UnitClass(unit);
-				if (partyX ~= 0 and partyY ~= 0) and not UnitIsUnit("raid"..i, "player") and partyMemberClass ~= nil then
+				local partyFrame = _G["REPorterRaid"..(playerCount + 1)];
+				local _, class = UnitClass(unit);
+				if (partyX ~= 0 and partyY ~= 0) and not UnitIsUnit("raid"..i, "player") and class ~= nil then
 					partyX, partyY = REPorter_GetRealCoords(partyX, partyY);
-					partyMemberFrame:SetPoint("CENTER", "REPorterOverlay", "TOPLEFT", partyX, partyY);
-					partyMemberFrame.unit = unit;
-					partyMemberFrame.health = (UnitHealth(unit) / UnitHealthMax(unit) * 100);
-					if UnitAffectingCombat(unit) then
-						if partyMemberFrame.health < 26 then
-							partyMemberFrame.icon:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterBlipDyingAndDead");
-							partyMemberFrame.icon:SetTexCoord(
-							RE.BlipCoords[partyMemberClass][1],
-							RE.BlipCoords[partyMemberClass][2],
-							RE.BlipCoords[partyMemberClass][3] + RE.BlipOffsetT,
-							RE.BlipCoords[partyMemberClass][4] + RE.BlipOffsetT
-							);
-						else
-							partyMemberFrame.icon:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterBlipNormalAndCombat");
-							partyMemberFrame.icon:SetTexCoord(
-							RE.BlipCoords[partyMemberClass][1],
-							RE.BlipCoords[partyMemberClass][2],
-							RE.BlipCoords[partyMemberClass][3] + RE.BlipOffsetT,
-							RE.BlipCoords[partyMemberClass][4] + RE.BlipOffsetT
-							);
-						end
-					elseif UnitIsDeadOrGhost(unit) then
-						partyMemberFrame.icon:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterBlipDyingAndDead");
-						partyMemberFrame.icon:SetTexCoord(
-						RE.BlipCoords[partyMemberClass][1],
-						RE.BlipCoords[partyMemberClass][2],
-						RE.BlipCoords[partyMemberClass][3],
-						RE.BlipCoords[partyMemberClass][4]
-						);
+					partyFrame:SetPoint("CENTER", "REPorterOverlay", "TOPLEFT", partyX, partyY);
+					partyFrame.unit = unit;
+					partyFrame.role = UnitGroupRolesAssigned(unit);
+					partyFrame.health = (UnitHealth(unit) / UnitHealthMax(unit) * 100);
+					if IsShiftKeyDown() and IsControlKeyDown() and partyFrame.role == "HEALER" then
+						partyFrame.icon:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES");
+						partyFrame.icon:SetTexCoord(RE.RoleCoords[partyFrame.role][1], RE.RoleCoords[partyFrame.role][2], RE.RoleCoords[partyFrame.role][3], RE.RoleCoords[partyFrame.role][4]);
 					else
-						partyMemberFrame.icon:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterBlipNormalAndCombat");
-						partyMemberFrame.icon:SetTexCoord(
-						RE.BlipCoords[partyMemberClass][1],
-						RE.BlipCoords[partyMemberClass][2],
-						RE.BlipCoords[partyMemberClass][3],
-						RE.BlipCoords[partyMemberClass][4]
-						);
+						if UnitAffectingCombat(unit) then
+							if partyFrame.health < 26 then
+								partyFrame.icon:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterBlipDyingAndDead");
+							else
+								partyFrame.icon:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterBlipNormalAndCombat");
+							end
+							partyFrame.icon:SetTexCoord(RE.BlipCoords[class][1], RE.BlipCoords[class][2], RE.BlipCoords[class][3] + RE.BlipOffsetT, RE.BlipCoords[class][4] + RE.BlipOffsetT);
+						elseif UnitIsDeadOrGhost(unit) then
+							partyFrame.icon:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterBlipDyingAndDead");
+							partyFrame.icon:SetTexCoord(RE.BlipCoords[class][1], RE.BlipCoords[class][2], RE.BlipCoords[class][3], RE.BlipCoords[class][4]);
+						else
+							partyFrame.icon:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterBlipNormalAndCombat");
+							partyFrame.icon:SetTexCoord(RE.BlipCoords[class][1], RE.BlipCoords[class][2], RE.BlipCoords[class][3], RE.BlipCoords[class][4]);
+						end
 					end
-					partyMemberFrame:Show();
+					partyFrame:Show();
 					playerCount = playerCount + 1;
 				else
-					partyMemberFrame:Hide();
+					partyFrame:Hide();
 				end
 			end
 		end
