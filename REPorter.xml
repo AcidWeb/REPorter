@@ -481,41 +481,4 @@
 		</ScrollChild>
 	</ScrollFrame>
 
-	<Frame name="REPorterTutorial" frameStrata="DIALOG" parent="UIParent" hidden="true" resizable="false" movable="false">
-		<Size>
-			<AbsDimension x="400" y="400"/>
-		</Size>
-		<Anchors>
-			<Anchor point="CENTER"/>
-		</Anchors>
-		<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-			<EdgeSize>
-				<AbsValue val="20"/>
-			</EdgeSize>
-			<TileSize>
-				<AbsValue val="32"/>
-			</TileSize>
-			<BackgroundInsets>
-				<AbsInset left="6" right="6" top="6" bottom="6"/>
-			</BackgroundInsets>
-		</Backdrop>
-		<Layers>
-			<Layer>
-				<Texture name="$parentTexture" file="Interface\Addons\REPorter\Textures\REPorterTutorial">
-					<Size>
-						<AbsDimension x="512" y="512"/>
-					</Size>
-					<Anchors>
-						<Anchor point="CENTER"/>
-					</Anchors>
-				</Texture>
-			</Layer>
-		</Layers>
-		<Scripts>
-			<OnMouseUp>
-				REPorterTutorial:Hide();
-			</OnMouseUp>
-		</Scripts>
-	</Frame>
-
 </Ui>

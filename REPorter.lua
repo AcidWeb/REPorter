@@ -109,7 +109,6 @@ RE.POIDropDown = {
 };
 RE.DefaultConfig = {
 	barHandle = 1,
-	firstTime = true,
 	locked = false,
 	nameAdvert = false,
 	opacity = 0.80,
@@ -456,10 +455,6 @@ function REPorter_OnShow(self)
 		SetMapToCurrentZone();
 		REPorterEstimator:Show();
 		REPorterExternal:SetScrollChild(REPorter);
-		if RES.firstTime then
-			RES.firstTime = nil;
-			REPorterTutorial:Show();
-		end
 		REPorterTab:SetAlpha(0.25);
 		if RES.hideMinimap then
 		  MinimapCluster:Hide();
