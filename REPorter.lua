@@ -1,6 +1,7 @@
 REPorterNamespace = {["AceTimer"] = {}};
 local RE = REPorterNamespace;
 local RES = REPorterSettings;
+local L = LibStub("AceLocale-3.0"):GetLocale("REPorter");
 LibStub("AceTimer-3.0"):Embed(RE.AceTimer);
 
 RE.POIIconSize = 30;
@@ -93,7 +94,7 @@ RE.EstimatorSettings = {
 	["STVDiamondMineBG"] = 150
 }
 RE.POIDropDown = {
-	{ text = "Incoming", hasArrow = true, notCheckable = true,
+	{ text = L["Incoming"], hasArrow = true, notCheckable = true,
 	menuList = {
 		{ text = "1", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(1, true); CloseDropDownMenus() end },
 		{ text = "2", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(2, true); CloseDropDownMenus() end },
@@ -102,15 +103,15 @@ RE.POIDropDown = {
 		{ text = "5", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(5, true); CloseDropDownMenus() end },
 		{ text = "5+", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(6, true); CloseDropDownMenus() end }
 	} },
-	{ text = "Help", notCheckable = true, func = function() REPorter_BigButton(true, true) end },
-	{ text = "Clear", notCheckable = true, func = function() REPorter_BigButton(false, true) end },
+	{ text = HELP_LABEL, notCheckable = true, func = function() REPorter_BigButton(true, true) end },
+	{ text = L["Clear"], notCheckable = true, func = function() REPorter_BigButton(false, true) end },
 	{ text = "", notCheckable = true, disabled = true },
-	{ text = "Attack", notCheckable = true, func = function() REPorter_ReportDropDownClick("Attack") end },
-	{ text = "Guard", notCheckable = true, func = function() REPorter_ReportDropDownClick("Guard") end },
-	{ text = "Heavily defended", notCheckable = true, func = function() REPorter_ReportDropDownClick("Heavily defended") end },
-	{ text = "Losing", notCheckable = true, func = function() REPorter_ReportDropDownClick("Losing") end },
+	{ text = ATTACK, notCheckable = true, func = function() REPorter_ReportDropDownClick(ATTACK) end },
+	{ text = L["Guard"], notCheckable = true, func = function() REPorter_ReportDropDownClick(L["Guard"]) end },
+	{ text = L["Heavily defended"], notCheckable = true, func = function() REPorter_ReportDropDownClick(L["Heavily defended"]) end },
+	{ text = L["Losing"], notCheckable = true, func = function() REPorter_ReportDropDownClick(L["Losing"]) end },
 	{ text = "", notCheckable = true, disabled = true },
-	{ text = "Report status", notCheckable = true, func = function() REPorter_ReportDropDownClick("") end }
+	{ text = L["Report status"], notCheckable = true, func = function() REPorter_ReportDropDownClick("") end }
 };
 RE.DefaultConfig = {
 	barHandle = 1,
@@ -132,8 +133,8 @@ RE.AceConfig = {
   type = "group",
   args = {
 		locked = {
-			name = "Lock map",
-			desc = "When checked map is locked in place.",
+			name = L["Lock map"],
+			desc = L["When checked map is locked in place."],
 			type = "toggle",
 			width = "full",
 			order = 1,
@@ -141,8 +142,8 @@ RE.AceConfig = {
 			get = function(_) return RES.locked end
 		},
     nameAdvert = {
-      name = "Add \"[REPorter]\" to end of each report",
-			desc = "When checked shameless ad is added to each battleground report.",
+      name = L["Add \"[REPorter]\" to end of each report"],
+			desc = L["When checked shameless advert is added to each battleground report."],
       type = "toggle",
 			width = "full",
 			order = 2,
@@ -150,8 +151,8 @@ RE.AceConfig = {
       get = function(_) return RES.nameAdvert end
     },
 		hideMinimap = {
-      name = "Hide minimap on battlegrounds",
-			desc = "When checked minimap will be hidden when player is on battleground.",
+      name = L["Hide minimap on battlegrounds"],
+			desc = L["When checked minimap will be hidden when player is on battleground."],
       type = "toggle",
 			width = "full",
 			order = 3,
@@ -159,8 +160,8 @@ RE.AceConfig = {
       get = function(_) return RES.hideMinimap end
     },
 		barHandle = {
-			name = "Report bar location",
-			desc = "Anchor point of bar with quick report buttons.",
+			name = L["Report bar location"],
+			desc = L["Anchor point of bar with quick report buttons."],
 			type = "select",
 			width = "double",
 			order = 4,
@@ -176,8 +177,8 @@ RE.AceConfig = {
 			get = function(_) return RES.barHandle end
 		},
 		scale = {
-			name = "Map scale",
-			desc = "This option control map size.",
+			name = L["Map scale"],
+			desc = L["This option control map size."],
 			type = "range",
 			width = "double",
 			min = 0.5,
@@ -187,8 +188,8 @@ RE.AceConfig = {
 			get = function(_) return RES.scale end
 		},
 		opacity = {
-			name = "Map alpha",
-			desc = "This option control map transparency.",
+			name = L["Map alpha"],
+			desc = L["This option control map transparency."],
 			type = "range",
 			width = "double",
 			isPercent = true,
@@ -199,7 +200,7 @@ RE.AceConfig = {
 			get = function(_) return RES.opacity end
 		},
 		help = {
-			name = "Map position is saved separately for each battleground.",
+			name = L["Map position is saved separately for each battleground."],
 			type = "description",
 			fontSize = "medium",
 			order = 0
@@ -396,11 +397,11 @@ function REPorter_GetNearestPOI()
 		if RE.CurrentMap == "STVDiamondMineBG" then
 			playerX, playerY = playerX * 100, playerY * 100;
 			if (playerX >= 10 and playerY >= 17 and playerX <= 30 and playerY <= 60) or (playerX >= 30 and playerY >= 17 and playerX <= 53 and playerY <= 43) or (playerX >= 53 and playerY >= 17 and playerX <= 68 and playerY <= 26) then
-				node = "Top"
+				node = L["Top"]
 			elseif (playerX >= 30 and playerY >= 43 and playerX <= 50 and playerY <= 6) or (playerX >= 30 and playerY >= 60 and playerX <= 48 and playerY <= 100) then
-				node = "Water"
+				node = L["Water"]
 			elseif (playerX >= 68 and playerY >= 25 and playerX <= 100 and playerY <= 43) or (playerX >= 62 and playerY >= 43 and playerX <= 100 and playerY <= 62) or (playerX >= 60 and playerY >= 62 and playerX <= 100 and playerY <= 100) then
-				node = "Lava"
+				node = STRING_ENVIRONMENTAL_DAMAGE_LAVA
 			end
 		else
 			playerX, playerY = REPorter_GetRealCoords(playerX, playerY);
@@ -512,14 +513,14 @@ function REPorter_OnEvent(self, event, ...)
 		REPorter_UpdateConfig();
 		RegisterAddonMessagePrefix("REPorter");
 		BINDING_HEADER_REPORTERB = "REPorter";
-		BINDING_NAME_REPORTERINC1 = "Incoming 1";
-		BINDING_NAME_REPORTERINC2 = "Incoming 2";
-		BINDING_NAME_REPORTERINC3 = "Incoming 3";
-		BINDING_NAME_REPORTERINC4 = "Incoming 4";
-		BINDING_NAME_REPORTERINC5 = "Incoming 5";
-		BINDING_NAME_REPORTERINC6 = "Incoming 5+";
-		BINDING_NAME_REPORTERHELP = "Help";
-		BINDING_NAME_REPORTERCLEAR = "Clear";
+		BINDING_NAME_REPORTERINC1 = L["Incoming"].." 1";
+		BINDING_NAME_REPORTERINC2 = L["Incoming"].." 2";
+		BINDING_NAME_REPORTERINC3 = L["Incoming"].." 3";
+		BINDING_NAME_REPORTERINC4 = L["Incoming"].." 4";
+		BINDING_NAME_REPORTERINC5 = L["Incoming"].." 5";
+		BINDING_NAME_REPORTERINC6 = L["Incoming"].." 5+";
+		BINDING_NAME_REPORTERHELP = HELP_LABEL;
+		BINDING_NAME_REPORTERCLEAR = L["Clear"];
 		for i=1, RE.POINumber do
 			REPorter_CreatePOI(i);
 		end
@@ -531,7 +532,7 @@ function REPorter_OnEvent(self, event, ...)
 		local REMessageEx = {strsplit(";", REMessage)};
 		if REMessageEx[1] == "Version" then
 			if not RE.FoundNewVersion and tonumber(REMessageEx[2]) > RE.AddonVersionCheck then
-				print("\124cFF74D06C[REPorter]\124r New version released!");
+				print("\124cFF74D06C[REPorter]\124r "..L["New version released!"]);
 				RE.FoundNewVersion = true;
 			end
 		elseif REMessageEx[1] == "GateSyncRequest" and RE.PlayedFromStart then
@@ -634,11 +635,11 @@ function REPorter_OnEvent(self, event, ...)
 				AllianceCartsNeeded = AlliancePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"];
 				HordeCartsNeeded = HordePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"];
 				if AllianceCartsNeeded > HordeCartsNeeded then
-					RE.SMEstimatorText = "|cFFFF141D"..REPorter_Round(HordeCartsNeeded, 1).."\ncarts|r";
-					RE.SMEstimatorReport = FACTION_HORDE.." victory: "..REPorter_Round(HordeCartsNeeded, 1).." carts";
+					RE.SMEstimatorText = "|cFFFF141D"..REPorter_Round(HordeCartsNeeded, 1).."\n"..L["carts"].."|r";
+					RE.SMEstimatorReport = FACTION_HORDE.." "..L["victory"]..": "..REPorter_Round(HordeCartsNeeded, 1).." "..L["carts"];
 				elseif AllianceCartsNeeded < HordeCartsNeeded then
-					RE.SMEstimatorText = "|cFF00A9FF"..REPorter_Round(AllianceCartsNeeded, 1).."\ncarts|r";
-					RE.SMEstimatorReport = FACTION_ALLIANCE.." victory: "..REPorter_Round(AllianceCartsNeeded, 1).." carts";
+					RE.SMEstimatorText = "|cFF00A9FF"..REPorter_Round(AllianceCartsNeeded, 1).."\n"..L["carts"].."|r";
+					RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..REPorter_Round(AllianceCartsNeeded, 1).." "..L["carts"];
 				else
 					RE.SMEstimatorText = "";
 					RE.SMEstimatorReport = "";
@@ -691,34 +692,34 @@ function REPorter_OnEvent(self, event, ...)
 		else
 			local gateID = {strsplit("-", guid)};
 			if gateID[6] == "195496" then -- Horde East
-				RE.POINodes[RE.IoCHordeGateName.." - East"]["health"] = RE.POINodes[RE.IoCHordeGateName.." - East"]["health"] - damage;
-				if RE.POINodes[RE.IoCHordeGateName.." - East"]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
-					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - East"]["health"];
+				RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] - damage;
+				if RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
+					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"];
 				end
 			elseif gateID[6] == "195494" then -- Horde Central
-				RE.POINodes[RE.IoCHordeGateName.." - Front"]["health"] = RE.POINodes[RE.IoCHordeGateName.." - Front"]["health"] - damage;
-				if RE.POINodes[RE.IoCHordeGateName.." - Front"]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
-					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - Front"]["health"];
+				RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] - damage;
+				if RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
+					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"];
 				end
 			elseif gateID[6] == "195495" then -- Horde West
-				RE.POINodes[RE.IoCHordeGateName.." - West"]["health"] = RE.POINodes[RE.IoCHordeGateName.." - West"]["health"] - damage;
-				if RE.POINodes[RE.IoCHordeGateName.." - West"]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
-					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - West"]["health"];
+				RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] - damage;
+				if RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
+					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"];
 				end
 			elseif gateID[6] == "195698" then -- Alliance East
-				RE.POINodes[RE.IoCAllianceGateName.." - East"]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - East"]["health"] - damage;
-				if RE.POINodes[RE.IoCAllianceGateName.." - East"]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - East"]["health"];
+				RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] - damage;
+				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"];
 				end
 			elseif gateID[6] == "195700" then -- Alliance Center
-				RE.POINodes[RE.IoCAllianceGateName.." - Front"]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - Front"]["health"] - damage;
-				if RE.POINodes[RE.IoCAllianceGateName.." - Front"]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - Front"]["health"];
+				RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] - damage;
+				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"];
 				end
 			elseif gateID[6] == "195699" then -- Alliance West
-				RE.POINodes[RE.IoCAllianceGateName.." - West"]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - West"]["health"] - damage;
-				if RE.POINodes[RE.IoCAllianceGateName.." - West"]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - West"]["health"];
+				RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] - damage;
+				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"];
 				end
 			elseif RE.Debug > 0 then
 				print("\124cFF74D06C[REPorter]\124r Unknown gate - "..gateID);
@@ -1511,7 +1512,7 @@ function REPorter_POIPlayers(POIName)
 				end
 			end
 			if playerNumber ~= 0 then
-				return " - Friendlies: "..playerNumber;
+				return " - "..L["Friendlies"]..": "..playerNumber;
 			else
 				return "";
 			end
@@ -1530,7 +1531,7 @@ function REPorter_POIStatus(POIName)
 			return "";
 		else
 			local timeLeft = REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[POIName]["timer"]), 0));
-			return " - To cap: "..timeLeft;
+			return " - "..timeLeft;
 		end
 	end
 	return "";
@@ -1575,16 +1576,16 @@ function REPorter_SmallButton(number, otherNode)
 		local message = "";
 		if name and name ~= "" then
 			if number < 6 then
-				message = "INCOMING "..number;
+				message = strupper(L["Incoming"]).." "..number;
 			else
-				message = "INCOMING 5+";
+				message = strupper(L["Incoming"]).." 5+";
 			end
 			SendChatMessage(message..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
 		else
-			print("\124cFF74D06C[REPorter]\124r This location don't have name. Action canceled.");
+			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."]);
 		end
 	else
-		print("\124cFF74D06C[REPorter]\124r This addon work only on battlegrounds.");
+		print("\124cFF74D06C[REPorter]\124r "..L["This addon work only on battlegrounds."]);
 	end
 end
 
@@ -1603,21 +1604,21 @@ function REPorter_BigButton(isHelp, otherNode)
 		end
 		if name and name ~= "" then
 			if isHelp then
-				SendChatMessage("HELP"..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
+				SendChatMessage(strupper(HELP_LABEL)..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
 			else
-				SendChatMessage("CLEAR"..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
+				SendChatMessage(strupper(L["Clear"])..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
 			end
 		else
-			print("\124cFF74D06C[REPorter]\124r This location don't have name. Action canceled.");
+			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."]);
 		end
 	else
-		print("\124cFF74D06C[REPorter]\124r This addon work only on battlegrounds.");
+		print("\124cFF74D06C[REPorter]\124r "..L["This addon work only on battlegrounds."]);
 	end
 end
 
 function REPorter_ReportEstimator()
 	if RE.AceTimer:TimeLeft(RE.EstimatorTimer) > 0 then
-		SendChatMessage(RE.IsWinning.." victory: "..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0))..RE.ReportPrefix, "INSTANCE_CHAT");
+		SendChatMessage(RE.IsWinning.." "..L["victory"]..": "..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0))..RE.ReportPrefix, "INSTANCE_CHAT");
 	elseif RE.CurrentMap == "STVDiamondMineBG" and RE.SMEstimatorReport ~= "" then
 		SendChatMessage(RE.SMEstimatorReport, "INSTANCE_CHAT");
 	elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then

@@ -6,4 +6,5 @@
 ## SavedVariablesPerCharacter: REPorterSettings
 
 Embeds.xml
+Locale\Locale.xml
 REPorter.xml
