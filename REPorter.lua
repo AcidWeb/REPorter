@@ -365,8 +365,9 @@ function REPorter_SOTAStartCheck()
 	return (startCheck[4] == 46 or startCheck[4] == 48), sideCheck[4] == 102;
 end
 
-function REPorter_EstimatorFill(ATimeToWin, HTimeToWin, RefreshTimer)
-	local RefreshTimer = RefreshTimer or 5;
+function REPorter_EstimatorFill(ATimeToWin, HTimeToWin, RefreshTimer, APointNum, HPointNum)
+	local APointNum = APointNum or 0;
+	local HPointNum = HPointNum or 0;
 	local TimeLeft = RE.AceTimer:TimeLeft(RE.EstimatorTimer);
 	if ATimeToWin > 1 and HTimeToWin > 1 then
 		if ATimeToWin < HTimeToWin then
@@ -384,7 +385,7 @@ function REPorter_EstimatorFill(ATimeToWin, HTimeToWin, RefreshTimer)
 		else
 			RE.IsWinning = "";
 		end
-	elseif AlliancePointNum == RE.MapSettings[RE.CurrentMap]["pointsToWin"] or HordePointNum == RE.MapSettings[RE.CurrentMap]["pointsToWin"] then
+	elseif APointNum >= RE.MapSettings[RE.CurrentMap]["pointsToWin"] or HPointNum >= RE.MapSettings[RE.CurrentMap]["pointsToWin"] then
 		RE.AceTimer:CancelTimer(RE.EstimatorTimer);
 		RE.IsWinning = "";
 	end
@@ -555,7 +556,7 @@ function REPorter_OnEvent(self, event, ...)
 				end
 			end
 		end
-	elseif event == "UPDATE_WORLD_STATES" and RE.MapSettings[RE.CurrentMap] then
+	elseif event == "UPDATE_WORLD_STATES" and RE.MapSettings[RE.CurrentMap] and select(2, IsInInstance()) == "pvp" then
 		if RE.CurrentMap == "TempleofKotmogu" then
 			local AlliancePointsNeeded, AlliancePointsPerSec, AllianceTimeToWin, HordePointsNeeded, HordePointsPerSec, HordeTimeToWin = nil, 0, 0, nil, 0, 0;
 			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["TempleofKotmogu"]["WorldStateNum"]);
@@ -682,7 +683,7 @@ function REPorter_OnEvent(self, event, ...)
 				else
 					HordeTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - HordePointNum) / RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum];
 				end
-				REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin)
+				REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 5, AlliancePointNum, HordePointNum);
 			end
 		end
 	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" and select(2, ...) == "SPELL_BUILDING_DAMAGE" then
@@ -706,12 +707,12 @@ function REPorter_OnEvent(self, event, ...)
 				if RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
 					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"];
 				end
-			elseif gateID[6] == "195698" then -- Alliance East
+			elseif gateID[6] == "195700" then -- Alliance East
 				RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] - damage;
 				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
 					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"];
 				end
-			elseif gateID[6] == "195700" then -- Alliance Center
+			elseif gateID[6] == "195698" then -- Alliance Center
 				RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] - damage;
 				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
 					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"];
@@ -849,10 +850,10 @@ function REPorter_OnUpdate(self, elapsed)
 					if i == 9 then
 						RE.IoCAllianceGateName = name;
 						name = name.." - East";
-						x = x + 10;
+						x = x + 15;
 					elseif i == 10 then
 						name = name.." - West";
-						x = x - 10;
+						x = x - 13;
 					elseif i == 11 then
 						name = name.." - Front";
 						y = y + 15;
@@ -866,6 +867,7 @@ function REPorter_OnUpdate(self, elapsed)
 					elseif i == 8 then
 						name = name.." - West";
 						x = x - 10;
+						y = y - 1;
 					end
 				elseif RE.CurrentMap == "AlteracValley" then
 					if x > 343 and x < 346 then
@@ -1004,6 +1006,7 @@ function REPorter_OnUpdate(self, elapsed)
 							partyX, partyY = REPorter_GetRealCoords(partyX, partyY);
 							if (partyX ~= 0 and partyY ~= 0) and (UnitAffectingCombat(unit)) then
 								if REPorter_PointDistance(x, y, partyX, partyY) < 33 then
+									_G[battlefieldPOIName.."WarZone"]:SetFrameLevel(10);
 									_G[battlefieldPOIName.."WarZone"]:Show();
 									break;
 								end
@@ -1092,9 +1095,11 @@ function REPorter_OnUpdate(self, elapsed)
 					partyFrame.role = UnitGroupRolesAssigned(unit);
 					partyFrame.health = (UnitHealth(unit) / UnitHealthMax(unit) * 100);
 					if IsShiftKeyDown() and IsControlKeyDown() and partyFrame.role == "HEALER" then
+						partyFrame:SetFrameLevel(200+i);
 						partyFrame.icon:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES");
 						partyFrame.icon:SetTexCoord(RE.RoleCoords[partyFrame.role][1], RE.RoleCoords[partyFrame.role][2], RE.RoleCoords[partyFrame.role][3], RE.RoleCoords[partyFrame.role][4]);
 					else
+						partyFrame:SetFrameLevel(100+i);
 						if UnitAffectingCombat(unit) then
 							if partyFrame.health < 26 then
 								partyFrame.icon:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterBlipDyingAndDead");
@@ -1319,6 +1324,7 @@ function REPorter_Create(isSecond)
 		REPorterExternalPlayerArrow:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"]);
 		REPorterExternalPlayerArrow:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"]);
 		REPorterExternalPlayerArrow:SetPoint("TOPLEFT", REPorterExternal, "TOPLEFT");
+		REPorterExternalPlayerArrow:SetFrameLevel(250);
 		REPorterTab:Show();
 		local texName;
 		local numDetailTiles = GetNumberOfDetailTiles();

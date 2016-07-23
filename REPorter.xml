@@ -465,7 +465,7 @@
 		</ScrollChild>
 	</ScrollFrame>
 
-	<ScrollFrame name="REPorterExternalPlayerArrow" frameStrata="HIGH" parent="REPorterExternal" >
+	<ScrollFrame name="REPorterExternalPlayerArrow" frameStrata="MEDIUM" parent="REPorterExternal" >
 		<Size>
 			<AbsDimension x="400" />
 		</Size>
