@@ -70,7 +70,6 @@
 	</Frame>
 
 	<Frame name="REPorter_ReportDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="true" />
-	<Frame name="REPorter_OptionsDropDown" inherits="UIDropDownMenuTemplate" id="2" hidden="true" />
 
 	<ScrollFrame name="REPorterExternal" frameStrata="BACKGROUND" resizable="false" hidden="true" parent="UIParent" movable="true">
 		<Size>

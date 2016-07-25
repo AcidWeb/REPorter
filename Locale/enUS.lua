@@ -20,6 +20,12 @@ L["This option control map size."] = true
 L["Map alpha"] = true
 L["This option control map transparency."] = true
 L["Map position and scale is saved separately for each battleground."] = true
+L["Bottom right"] = true
+L["Right"] = true
+L["Top right"] = true
+L["Bottom left"] = true
+L["Left"] = true
+L["Top left"] = true
 
 L["Top"] = true
 L["Water"] = true
@@ -27,6 +33,7 @@ L["Water"] = true
 L["East"] = true
 L["Front"] = true
 L["West"] = true
+L["gate"] = true
 
 L["New version released!"] = true
 L["This location don't have name. Action canceled."] = true

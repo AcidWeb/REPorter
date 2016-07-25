@@ -37,7 +37,7 @@ RE.ClickedPOI = "";
 
 RE.FoundNewVersion = false;
 RE.Debug = 0;
-RE.AddonVersionCheck = 93;
+RE.AddonVersionCheck = 94;
 
 RE.BlipCoords = {
 	["WARRIOR"] = { 0, 0.125, 0, 0.25 },
@@ -128,6 +128,7 @@ RE.ReportBarAnchor = {
 	[5] = {"RIGHT", "LEFT"},
 	[6] = {"TOPRIGHT", "TOPLEFT"}
 };
+
 -- *** Pre-hook section
 RE.TimerOverride = false;
 RE.TimerOriginal = StartTimer_BigNumberOnUpdate;
@@ -139,6 +140,7 @@ StartTimer_BigNumberOnUpdate = function(...)
 	end
 end
 --
+
 -- *** Auxiliary functions
 function REPorter_BlinkPOI()
 	if RE.BlinkPOI + 0.03 <= RE.BlinkPOIMax and RE.BlinkPOIUp then
@@ -483,12 +485,12 @@ function REPorter_OnEvent(self, event, ...)
 					width = "double",
 					order = 4,
 					values = {
-						[1] = "Bottom right",
-						[2] = "Right",
-						[3] = "Top right",
-						[4] = "Bottom left",
-						[5] = "Left",
-						[6] = "Top left"
+						[1] = L["Bottom right"],
+						[2] = L["Right"],
+						[3] = L["Top right"],
+						[4] = L["Bottom left"],
+						[5] = L["Left"],
+						[6] = L["Top left"]
 					},
 					set = function(_, val) RES.barHandle = val; REPorter_UpdateConfig() end,
 					get = function(_) return RES.barHandle end
@@ -1173,7 +1175,6 @@ function REPorter_OnUpdate(self, elapsed)
 		else
 			REPorterEstimator_Text:SetText("");
 		end
-
 		RE.updateTimer = RE.MapUpdateRate;
 	else
 		RE.updateTimer = RE.updateTimer - elapsed;
@@ -1314,6 +1315,7 @@ function REPorter_OnClickPOI(self)
 end
 ---
 
+-- *** Core functions
 function REPorter_Create(isSecond)
 	REPorterExternal:SetScript("OnUpdate", nil);
 	local mapFileName = GetMapInfo();
@@ -1646,7 +1648,7 @@ function REPorter_ReportEstimator()
 	elseif RE.CurrentMap == "STVDiamondMineBG" and RE.SMEstimatorReport ~= "" then
 		SendChatMessage(RE.SMEstimatorReport, "INSTANCE_CHAT");
 	elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
-		SendChatMessage(FACTION_ALLIANCE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."% - "..FACTION_HORDE..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%"..RE.ReportPrefix, "INSTANCE_CHAT");
+		SendChatMessage(FACTION_ALLIANCE.." "..L["gate"]..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."% - "..FACTION_HORDE.." "..L["gate"]..": "..REPorter_Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%"..RE.ReportPrefix, "INSTANCE_CHAT");
 	end
 end
 
@@ -1657,7 +1659,9 @@ function REPorter_ReportDropDownClick(reportType)
 		SendChatMessage(REPorter_POIOwner(RE.ClickedPOI, true)..REPorter_POIStatus(RE.ClickedPOI)..REPorter_POIPlayers(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT");
 	end
 end
+--
 
+-- *** Config functions
 function REPorter_UpdateConfig()
 	local x, y = 0, 0;
 	REPorterExternal:SetAlpha(RES["opacity"]);
@@ -1703,3 +1707,4 @@ function REPorter_UpdateScaleConfig(_, val)
 		return 1.0
 	end
 end
+--
