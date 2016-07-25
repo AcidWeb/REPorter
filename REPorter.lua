@@ -208,6 +208,17 @@ RE.AceConfig = {
   }
 };
 
+-- *** Pre-hook section
+RE.TimerOverride = false;
+RE.TimerOriginal = StartTimer_BigNumberOnUpdate;
+StartTimer_BigNumberOnUpdate = function(...)
+	if REPorterNamespace.TimerOverride then
+		StartTimer_BarOnlyOnUpdate(...);
+	else
+		REPorterNamespace.TimerOriginal(...);
+	end
+end
+--
 -- *** Auxiliary functions
 function REPorter_BlinkPOI()
 	if RE.BlinkPOI + 0.03 <= RE.BlinkPOIMax and RE.BlinkPOIUp then
@@ -421,6 +432,11 @@ function REPorter_GetNearestPOI()
 	return node;
 end
 
+function REPorter_CreateTimer(time)
+	RE.TimerOverride = true;
+	TimerTracker_OnEvent(TimerTracker, "START_TIMER", 1, time, time);
+end
+
 function RE.AceTimer.Null()
 	-- And Now His Watch is Ended
 end
@@ -487,6 +503,7 @@ function REPorter_OnHide(self)
 		CloseDropDownMenus();
 		REPorterEstimator_Text:SetText("");
 		REPorterEstimator:Hide();
+		RE.TimerOverride = false;
 		if not MinimapCluster:IsShown() and RES.hideMinimap then
 		  MinimapCluster:Show();
 		end
