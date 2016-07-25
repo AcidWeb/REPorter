@@ -19,7 +19,7 @@ L["Map scale"] = true
 L["This option control map size."] = true
 L["Map alpha"] = true
 L["This option control map transparency."] = true
-L["Map position is saved separately for each battleground."] = true
+L["Map position and scale is saved separately for each battleground."] = true
 
 L["Top"] = true
 L["Water"] = true
