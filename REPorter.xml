@@ -48,7 +48,7 @@
 			<Layer>
 				<FontString name="$Parent_Caption" justifyH="CENTER" inherits="SystemFont_Shadow_Small">
 					<Anchors>
-						<Anchor point="CENTER" />
+						<Anchor point="CENTER"/>
 					</Anchors>
 				</FontString>
 			</Layer>
@@ -69,11 +69,11 @@
 		</Layers>
 	</Frame>
 
-	<Frame name="REPorter_ReportDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="true" />
+	<Frame name="REPorter_ReportDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="true"/>
 
 	<ScrollFrame name="REPorterExternal" frameStrata="BACKGROUND" resizable="false" hidden="true" parent="UIParent" movable="true">
 		<Size>
-			<AbsDimension x="400" />
+			<AbsDimension x="400"/>
 		</Size>
 		<ScrollChild>
 			<Frame name="REPorter">
@@ -87,7 +87,7 @@
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" />
+								<Anchor point="TOPLEFT"/>
 							</Anchors>
 						</Texture>
 						<Texture name="REPorter2">
@@ -95,7 +95,7 @@
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter1" relativePoint="TOPRIGHT" />
+								<Anchor point="TOPLEFT" relativeTo="REPorter1" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
 						<Texture name="REPorter3">
@@ -103,7 +103,7 @@
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter2" relativePoint="TOPRIGHT" />
+								<Anchor point="TOPLEFT" relativeTo="REPorter2" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
 						<Texture name="REPorter4">
@@ -111,7 +111,7 @@
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter3" relativePoint="TOPRIGHT" />
+								<Anchor point="TOPLEFT" relativeTo="REPorter3" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
 						<Texture name="REPorter5">
@@ -119,7 +119,7 @@
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter1" relativePoint="BOTTOMLEFT" />
+								<Anchor point="TOPLEFT" relativeTo="REPorter1" relativePoint="BOTTOMLEFT"/>
 							</Anchors>
 						</Texture>
 						<Texture name="REPorter6">
@@ -127,7 +127,7 @@
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter5" relativePoint="TOPRIGHT" />
+								<Anchor point="TOPLEFT" relativeTo="REPorter5" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
 						<Texture name="REPorter7">
@@ -135,7 +135,7 @@
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter6" relativePoint="TOPRIGHT" />
+								<Anchor point="TOPLEFT" relativeTo="REPorter6" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
 						<Texture name="REPorter8">
@@ -143,7 +143,7 @@
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter7" relativePoint="TOPRIGHT" />
+								<Anchor point="TOPLEFT" relativeTo="REPorter7" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
 						<Texture name="REPorter9">
@@ -151,7 +151,7 @@
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter5" relativePoint="BOTTOMLEFT" />
+								<Anchor point="TOPLEFT" relativeTo="REPorter5" relativePoint="BOTTOMLEFT"/>
 							</Anchors>
 						</Texture>
 						<Texture name="REPorter10">
@@ -159,7 +159,7 @@
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter9" relativePoint="TOPRIGHT" />
+								<Anchor point="TOPLEFT" relativeTo="REPorter9" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
 						<Texture name="REPorter11">
@@ -167,7 +167,7 @@
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter10" relativePoint="TOPRIGHT" />
+								<Anchor point="TOPLEFT" relativeTo="REPorter10" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
 						<Texture name="REPorter12">
@@ -175,7 +175,7 @@
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter11" relativePoint="TOPRIGHT" />
+								<Anchor point="TOPLEFT" relativeTo="REPorter11" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
 					</Layer>
@@ -185,7 +185,7 @@
 						self:RegisterForDrag("LeftButton");
 					</OnLoad>
 					<OnDragStart>
-						if REPorterSettings.locked ~= true then
+						if not REPorterSettings.locked then
 							REPorterExternal:StartMoving();
 						end
 					</OnDragStart>
@@ -202,10 +202,10 @@
 		<Frames>
 			<Frame name="REPorterBorder">
 				<Anchors>
-					<Anchor point="CENTER" />
+					<Anchor point="CENTER"/>
 				</Anchors>
 				<Size>
-					<AbsDimension x="405" />
+					<AbsDimension x="405"/>
 				</Size>
 				<Backdrop edgeFile="Interface\DialogFrame\UI-DialogBox-Border">
 					<EdgeSize>
@@ -262,7 +262,7 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOP" relativeTo="$parent_SB1" relativePoint="BOTTOM" />
+					<Anchor point="TOP" relativeTo="$parent_SB1" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
 					<OnClick>
@@ -275,7 +275,7 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOP" relativeTo="$parent_SB2" relativePoint="BOTTOM" />
+					<Anchor point="TOP" relativeTo="$parent_SB2" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
 					<OnClick>
@@ -288,7 +288,7 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOP" relativeTo="$parent_SB3" relativePoint="BOTTOM" />
+					<Anchor point="TOP" relativeTo="$parent_SB3" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
 					<OnClick>
@@ -301,7 +301,7 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOP" relativeTo="$parent_SB4" relativePoint="BOTTOM" />
+					<Anchor point="TOP" relativeTo="$parent_SB4" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
 					<OnClick>
@@ -314,7 +314,7 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOP" relativeTo="$parent_SB5" relativePoint="BOTTOM" />
+					<Anchor point="TOP" relativeTo="$parent_SB5" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
 					<OnClick>
@@ -327,7 +327,7 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOP" relativeTo="$parent_SB6" relativePoint="BOTTOM" />
+					<Anchor point="TOP" relativeTo="$parent_SB6" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
 					<OnClick>
@@ -340,7 +340,7 @@
 					<AbsDimension x="25" y="25"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOP" relativeTo="$parent_BB1" relativePoint="BOTTOM" />
+					<Anchor point="TOP" relativeTo="$parent_BB1" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
 					<OnClick>
@@ -372,7 +372,7 @@
 		</Anchors>
 		<Layers>
 			<Layer>
-				<FontString name="$Parent_Text" justifyH="CENTER" inherits="SystemFont_Shadow_Med3" setAllPoints="true" />
+				<FontString name="$Parent_Text" justifyH="CENTER" inherits="SystemFont_Shadow_Med3" setAllPoints="true"/>
 			</Layer>
 		</Layers>
 		<Scripts>
@@ -382,11 +382,11 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="REPorterTimerOverlay" frameStrata="MEDIUM" parent="REPorterExternal" />
+	<Frame name="REPorterTimerOverlay" frameStrata="MEDIUM" parent="REPorterExternal"/>
 
-	<ScrollFrame name="REPorterExternalOverlay" frameStrata="MEDIUM" parent="REPorterExternal" >
+	<ScrollFrame name="REPorterExternalOverlay" frameStrata="MEDIUM" parent="REPorterExternal">
 		<Size>
-			<AbsDimension x="400" />
+			<AbsDimension x="400"/>
 		</Size>
 		<ScrollChild>
 			<Frame name="REPorterOverlay">
@@ -459,9 +459,9 @@
 		</ScrollChild>
 	</ScrollFrame>
 
-	<ScrollFrame name="REPorterExternalPlayerArrow" frameStrata="MEDIUM" parent="REPorterExternal" >
+	<ScrollFrame name="REPorterExternalPlayerArrow" frameStrata="MEDIUM" parent="REPorterExternal">
 		<Size>
-			<AbsDimension x="400" />
+			<AbsDimension x="400"/>
 		</Size>
 		<ScrollChild>
 			<Frame name="REPorterPlayerArrow">

@@ -129,6 +129,83 @@ RE.ReportBarAnchor = {
 	[5] = {"RIGHT", "LEFT"},
 	[6] = {"TOPRIGHT", "TOPLEFT"}
 };
+RE.AceConfig = {
+	type = "group",
+	args = {
+		locked = {
+			name = L["Lock map"],
+			desc = L["When checked map is locked in place."],
+			type = "toggle",
+			width = "full",
+			order = 1,
+			set = function(_, val) RES.locked = val end,
+			get = function(_) return RES.locked end
+		},
+		nameAdvert = {
+			name = L["Add \"[REPorter]\" to end of each report"],
+			desc = L["When checked shameless advert is added to each battleground report."],
+			type = "toggle",
+			width = "full",
+			order = 2,
+			set = function(_, val) RES.nameAdvert = val; REPorter_UpdateConfig() end,
+			get = function(_) return RES.nameAdvert end
+		},
+		hideMinimap = {
+			name = L["Hide minimap on battlegrounds"],
+			desc = L["When checked minimap will be hidden when player is on battleground."],
+			type = "toggle",
+			width = "full",
+			order = 3,
+			set = function(_, val) RES.hideMinimap = val; REPorter_UpdateConfig() end,
+			get = function(_) return RES.hideMinimap end
+		},
+		barHandle = {
+			name = L["Report bar location"],
+			desc = L["Anchor point of bar with quick report buttons."],
+			type = "select",
+			width = "double",
+			order = 4,
+			values = {
+				[1] = L["Bottom right"],
+				[2] = L["Right"],
+				[3] = L["Top right"],
+				[4] = L["Bottom left"],
+				[5] = L["Left"],
+				[6] = L["Top left"]
+			},
+			set = function(_, val) RES.barHandle = val; REPorter_UpdateConfig() end,
+			get = function(_) return RES.barHandle end
+		},
+		scale = {
+			name = L["Map scale"],
+			desc = L["This option control map size."],
+			type = "range",
+			width = "double",
+			disabled = function(_) if select(2, IsInInstance()) == "pvp" then return false else return true end end,
+			min = 0.5,
+			max = 1.5,
+			step = 0.05
+		},
+		opacity = {
+			name = L["Map alpha"],
+			desc = L["This option control map transparency."],
+			type = "range",
+			width = "double",
+			isPercent = true,
+			min = 0.1,
+			max = 1,
+			step = 0.01,
+			set = function(_, val) RES.opacity = val; REPorter_UpdateConfig() end,
+			get = function(_) return RES.opacity end
+		},
+		help = {
+			name = L["Map position and scale is saved separately for each battleground."],
+			type = "description",
+			fontSize = "medium",
+			order = 0
+		}
+	}
+};
 
 -- *** Pre-hook section
 RE.TimerOverride = false;
@@ -453,86 +530,9 @@ function REPorter_OnEvent(self, event, ...)
 			REPorterSettings = RE.DefaultConfig;
 		end
 		RES = REPorterSettings;
-		local AceConfig = {
-		  type = "group",
-		  args = {
-				locked = {
-					name = L["Lock map"],
-					desc = L["When checked map is locked in place."],
-					type = "toggle",
-					width = "full",
-					order = 1,
-					set = function(_, val) RES.locked = val end,
-					get = function(_) return RES.locked end
-				},
-		    nameAdvert = {
-		      name = L["Add \"[REPorter]\" to end of each report"],
-					desc = L["When checked shameless advert is added to each battleground report."],
-		      type = "toggle",
-					width = "full",
-					order = 2,
-		      set = function(_, val) RES.nameAdvert = val; REPorter_UpdateConfig() end,
-		      get = function(_) return RES.nameAdvert end
-		    },
-				hideMinimap = {
-		      name = L["Hide minimap on battlegrounds"],
-					desc = L["When checked minimap will be hidden when player is on battleground."],
-		      type = "toggle",
-					width = "full",
-					order = 3,
-		      set = function(_, val) RES.hideMinimap = val; REPorter_UpdateConfig() end,
-		      get = function(_) return RES.hideMinimap end
-		    },
-				barHandle = {
-					name = L["Report bar location"],
-					desc = L["Anchor point of bar with quick report buttons."],
-					type = "select",
-					width = "double",
-					order = 4,
-					values = {
-						[1] = L["Bottom right"],
-						[2] = L["Right"],
-						[3] = L["Top right"],
-						[4] = L["Bottom left"],
-						[5] = L["Left"],
-						[6] = L["Top left"]
-					},
-					set = function(_, val) RES.barHandle = val; REPorter_UpdateConfig() end,
-					get = function(_) return RES.barHandle end
-				},
-				scale = {
-					name = L["Map scale"],
-					desc = L["This option control map size."],
-					type = "range",
-					width = "double",
-					disabled = function(_) if select(2, IsInInstance()) == "pvp" then return false else return true end end,
-					min = 0.5,
-					max = 1.5,
-					step = 0.05,
-					set = REPorter_UpdateScaleConfig,
-					get = REPorter_UpdateScaleConfig
-				},
-				opacity = {
-					name = L["Map alpha"],
-					desc = L["This option control map transparency."],
-					type = "range",
-					width = "double",
-					isPercent = true,
-					min = 0.1,
-					max = 1,
-					step = 0.01,
-					set = function(_, val) RES.opacity = val; REPorter_UpdateConfig() end,
-					get = function(_) return RES.opacity end
-				},
-				help = {
-					name = L["Map position and scale is saved separately for each battleground."],
-					type = "description",
-					fontSize = "medium",
-					order = 0
-				}
-		  }
-		};
-		LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", AceConfig);
+		RE.AceConfig["args"]["scale"]["set"] = REPorter_UpdateScaleConfig;
+		RE.AceConfig["args"]["scale"]["get"] = REPorter_UpdateScaleConfig;
+		LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", RE.AceConfig);
 		LibStub("AceConfigDialog-3.0"):AddToBlizOptions("REPorter", "REPorter");
 		for _, i in pairs({"ArathiBasin", "WarsongGulch", "AlteracValley", "NetherstormArena", "StrandoftheAncients", "IsleofConquest", "GilneasBattleground2", "TwinPeaks", "TempleofKotmogu", "STVDiamondMineBG", "GoldRush"}) do
 			if not RES[i] then
@@ -1335,6 +1335,7 @@ function REPorter_Create(isSecond)
 		RE.CurrentMap = mapFileName;
 		RE.POINodes = {};
 		REPorterExternal:ClearAllPoints();
+		REPorterExternal:SetScale(RES[mapFileName]["scale"]);
 		REPorterExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RES[mapFileName]["x"], RES[mapFileName]["y"]);
 		REPorterTimerOverlay:Hide();
 		REPorterExternal:SetHeight(RE.MapSettings[mapFileName]["HE"]);
@@ -1684,7 +1685,6 @@ function REPorter_UpdateConfig()
 	REPorterExternal:SetAlpha(RES["opacity"]);
 	if RES[RE.CurrentMap] then
 		REPorterExternal:SetScale(RES[RE.CurrentMap]["scale"]);
-		REPorterTab:SetScale(1.0);
 	end
 	if RES.nameAdvert then
 		RE.ReportPrefix = " - [REPorter]";
