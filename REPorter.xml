@@ -193,11 +193,7 @@
 						REPorterExternal:StopMovingOrSizing();
 						REPorterSettings[REPorterNamespace["CurrentMap"]].x, REPorterSettings[REPorterNamespace["CurrentMap"]].y = REPorterExternal:GetCenter();
 					</OnDragStop>
-					<OnEnter>
-						REPorter_OnEnter();
-					</OnEnter>
 					<OnLeave>
-						REPorter_OnLeave();
 						CloseDropDownMenus();
 					</OnLeave>
 				</Scripts>

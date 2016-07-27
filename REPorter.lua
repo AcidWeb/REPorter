@@ -438,8 +438,10 @@ function REPorter_OnEnter(self)
 end
 
 function REPorter_OnLeave(self)
-	RE.AceTimer:CancelTimer(RE.TabHiderTimer);
-	RE.TabHiderTimer = RE.AceTimer:ScheduleTimer("TabHider", 1.5);
+	if not REPorterTab:IsMouseOver() then
+		RE.AceTimer:CancelTimer(RE.TabHiderTimer);
+		RE.TabHiderTimer = RE.AceTimer:ScheduleTimer("TabHider", 0.5);
+	end
 end
 
 function REPorter_OnEvent(self, event, ...)
@@ -537,6 +539,7 @@ function REPorter_OnEvent(self, event, ...)
 			end
 		end
 		REPorter_UpdateConfig();
+		REPorterTab:SetHitRectInsets(-5, -5, -5, -5);
 		RegisterAddonMessagePrefix("REPorter");
 		BINDING_HEADER_REPORTERB = "REPorter";
 		BINDING_NAME_REPORTERINC1 = L["Incoming"].." 1";
