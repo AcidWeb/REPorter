@@ -16,6 +16,7 @@ RE.DefaultTimer = 60;
 RE.DoIEvenCareAboutNodes = false;
 RE.DoIEvenCareAboutPoints = false;
 RE.DoIEvenCareAboutGates = false;
+RE.DoIEvenCareAboutFlags = false;
 RE.PlayedFromStart = true;
 RE.IoCAllianceGateName = "";
 RE.IoCHordeGateName = "";
@@ -417,9 +418,11 @@ function REPorter_OnHide(self)
 		RE.DoIEvenCareAboutNodes = false;
 		RE.DoIEvenCareAboutPoints = false;
 		RE.DoIEvenCareAboutGates = false;
+		RE.DoIEvenCareAboutFlags = false;
 		REPorterExternal:UnregisterEvent("UPDATE_WORLD_STATES");
 		REPorterExternal:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
 		REPorterExternal:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL");
+		REPorterExternal:UnregisterEvent("BATTLEGROUND_POINTS_UPDATE");
 		RE.IsWinning = "";
 		REPorter_ClearTextures();
 		CloseDropDownMenus();
@@ -784,6 +787,9 @@ function REPorter_OnEvent(self, event, ...)
 			REPorterTimerOverlay:Hide();
 			REPorterTimerOverlay:SetFrameStrata("MEDIUM");
 		end
+	elseif event == "BATTLEGROUND_POINTS_UPDATE" then
+		RE.TimerOverride = true;
+		REPorter_CreateTimer(12);
 	elseif event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" then
 		-- SotA hack
 		REPorter_Create(true);
@@ -1359,6 +1365,23 @@ function REPorter_Create(isSecond)
 			end
 			_G["REPorter"..i]:SetTexture(texName);
 		end
+		if mapFileName == "IsleofConquest" then
+			RE.IoCGateEstimator = {};
+			RE.IoCGateEstimator[FACTION_ALLIANCE] = 600000;
+			RE.IoCGateEstimator[FACTION_HORDE] = 600000;
+			RE.IoCGateEstimatorText = "";
+		end
+		if mapFileName == "STVDiamondMineBG" then
+			RE.SMEstimatorText = "";
+			RE.SMEstimatorReport = "";
+		end
+		if mapFileName == "AlteracValley" then
+			RE.DefaultTimer = 240;
+		elseif mapFileName == "GoldRush" then
+			RE.DefaultTimer = 61;
+		else
+			RE.DefaultTimer = 60;
+		end
 		if mapFileName == "AlteracValley" or mapFileName == "GilneasBattleground2" or mapFileName == "IsleofConquest" or mapFileName == "ArathiBasin" or mapFileName == "GoldRush" or (IsRatedBattleground() and mapFileName == "NetherstormArena") then
 			RE.DoIEvenCareAboutNodes = true;
 		else
@@ -1370,29 +1393,20 @@ function REPorter_Create(isSecond)
 		else
 			RE.DoIEvenCareAboutPoints = false;
 		end
-		if mapFileName == "IsleofConquest" then
-			RE.IoCGateEstimator = {};
-			RE.IoCGateEstimator[FACTION_ALLIANCE] = 600000;
-			RE.IoCGateEstimator[FACTION_HORDE] = 600000;
-			RE.IoCGateEstimatorText = "";
-		end
 		if mapFileName == "StrandoftheAncients" or mapFileName == "IsleofConquest" then
 			RE.DoIEvenCareAboutGates = true;
 			REPorterExternal:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED");
 		else
 			RE.DoIEvenCareAboutGates = false;
 		end
-		if mapFileName == "AlteracValley" then
-			RE.DefaultTimer = 240;
+		if mapFileName == "WarsongGulch" or mapFileName == "TwinPeaks" then
+			RE.DoIEvenCareAboutFlags = true;
+			REPorterExternal:RegisterEvent("BATTLEGROUND_POINTS_UPDATE");
 		else
-			RE.DefaultTimer = 60;
+			RE.DoIEvenCareAboutFlags = false;
 		end
 		if mapFileName == "StrandoftheAncients" then
 			REPorterExternal:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL");
-		end
-		if mapFileName == "STVDiamondMineBG" then
-			RE.SMEstimatorText = "";
-			RE.SMEstimatorReport = "";
 		end
 		if not isSecond then
 			RE.AceTimer:ScheduleTimer("JoinCheck", 5);
