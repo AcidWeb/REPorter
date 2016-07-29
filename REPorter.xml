@@ -55,6 +55,21 @@
 		</Layers>
 	</Frame>
 
+	<Frame name="REPorterPOICounterTemplate" parent="REPorterTimerOverlay" virtual="true">
+		<Size>
+			<AbsDimension x="13" y="30"/>
+		</Size>
+		<Layers>
+			<Layer>
+				<FontString name="$Parent_Caption" inherits="NumberFont_Shadow_Med">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+	</Frame>
+
 	<Frame name="REPorterVehicleTemplate" hidden="true" virtual="true">
 		<Size>
 			<AbsDimension x="65" y="65"/>

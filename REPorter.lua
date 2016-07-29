@@ -354,6 +354,12 @@ function REPorter_CreatePOI(index)
 	frame:Hide();
 	local frame = CreateFrame("Frame", "REPorterPOI"..index.."Timer", REPorterTimerOverlay, "REPorterPOITimerTemplate");
 	frame:SetPoint("CENTER", frameMain, "CENTER");
+	local frame = CreateFrame("Frame", "REPorterPOI"..index.."PCount", REPorterTimerOverlay, "REPorterPOICounterTemplate");
+	frame:SetPoint("RIGHT", frameMain, "LEFT");
+	_G["REPorterPOI"..index.."PCount_Caption"]:SetJustifyH("LEFT");
+	local frame = CreateFrame("Frame", "REPorterPOI"..index.."HCount", REPorterTimerOverlay, "REPorterPOICounterTemplate");
+	frame:SetPoint("LEFT", frameMain, "RIGHT");
+	_G["REPorterPOI"..index.."PCount_Caption"]:SetJustifyH("RIGHT");
 end
 
 function REPorter_UpdateIoCEstimator()
@@ -1030,24 +1036,44 @@ function REPorter_OnUpdate(self, elapsed)
 					_G[battlefieldPOIName.."Timer"]:Show();
 					_G[battlefieldPOIName.."Timer_Caption"]:SetText(REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[name]["timer"]), 0)));
 				end
-				if RE.CurrentMap == "AlteracValley" or (RE.CurrentMap == "IsleofConquest" and RE.POINodes[name]["texture"] >= 77 and RE.POINodes[name]["texture"] <= 82) then
-					_G[battlefieldPOIName.."WarZone"]:Hide();
-				else
-					if GetNumGroupMembers() > 0 then
-						for i=1, MAX_RAID_MEMBERS do
-							local unit = "raid"..i;
-							local partyX, partyY = GetPlayerMapPosition(unit);
-							partyX, partyY = REPorter_GetRealCoords(partyX, partyY);
-							if (partyX ~= 0 and partyY ~= 0) and (UnitAffectingCombat(unit)) then
-								if REPorter_PointDistance(x, y, partyX, partyY) < 33 then
-									_G[battlefieldPOIName.."WarZone"]:SetFrameLevel(10);
-									_G[battlefieldPOIName.."WarZone"]:Show();
-									break;
-								end
+				local showWarzone = false;
+				local healerNumber, peasantNumber = 0, 0;
+				for i=1, MAX_RAID_MEMBERS do
+					local unit = "raid"..i;
+					local partyX, partyY = GetPlayerMapPosition(unit);
+					partyX, partyY = REPorter_GetRealCoords(partyX, partyY);
+					if partyX ~= 0 and partyY ~= 0 and not UnitIsDeadOrGhost(unit) and REPorter_PointDistance(x, y, partyX, partyY) < 33 then
+						if not showWarzone and UnitAffectingCombat(unit) then
+							showWarzone = true;
+						end
+						if RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "NetherstormArena" then
+							if UnitGroupRolesAssigned(unit) == "HEALER" then
+								healerNumber = healerNumber + 1;
+							else
+								peasantNumber = peasantNumber + 1;
 							end
-							_G[battlefieldPOIName.."WarZone"]:Hide();
+						elseif showWarzone then
+							break;
 						end
 					end
+				end
+				if RE.CurrentMap == "AlteracValley" or (RE.CurrentMap == "IsleofConquest" and RE.POINodes[name]["texture"] >= 77 and RE.POINodes[name]["texture"] <= 82) then
+					showWarzone = false;
+				end
+				if showWarzone then
+					_G[battlefieldPOIName.."WarZone"]:SetFrameLevel(10);
+					_G[battlefieldPOIName.."WarZone"]:Show();
+				else
+					_G[battlefieldPOIName.."WarZone"]:Hide();
+				end
+				if RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "NetherstormArena" then
+					_G[battlefieldPOIName.."PCount"]:Show();
+					_G[battlefieldPOIName.."HCount"]:Show();
+					_G[battlefieldPOIName.."PCount_Caption"]:SetText(peasantNumber.." |cFF731010|||r");
+					_G[battlefieldPOIName.."HCount_Caption"]:SetText("|cFF108673|||r "..healerNumber);
+				else
+					_G[battlefieldPOIName.."PCount"]:Hide();
+					_G[battlefieldPOIName.."HCount"]:Hide();
 				end
 				battlefieldPOI:Show();
 			end
@@ -1549,7 +1575,7 @@ function REPorter_POIPlayers(POIName)
 				local unit = "raid"..i;
 				local partyX, partyY = GetPlayerMapPosition(unit);
 				partyX, partyY = REPorter_GetRealCoords(partyX, partyY);
-				if (partyX ~= 0 or partyY ~= 0) and UnitIsDeadOrGhost(unit) ~= 1 then
+				if (partyX ~= 0 or partyY ~= 0) and not UnitIsDeadOrGhost(unit) then
 					if REPorter_PointDistance(RE.POINodes[POIName]["x"], RE.POINodes[POIName]["y"], partyX, partyY) < 33 then
 						playerNumber = playerNumber + 1;
 					end
