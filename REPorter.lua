@@ -38,7 +38,7 @@ RE.ClickedPOI = "";
 
 RE.FoundNewVersion = false;
 RE.Debug = 0;
-RE.AddonVersionCheck = 94;
+RE.AddonVersionCheck = 95;
 
 RE.BlipCoords = {
 	["WARRIOR"] = { 0, 0.125, 0, 0.25 },
