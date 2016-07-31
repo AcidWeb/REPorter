@@ -299,6 +299,8 @@ function REPorter_ClearTextures()
 		_G["REPorterPOI"..i]:Hide();
 		_G["REPorterPOI"..i.."WarZone"]:Hide();
 		_G["REPorterPOI"..i.."Timer"]:Hide();
+		_G["REPorterPOI"..i.."PCount"]:Hide();
+		_G["REPorterPOI"..i.."HCount"]:Hide();
 		local tableCount, tableInternal = REPorter_TableCount(RE.POINodes);
 		for i=1, tableCount do
 			RE.AceTimer:CancelTimer(RE.POINodes[tableInternal[i]]["timer"]);
