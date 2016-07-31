@@ -119,7 +119,19 @@ RE.DefaultConfig = {
 	locked = false,
 	nameAdvert = false,
 	opacity = 0.80,
-	hideMinimap = false
+	hideMinimap = false,
+	configVersion = RE.AddonVersionCheck,
+	["ArathiBasin"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
+	["WarsongGulch"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
+	["AlteracValley"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
+	["NetherstormArena"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
+	["StrandoftheAncients"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
+	["IsleofConquest"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
+	["GilneasBattleground2"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
+	["TwinPeaks"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
+	["TempleofKotmogu"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
+	["STVDiamondMineBG"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
+	["GoldRush"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2}
 };
 RE.ReportBarAnchor = {
 	[1] = {"BOTTOMLEFT", "BOTTOMRIGHT"},
@@ -532,22 +544,7 @@ end
 
 function REPorter_OnEvent(self, event, ...)
 	if event == "ADDON_LOADED" and ... == "REPorter" then
-		if not REPorterSettings then
-			REPorterSettings = RE.DefaultConfig;
-		end
-		RES = REPorterSettings;
-		RE.AceConfig["args"]["scale"]["set"] = REPorter_UpdateScaleConfig;
-		RE.AceConfig["args"]["scale"]["get"] = REPorter_UpdateScaleConfig;
-		LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", RE.AceConfig);
-		LibStub("AceConfigDialog-3.0"):AddToBlizOptions("REPorter", "REPorter");
-		for _, i in pairs({"ArathiBasin", "WarsongGulch", "AlteracValley", "NetherstormArena", "StrandoftheAncients", "IsleofConquest", "GilneasBattleground2", "TwinPeaks", "TempleofKotmogu", "STVDiamondMineBG", "GoldRush"}) do
-			if not RES[i] then
-				RES[i] = {["scale"] = 1.0, ["x"] = 0, ["y"] = 0};
-			elseif not RES[i]["scale"] then
-				RES[i]["scale"] = 1.0;
-			end
-		end
-		REPorter_UpdateConfig();
+		REPorter_PrepareConfig();
 		REPorterTab:SetHitRectInsets(-5, -5, -5, -5);
 		RegisterAddonMessagePrefix("REPorter");
 		BINDING_HEADER_REPORTERB = "REPorter";
@@ -1749,5 +1746,17 @@ function REPorter_UpdateScaleConfig(_, val)
 	else
 		return 1.0
 	end
+end
+
+function REPorter_PrepareConfig()
+	if not REPorterSettings or not REPorterSettings["configVersion"] then
+		REPorterSettings = RE.DefaultConfig;
+	end
+	RES = REPorterSettings;
+	RE.AceConfig["args"]["scale"]["set"] = REPorter_UpdateScaleConfig;
+	RE.AceConfig["args"]["scale"]["get"] = REPorter_UpdateScaleConfig;
+	LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", RE.AceConfig);
+	LibStub("AceConfigDialog-3.0"):AddToBlizOptions("REPorter", "REPorter");
+	REPorter_UpdateConfig();
 end
 --
