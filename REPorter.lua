@@ -820,7 +820,7 @@ function REPorter_OnUpdate(self, elapsed)
 			local flagFrameName = "REPorterFlag"..i;
 			local flagFrame = _G[flagFrameName];
 			local flagTexture = _G[flagFrameName.."Texture"];
-			if i <= numFlags then
+			if i <= numFlags and RE.CurrentMap ~= "GoldRush" then
 				local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i);
 				if flagX == 0 and flagY == 0 then
 					flagFrame:Hide();
