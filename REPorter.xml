@@ -86,7 +86,7 @@
 
 	<Frame name="REPorter_ReportDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="true"/>
 
-	<ScrollFrame name="REPorterExternal" frameStrata="BACKGROUND" resizable="false" hidden="true" parent="UIParent" movable="true">
+	<ScrollFrame name="REPorterExternal" frameStrata="LOW" resizable="false" hidden="true" parent="UIParent" movable="true">
 		<Size>
 			<AbsDimension x="400"/>
 		</Size>
@@ -374,7 +374,7 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="REPorterEstimator" frameStrata="DIALOG" parent="WorldStateAlwaysUpFrame" hidden="true" resizable="false" movable="false">
+	<Frame name="REPorterEstimator" parent="WorldStateAlwaysUpFrame" hidden="true" resizable="false" movable="false">
 		<Size>
 			<AbsDimension x="100" y="100"/>
 		</Size>
@@ -397,9 +397,9 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="REPorterTimerOverlay" frameStrata="MEDIUM" parent="REPorterExternal"/>
+	<Frame name="REPorterTimerOverlay" frameStrata="LOW" parent="REPorterExternal"/>
 
-	<ScrollFrame name="REPorterExternalOverlay" frameStrata="MEDIUM" parent="REPorterExternal">
+	<ScrollFrame name="REPorterExternalOverlay" frameStrata="LOW" parent="REPorterExternal">
 		<Size>
 			<AbsDimension x="400"/>
 		</Size>
@@ -474,7 +474,7 @@
 		</ScrollChild>
 	</ScrollFrame>
 
-	<ScrollFrame name="REPorterExternalPlayerArrow" frameStrata="MEDIUM" parent="REPorterExternal">
+	<ScrollFrame name="REPorterExternalPlayerArrow" frameStrata="LOW" parent="REPorterExternal">
 		<Size>
 			<AbsDimension x="400"/>
 		</Size>

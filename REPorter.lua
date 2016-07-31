@@ -326,6 +326,7 @@ end
 
 function REPorter_CreatePOI(index)
 	local frameMain = CreateFrame("Frame", "REPorterPOI"..index, REPorter);
+	frameMain:SetFrameLevel(10 + index);
 	frameMain:SetWidth(RE.POIIconSize);
 	frameMain:SetHeight(RE.POIIconSize);
 	frameMain:SetScript("OnEnter", REPorterUnit_OnEnterPOI);
@@ -365,11 +366,14 @@ function REPorter_CreatePOI(index)
 	texture:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterWarZone");
 	frame:Hide();
 	local frame = CreateFrame("Frame", "REPorterPOI"..index.."Timer", REPorterTimerOverlay, "REPorterPOITimerTemplate");
+	frame:SetFrameLevel(11 + index);
 	frame:SetPoint("CENTER", frameMain, "CENTER");
 	local frame = CreateFrame("Frame", "REPorterPOI"..index.."PCount", REPorterTimerOverlay, "REPorterPOICounterTemplate");
+	frame:SetFrameLevel(11 + index);
 	frame:SetPoint("RIGHT", frameMain, "LEFT");
 	_G["REPorterPOI"..index.."PCount_Caption"]:SetJustifyH("LEFT");
 	local frame = CreateFrame("Frame", "REPorterPOI"..index.."HCount", REPorterTimerOverlay, "REPorterPOICounterTemplate");
+	frame:SetFrameLevel(11 + index);
 	frame:SetPoint("LEFT", frameMain, "RIGHT");
 	_G["REPorterPOI"..index.."PCount_Caption"]:SetJustifyH("RIGHT");
 end
@@ -784,11 +788,9 @@ function REPorter_OnEvent(self, event, ...)
 		if IsShiftKeyDown() and IsAltKeyDown() then
 			REPorterExternalOverlay:Hide();
 			REPorterTimerOverlay:Show();
-			REPorterTimerOverlay:SetFrameStrata("DIALOG");
 		else
 			REPorterExternalOverlay:Show();
 			REPorterTimerOverlay:Hide();
-			REPorterTimerOverlay:SetFrameStrata("MEDIUM");
 		end
 	elseif event == "BATTLEGROUND_POINTS_UPDATE" then
 		RE.TimerOverride = true;
@@ -1058,7 +1060,6 @@ function REPorter_OnUpdate(self, elapsed)
 					showWarzone = false;
 				end
 				if showWarzone then
-					_G[battlefieldPOIName.."WarZone"]:SetFrameLevel(10);
 					_G[battlefieldPOIName.."WarZone"]:Show();
 				else
 					_G[battlefieldPOIName.."WarZone"]:Hide();
