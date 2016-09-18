@@ -790,9 +790,11 @@ function REPorter_OnEvent(self, event, ...)
 		if IsShiftKeyDown() and IsAltKeyDown() then
 			REPorterExternalOverlay:Hide();
 			REPorterTimerOverlay:Show();
+			REPorterExternalPlayerArrow:SetFrameLevel(10);
 		else
 			REPorterExternalOverlay:Show();
 			REPorterTimerOverlay:Hide();
+			REPorterExternalPlayerArrow:SetFrameLevel(250);
 		end
 	elseif event == "BATTLEGROUND_POINTS_UPDATE" then
 		RE.TimerOverride = true;
