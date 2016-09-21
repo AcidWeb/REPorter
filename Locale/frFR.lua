@@ -1,4 +1,5 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("REPorter", "frFR")
+if not L then return end
 
 L["Add \"[REPorter]\" to end of each report"] = "Ajouter [REPorter] à la fin de chaque rapport"
 L["Anchor point of bar with quick report buttons."] = "Point d'ancrage de la barre avec les boutons de rapport rapide"

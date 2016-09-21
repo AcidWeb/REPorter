@@ -1,4 +1,5 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("REPorter", "koKR")
+if not L then return end
 
 L["Add \"[REPorter]\" to end of each report"] = "보고 내용 끝에 \"[REPorter]\"를 덧붙임"
 L["Anchor point of bar with quick report buttons."] = "빠른보고 버튼의 위치"
