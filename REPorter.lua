@@ -680,9 +680,10 @@ function REPorter_OnEvent(self, event, ...)
 			end
 		else
 			local WorldStateId = RE.MapSettings[RE.CurrentMap]["WorldStateNum"];
-			-- if IsRatedBattleground() and RE.CurrentMap == "NetherstormArena" then
-			-- 	WorldStateId = 2;
-			-- end
+			-- Rated EotS hack
+			if IsRatedBattleground() and RE.CurrentMap == "NetherstormArena" then
+				WorldStateId = 1;
+			end
 			local AllianceBaseNum, AlliancePointNum, HordeBaseNum, HordePointNum, AllianceTimeToWin, HordeTimeToWin = 0, nil, 0, nil, 0, 0;
 			local _, _, _, text = GetWorldStateUIInfo(WorldStateId);
 			if text ~= nil then
