@@ -655,7 +655,7 @@ function REPorter_OnEvent(self, event, ...)
 				REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 2);
 			end
 		elseif RE.CurrentMap == "STVDiamondMineBG" then
-			local AlliancePointsNeeded, AllianceCartsNeeded, HordePointsNeeded, HordeCartsNeeded = nil, 15, nil, 15;
+			local AlliancePointsNeeded, AllianceCartsNeeded, HordePointsNeeded, HordeCartsNeeded = nil, 10, nil, 10;
 			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["STVDiamondMineBG"]["WorldStateNum"]);
 			if text ~= nil then
 				local Message = {strsplit("/", text)};
@@ -675,16 +675,8 @@ function REPorter_OnEvent(self, event, ...)
 			if AlliancePointsNeeded and HordePointsNeeded then
 				AllianceCartsNeeded = AlliancePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"];
 				HordeCartsNeeded = HordePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"];
-				if AllianceCartsNeeded > HordeCartsNeeded then
-					RE.SMEstimatorText = "|cFFFF141D"..REPorter_Round(HordeCartsNeeded, 1).."\n"..L["carts"].."|r";
-					RE.SMEstimatorReport = FACTION_HORDE.." "..L["victory"]..": "..REPorter_Round(HordeCartsNeeded, 1).." "..L["carts"];
-				elseif AllianceCartsNeeded < HordeCartsNeeded then
-					RE.SMEstimatorText = "|cFF00A9FF"..REPorter_Round(AllianceCartsNeeded, 1).."\n"..L["carts"].."|r";
-					RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..REPorter_Round(AllianceCartsNeeded, 1).." "..L["carts"];
-				else
-					RE.SMEstimatorText = "";
-					RE.SMEstimatorReport = "";
-				end
+				RE.SMEstimatorText = "|cFF00A9FF"..REPorter_Round(AllianceCartsNeeded, 1).."|r\n|cFFFF141D"..REPorter_Round(HordeCartsNeeded, 1).."|r";
+				RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..REPorter_Round(AllianceCartsNeeded, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..REPorter_Round(HordeCartsNeeded, 1).." "..L["carts"];
 			end
 		else
 			local WorldStateId = RE.MapSettings[RE.CurrentMap]["WorldStateNum"];
