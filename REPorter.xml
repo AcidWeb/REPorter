@@ -2,39 +2,6 @@
 
 	<Script file="REPorter.lua"/>
 
-	<Frame name="REPorterUnitTemplate" parent="REPorterOverlay" enableMouse="false" virtual="true" hidden="true">
-		<Size>
-			<AbsDimension x="25" y="25"/>
-		</Size>
-		<Layers>
-			<Layer>
-				<Texture name="$parentIcon" file="Interface\Minimap\PartyRaidBlips" setAllPoints="true" parentKey="icon"/>
-			</Layer>
-		</Layers>
-		<Scripts>
-			<OnEnter>
-				REPorterUnit_OnEnterPlayer(self);
-			</OnEnter>
-			<OnLeave>
-				REPorter_HideTooltip();
-			</OnLeave>
-			<OnLoad>
-				self.unit = "raid"..self:GetID();
-			</OnLoad>
-		</Scripts>
-	</Frame>
-
-	<Frame name="REPorterPlayerTemplate" parent="REPorterPlayerArrow" enableMouse="false" virtual="true" hidden="true">
-		<Size>
-			<AbsDimension x="50" y="50"/>
-		</Size>
-		<Layers>
-			<Layer>
-				<Texture name="$parentIcon" file="Interface\Minimap\PartyRaidBlips" setAllPoints="true" parentKey="icon"/>
-			</Layer>
-		</Layers>
-	</Frame>
-
 	<Frame name="REPorterPOITimerTemplate" parent="REPorterTimerOverlay" virtual="true">
 		<Size>
 			<AbsDimension x="30" y="17"/>
@@ -409,46 +376,6 @@
 					<AbsDimension x="800" y="600"/>
 				</Size>
 				<Frames>
-					<Frame name="REPorterRaid1" inherits="REPorterUnitTemplate" id="1"/>
-					<Frame name="REPorterRaid2" inherits="REPorterUnitTemplate" id="2"/>
-					<Frame name="REPorterRaid3" inherits="REPorterUnitTemplate" id="3"/>
-					<Frame name="REPorterRaid4" inherits="REPorterUnitTemplate" id="4"/>
-					<Frame name="REPorterRaid5" inherits="REPorterUnitTemplate" id="5"/>
-					<Frame name="REPorterRaid6" inherits="REPorterUnitTemplate" id="6"/>
-					<Frame name="REPorterRaid7" inherits="REPorterUnitTemplate" id="7"/>
-					<Frame name="REPorterRaid8" inherits="REPorterUnitTemplate" id="8"/>
-					<Frame name="REPorterRaid9" inherits="REPorterUnitTemplate" id="9"/>
-					<Frame name="REPorterRaid10" inherits="REPorterUnitTemplate" id="10"/>
-					<Frame name="REPorterRaid11" inherits="REPorterUnitTemplate" id="11"/>
-					<Frame name="REPorterRaid12" inherits="REPorterUnitTemplate" id="12"/>
-					<Frame name="REPorterRaid13" inherits="REPorterUnitTemplate" id="13"/>
-					<Frame name="REPorterRaid14" inherits="REPorterUnitTemplate" id="14"/>
-					<Frame name="REPorterRaid15" inherits="REPorterUnitTemplate" id="15"/>
-					<Frame name="REPorterRaid16" inherits="REPorterUnitTemplate" id="16"/>
-					<Frame name="REPorterRaid17" inherits="REPorterUnitTemplate" id="17"/>
-					<Frame name="REPorterRaid18" inherits="REPorterUnitTemplate" id="18"/>
-					<Frame name="REPorterRaid19" inherits="REPorterUnitTemplate" id="19"/>
-					<Frame name="REPorterRaid20" inherits="REPorterUnitTemplate" id="20"/>
-					<Frame name="REPorterRaid21" inherits="REPorterUnitTemplate" id="21"/>
-					<Frame name="REPorterRaid22" inherits="REPorterUnitTemplate" id="22"/>
-					<Frame name="REPorterRaid23" inherits="REPorterUnitTemplate" id="23"/>
-					<Frame name="REPorterRaid24" inherits="REPorterUnitTemplate" id="24"/>
-					<Frame name="REPorterRaid25" inherits="REPorterUnitTemplate" id="25"/>
-					<Frame name="REPorterRaid26" inherits="REPorterUnitTemplate" id="26"/>
-					<Frame name="REPorterRaid27" inherits="REPorterUnitTemplate" id="27"/>
-					<Frame name="REPorterRaid28" inherits="REPorterUnitTemplate" id="28"/>
-					<Frame name="REPorterRaid29" inherits="REPorterUnitTemplate" id="29"/>
-					<Frame name="REPorterRaid30" inherits="REPorterUnitTemplate" id="30"/>
-					<Frame name="REPorterRaid31" inherits="REPorterUnitTemplate" id="31"/>
-					<Frame name="REPorterRaid32" inherits="REPorterUnitTemplate" id="32"/>
-					<Frame name="REPorterRaid33" inherits="REPorterUnitTemplate" id="33"/>
-					<Frame name="REPorterRaid34" inherits="REPorterUnitTemplate" id="34"/>
-					<Frame name="REPorterRaid35" inherits="REPorterUnitTemplate" id="35"/>
-					<Frame name="REPorterRaid36" inherits="REPorterUnitTemplate" id="36"/>
-					<Frame name="REPorterRaid37" inherits="REPorterUnitTemplate" id="37"/>
-					<Frame name="REPorterRaid38" inherits="REPorterUnitTemplate" id="38"/>
-					<Frame name="REPorterRaid39" inherits="REPorterUnitTemplate" id="39"/>
-					<Frame name="REPorterRaid40" inherits="REPorterUnitTemplate" id="40"/>
 					<Frame name="REPorterFlag1" inherits="WorldMapFlagTemplate" id="1">
 						<Size>
 							<AbsDimension x="35" y="35"/>
@@ -474,19 +401,16 @@
 		</ScrollChild>
 	</ScrollFrame>
 
-	<ScrollFrame name="REPorterExternalPlayerArrow" frameStrata="LOW" parent="REPorterExternal">
+	<ScrollFrame name="REPorterExternalUnitPosition" frameStrata="LOW" parent="REPorterExternal">
 		<Size>
 			<AbsDimension x="400"/>
 		</Size>
 		<ScrollChild>
-			<Frame name="REPorterPlayerArrow">
+		  <UnitPositionFrame name="REPorterUnitPosition" inherits="UnitPositionFrameTemplate">
 				<Size>
-					<AbsDimension x="800" y="600"/>
+					<AbsDimension x="783" y="522"/>
 				</Size>
-				<Frames>
-					<Frame name="REPorterPlayer" inherits="REPorterPlayerTemplate"/>
-				</Frames>
-			</Frame>
+			</UnitPositionFrame>
 		</ScrollChild>
 	</ScrollFrame>
 

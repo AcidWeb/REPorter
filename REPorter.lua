@@ -38,7 +38,7 @@ RE.ClickedPOI = "";
 
 RE.FoundNewVersion = false;
 RE.Debug = 0;
-RE.AddonVersionCheck = 97;
+RE.AddonVersionCheck = 100;
 
 RE.BlipCoords = {
 	["WARRIOR"] = { 0, 0.125, 0, 0.25 },
@@ -271,13 +271,6 @@ function REPorter_GetRealCoords(rawX, rawY)
 	return realX, realY;
 end
 
-function REPorter_PointDistance(x1, y1, x2, y2)
-	local dx, dy = 0, 0;
-	dx = x2 - x1;
-	dy = y2 - y1;
-	return math.sqrt(math.pow(dx, 2) + math.pow(dy, 2));
-end
-
 function REPorter_TableCount(Table)
 	local RENum = 0;
 	local RETable = {};
@@ -290,17 +283,9 @@ end
 
 function REPorter_ClearTextures()
 	RE.AceTimer:CancelTimer(RE.EstimatorTimer);
-	REPorterPlayer:Hide();
-	for i=1, MAX_RAID_MEMBERS do
-		local partyMemberFrame = _G["REPorterRaid"..(i)];
-		partyMemberFrame:Hide();
-	end
 	for i=1, RE.POINumber do
 		_G["REPorterPOI"..i]:Hide();
-		_G["REPorterPOI"..i.."WarZone"]:Hide();
 		_G["REPorterPOI"..i.."Timer"]:Hide();
-		_G["REPorterPOI"..i.."PCount"]:Hide();
-		_G["REPorterPOI"..i.."HCount"]:Hide();
 		local tableCount, tableInternal = REPorter_TableCount(RE.POINodes);
 		for i=1, tableCount do
 			RE.AceTimer:CancelTimer(RE.POINodes[tableInternal[i]]["timer"]);
@@ -360,24 +345,9 @@ function REPorter_CreatePOI(index)
 	texture:SetWidth(RE.POIIconSize);
 	texture:SetHeight(3);
 	texture:SetColorTexture(0,1,0,1);
-	local frame = CreateFrame("Frame", "REPorterPOI"..index.."WarZone", REPorter);
-	frame:SetWidth(64);
-	frame:SetHeight(64);
-	local texture = frame:CreateTexture(frame:GetName().."Texture", "BACKGROUND");
-	texture:SetAllPoints(frame);
-	texture:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterWarZone");
-	frame:Hide();
 	local frame = CreateFrame("Frame", "REPorterPOI"..index.."Timer", REPorterTimerOverlay, "REPorterPOITimerTemplate");
 	frame:SetFrameLevel(11 + index);
 	frame:SetPoint("CENTER", frameMain, "CENTER");
-	local frame = CreateFrame("Frame", "REPorterPOI"..index.."PCount", REPorterTimerOverlay, "REPorterPOICounterTemplate");
-	frame:SetFrameLevel(11 + index);
-	frame:SetPoint("RIGHT", frameMain, "LEFT");
-	_G["REPorterPOI"..index.."PCount_Caption"]:SetJustifyH("LEFT");
-	local frame = CreateFrame("Frame", "REPorterPOI"..index.."HCount", REPorterTimerOverlay, "REPorterPOICounterTemplate");
-	frame:SetFrameLevel(11 + index);
-	frame:SetPoint("LEFT", frameMain, "RIGHT");
-	_G["REPorterPOI"..index.."PCount_Caption"]:SetJustifyH("RIGHT");
 end
 
 function REPorter_UpdateIoCEstimator()
@@ -424,36 +394,6 @@ function REPorter_EstimatorFill(ATimeToWin, HTimeToWin, RefreshTimer, APointNum,
 		RE.AceTimer:CancelTimer(RE.EstimatorTimer);
 		RE.IsWinning = "";
 	end
-end
-
-function REPorter_GetNearestPOI()
-	local playerX, playerY = GetPlayerMapPosition("player");
-	local node = "";
-	if playerX ~= 0 and playerY ~= 0 then
-		if RE.CurrentMap == "STVDiamondMineBG" then
-			playerX, playerY = playerX * 100, playerY * 100;
-			if (playerX >= 10 and playerY >= 17 and playerX <= 30 and playerY <= 60) or (playerX >= 30 and playerY >= 17 and playerX <= 53 and playerY <= 43) or (playerX >= 53 and playerY >= 17 and playerX <= 68 and playerY <= 26) then
-				node = L["Top"]
-			elseif (playerX >= 30 and playerY >= 43 and playerX <= 50 and playerY <= 6) or (playerX >= 30 and playerY >= 60 and playerX <= 48 and playerY <= 100) then
-				node = L["Water"]
-			elseif (playerX >= 68 and playerY >= 25 and playerX <= 100 and playerY <= 43) or (playerX >= 62 and playerY >= 43 and playerX <= 100 and playerY <= 62) or (playerX >= 60 and playerY >= 62 and playerX <= 100 and playerY <= 100) then
-				node = STRING_ENVIRONMENTAL_DAMAGE_LAVA
-			end
-		else
-			playerX, playerY = REPorter_GetRealCoords(playerX, playerY);
-			for i=1, GetNumMapLandmarks() do
-				local _, name, _, _, x, y, _, showInBattleMap = GetMapLandmarkInfo(i);
-				if name and showInBattleMap then
-					x, y = REPorter_GetRealCoords(x, y);
-					if REPorter_PointDistance(playerX, playerY, x, y) < 50 then
-						node = name;
-						break;
-					end
-				end
-			end
-		end
-	end
-	return node;
 end
 
 function REPorter_CreateTimer(time)
@@ -782,12 +722,12 @@ function REPorter_OnEvent(self, event, ...)
 	elseif event == "MODIFIER_STATE_CHANGED" and REPorterExternal:IsShown() then
 		if IsShiftKeyDown() and IsAltKeyDown() then
 			REPorterExternalOverlay:Hide();
+			REPorterExternalUnitPosition:Hide();
 			REPorterTimerOverlay:Show();
-			REPorterExternalPlayerArrow:SetFrameLevel(10);
 		else
 			REPorterExternalOverlay:Show();
+			REPorterExternalUnitPosition:Show();
 			REPorterTimerOverlay:Hide();
-			REPorterExternalPlayerArrow:SetFrameLevel(250);
 		end
 	elseif event == "BATTLEGROUND_POINTS_UPDATE" then
 		RE.TimerOverride = true;
@@ -802,7 +742,7 @@ function REPorter_OnUpdate(self, elapsed)
 	if RE.updateTimer < 0 then
 		REPorter_BlinkPOI();
 		local subZoneName = GetSubZoneText();
-		if (subZoneName and subZoneName ~= "" and RE.CurrentMap ~= "GoldRush" and RE.CurrentMap ~= "STVDiamondMineBG" and RE.CurrentMap ~= "TempleofKotmogu") or ((RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG") and REPorter_GetNearestPOI() ~= "") then
+		if subZoneName and subZoneName ~= "" and RE.CurrentMap ~= "GoldRush" and RE.CurrentMap ~= "STVDiamondMineBG" and RE.CurrentMap ~= "TempleofKotmogu" then
 			for _, i in pairs({"SB1", "SB2", "SB3", "SB4", "SB5", "SB6", "BB1", "BB2"}) do
 				_G["REPorterTab_"..i]:Enable();
 			end
@@ -872,7 +812,6 @@ function REPorter_OnUpdate(self, elapsed)
 
 		for i=1, RE.POINumber do
 			_G["REPorterPOI"..i]:Hide();
-			_G["REPorterPOI"..i.."WarZone"]:Hide();
 			_G["REPorterPOI"..i.."Timer"]:Hide();
 		end
 		for i=1, GetNumMapLandmarks() do
@@ -984,7 +923,6 @@ function REPorter_OnUpdate(self, elapsed)
 				battlefieldPOI:SetWidth(RE.POIIconSize);
 				battlefieldPOI:SetHeight(RE.POIIconSize);
 				_G[battlefieldPOIName.."Texture"]:SetTexCoord(x1, x2, y1, y2);
-				_G[battlefieldPOIName.."WarZone"]:SetPoint("CENTER", "REPorter", "TOPLEFT", x, y);
 				if RE.AceTimer:TimeLeft(RE.POINodes[name]["timer"]) == 0 then
 					if strfind(description, FACTION_HORDE) then
 						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,0.3);
@@ -1031,44 +969,6 @@ function REPorter_OnUpdate(self, elapsed)
 					end
 					_G[battlefieldPOIName.."Timer"]:Show();
 					_G[battlefieldPOIName.."Timer_Caption"]:SetText(REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[name]["timer"]), 0)));
-				end
-				local showWarzone = false;
-				local healerNumber, peasantNumber = 0, 0;
-				for i=1, MAX_RAID_MEMBERS do
-					local unit = "raid"..i;
-					local partyX, partyY = GetPlayerMapPosition(unit);
-					partyX, partyY = REPorter_GetRealCoords(partyX, partyY);
-					if partyX ~= 0 and partyY ~= 0 and not UnitIsDeadOrGhost(unit) and REPorter_PointDistance(x, y, partyX, partyY) < 33 then
-						if not showWarzone and UnitAffectingCombat(unit) then
-							showWarzone = true;
-						end
-						if RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "NetherstormArena" then
-							if UnitGroupRolesAssigned(unit) == "HEALER" then
-								healerNumber = healerNumber + 1;
-							else
-								peasantNumber = peasantNumber + 1;
-							end
-						elseif showWarzone then
-							break;
-						end
-					end
-				end
-				if RE.CurrentMap == "AlteracValley" or (RE.CurrentMap == "IsleofConquest" and RE.POINodes[name]["texture"] >= 77 and RE.POINodes[name]["texture"] <= 82) then
-					showWarzone = false;
-				end
-				if showWarzone then
-					_G[battlefieldPOIName.."WarZone"]:Show();
-				else
-					_G[battlefieldPOIName.."WarZone"]:Hide();
-				end
-				if RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "NetherstormArena" then
-					_G[battlefieldPOIName.."PCount"]:Show();
-					_G[battlefieldPOIName.."HCount"]:Show();
-					_G[battlefieldPOIName.."PCount_Caption"]:SetText(peasantNumber.." |cFF731010|||r");
-					_G[battlefieldPOIName.."HCount_Caption"]:SetText("|cFF108673|||r "..healerNumber);
-				else
-					_G[battlefieldPOIName.."PCount"]:Hide();
-					_G[battlefieldPOIName.."HCount"]:Hide();
 				end
 				battlefieldPOI:Show();
 			end
@@ -1136,59 +1036,21 @@ function REPorter_OnUpdate(self, elapsed)
 			end
 		end
 
-		local playerCount = 0;
-		if GetNumGroupMembers() > 0 then
-			for i=1, MAX_RAID_MEMBERS do
-				local unit = "raid"..i;
-				local partyX, partyY = GetPlayerMapPosition(unit);
-				local partyFrame = _G["REPorterRaid"..(playerCount + 1)];
-				local _, class = UnitClass(unit);
-				if (partyX ~= 0 and partyY ~= 0) and not UnitIsUnit("raid"..i, "player") and class ~= nil then
-					partyX, partyY = REPorter_GetRealCoords(partyX, partyY);
-					partyFrame:SetPoint("CENTER", "REPorterOverlay", "TOPLEFT", partyX, partyY);
-					partyFrame.unit = unit;
-					partyFrame.role = UnitGroupRolesAssigned(unit);
-					partyFrame.health = (UnitHealth(unit) / UnitHealthMax(unit) * 100);
-					if IsShiftKeyDown() and IsControlKeyDown() and partyFrame.role == "HEALER" then
-						partyFrame:SetFrameLevel(200+i);
-						partyFrame.icon:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES");
-						partyFrame.icon:SetTexCoord(RE.RoleCoords[partyFrame.role][1], RE.RoleCoords[partyFrame.role][2], RE.RoleCoords[partyFrame.role][3], RE.RoleCoords[partyFrame.role][4]);
-					else
-						partyFrame:SetFrameLevel(100+i);
-						if UnitAffectingCombat(unit) then
-							if partyFrame.health < 26 then
-								partyFrame.icon:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterBlipDyingAndDead");
-							else
-								partyFrame.icon:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterBlipNormalAndCombat");
-							end
-							partyFrame.icon:SetTexCoord(RE.BlipCoords[class][1], RE.BlipCoords[class][2], RE.BlipCoords[class][3] + RE.BlipOffsetT, RE.BlipCoords[class][4] + RE.BlipOffsetT);
-						elseif UnitIsDeadOrGhost(unit) then
-							partyFrame.icon:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterBlipDyingAndDead");
-							partyFrame.icon:SetTexCoord(RE.BlipCoords[class][1], RE.BlipCoords[class][2], RE.BlipCoords[class][3], RE.BlipCoords[class][4]);
-						else
-							partyFrame.icon:SetTexture("Interface\\Addons\\REPorter\\Textures\\REPorterBlipNormalAndCombat");
-							partyFrame.icon:SetTexCoord(RE.BlipCoords[class][1], RE.BlipCoords[class][2], RE.BlipCoords[class][3], RE.BlipCoords[class][4]);
-						end
-					end
-					partyFrame:Show();
-					playerCount = playerCount + 1;
-				else
-					partyFrame:Hide();
-				end
-			end
-		end
+		REPorterUnitPosition:ClearUnits();
+		REPorterUnitPosition:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 48, 48, 1, 1, 1, 1, 7, true);
 
-		local playerX, playerY = GetPlayerMapPosition("player");
-		local partyMemberFrame = _G["REPorterPlayer"];
-		if playerX ~= 0 and playerY ~= 0 then
-			playerX, playerY = REPorter_GetRealCoords(playerX, playerY);
-			partyMemberFrame:SetPoint("CENTER", "REPorterPlayerArrow", "TOPLEFT", playerX, playerY);
-			partyMemberFrame.icon:SetTexture("Interface\\MINIMAP\\MinimapArrow");
-			partyMemberFrame.icon:SetRotation(GetPlayerFacing());
-			partyMemberFrame:Show();
-		else
-			partyMemberFrame:Hide();
-		end
+    for i = 1, MAX_RAID_MEMBERS do
+      local unit = "raid"..i;
+      if UnitExists(unit) and not UnitIsUnit(unit, "player") then
+				local atlas = UnitInSubgroup(unit) and "WhiteCircle-RaidBlips" or "WhiteDotCircle-RaidBlips";
+        local class = select(2, UnitClass(unit));
+        local r, g, b = GetClassColor(class);
+        REPorterUnitPosition:AddUnitAtlas(unit, atlas, 13, 13, r, g, b, 1);
+      end
+    end
+
+		REPorterUnitPosition:FinalizeUnits();
+		REPorterUnitPosition:UpdateTooltips(GameTooltip);
 
 		if RE.AceTimer:TimeLeft(RE.EstimatorTimer) > 0 then
 			if RE.IsWinning == FACTION_ALLIANCE then
@@ -1209,58 +1071,6 @@ function REPorter_OnUpdate(self, elapsed)
 	else
 		RE.updateTimer = RE.updateTimer - elapsed;
 	end
-end
-
-function REPorterUnit_OnEnterPlayer(self)
-	local x, _ = self:GetCenter();
-	local parentX, _ = self:GetParent():GetCenter();
-	if ( x > parentX ) then
-		GameTooltip:SetOwner(self, "ANCHOR_LEFT");
-	else
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-	end
-
-	local unitButton;
-	local tooltipText = "";
-	local newLineString = "";
-
-	for i=1, MAX_RAID_MEMBERS do
-		unitButton = _G["REPorterRaid"..i];
-		if RE.PlayersTip[i] == nil then
-			RE.PlayersTip[i] = {};
-		end
-		RE.PlayersTip[i][1] = false;
-		if unitButton:IsVisible() and unitButton:IsMouseOver() then
-			local _, class = UnitClass(unitButton.unit);
-			if class then
-				RE.PlayersTip[i][1] = true;
-				RE.PlayersTip[i][2] = "|cFF"..RE.ClassColors[class]..UnitName(unitButton.unit).."|r |cFFFFFFFF["..REPorter_Round(unitButton.health, 0).."%]|r";
-			end
-		end
-	end
-	for i=1, MAX_RAID_MEMBERS do
-		if i == 1 then
-			if RE.PlayersTip[i][1] and RE.PlayersTip[i][2] ~= nil then
-					tooltipText = tooltipText..newLineString..RE.PlayersTip[i][2];
-					newLineString = "\n";
-			end
-		else
-			if RE.PlayersTip[i-1][2] ~= nil then
-				if RE.PlayersTip[i][1] and RE.PlayersTip[i-1][2] ~= RE.PlayersTip[i][2] and RE.PlayersTip[i][2] ~= nil then
-					tooltipText = tooltipText..newLineString..RE.PlayersTip[i][2];
-					newLineString = "\n";
-				end
-			else
-				if RE.PlayersTip[i][1] and RE.PlayersTip[i][2] ~= nil then
-					tooltipText = tooltipText..newLineString..RE.PlayersTip[i][2];
-					newLineString = "\n";
-				end
-			end
-		end
-	end
-
-	GameTooltip:SetText(tooltipText);
-	GameTooltip:Show();
 end
 
 function REPorterUnit_OnEnterVehicle(self)
@@ -1361,21 +1171,21 @@ function REPorter_Create(isSecond)
 		REPorterTimerOverlay:Hide();
 		REPorterExternal:SetHeight(RE.MapSettings[mapFileName]["HE"]);
 		REPorterExternalOverlay:SetHeight(RE.MapSettings[mapFileName]["HE"]);
-		REPorterExternalPlayerArrow:SetHeight(RE.MapSettings[mapFileName]["HE"]);
+		REPorterExternalUnitPosition:SetHeight(RE.MapSettings[mapFileName]["HE"]);
 		REPorterBorder:SetHeight(RE.MapSettings[mapFileName]["HE"] + 5);
 		REPorterExternal:SetWidth(RE.MapSettings[mapFileName]["WI"]);
 		REPorterExternalOverlay:SetWidth(RE.MapSettings[mapFileName]["WI"]);
-		REPorterExternalPlayerArrow:SetWidth(RE.MapSettings[mapFileName]["WI"]);
+		REPorterExternalUnitPosition:SetWidth(RE.MapSettings[mapFileName]["WI"]);
 		REPorterBorder:SetWidth(RE.MapSettings[mapFileName]["WI"] + 5);
 		REPorterExternal:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"]);
 		REPorterExternal:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"]);
 		REPorterExternalOverlay:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"]);
 		REPorterExternalOverlay:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"]);
-		REPorterExternalOverlay:SetPoint("TOPLEFT", REPorterExternal, "TOPLEFT");
-		REPorterExternalPlayerArrow:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"]);
-		REPorterExternalPlayerArrow:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"]);
-		REPorterExternalPlayerArrow:SetPoint("TOPLEFT", REPorterExternal, "TOPLEFT");
-		REPorterExternalPlayerArrow:SetFrameLevel(250);
+		REPorterExternalOverlay:SetPoint("TOPLEFT", REPorterEfxternal, "TOPLEFT");
+		REPorterExternalUnitPosition:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"]);
+		REPorterExternalUnitPosition:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"]);
+		REPorterExternalUnitPosition:SetPoint("TOPLEFT", REPorterExternal, "TOPLEFT");
+		REPorterUnitPosition:SetMouseOverUnitExcluded("player", true);
 		REPorterTab:Show();
 		local texName;
 		local numDetailTiles = GetNumberOfDetailTiles();
@@ -1562,30 +1372,6 @@ function REPorter_NodeChange(newTexture, nodeName)
 	end
 end
 
-function REPorter_POIPlayers(POIName)
-	local playerNumber = 0;
-	if RE.POINodes[POIName] then
-		if GetNumGroupMembers() > 0 then
-			for i=1, MAX_RAID_MEMBERS do
-				local unit = "raid"..i;
-				local partyX, partyY = GetPlayerMapPosition(unit);
-				partyX, partyY = REPorter_GetRealCoords(partyX, partyY);
-				if (partyX ~= 0 or partyY ~= 0) and not UnitIsDeadOrGhost(unit) then
-					if REPorter_PointDistance(RE.POINodes[POIName]["x"], RE.POINodes[POIName]["y"], partyX, partyY) < 33 then
-						playerNumber = playerNumber + 1;
-					end
-				end
-			end
-			if playerNumber ~= 0 then
-				return " - "..L["Friendlies"]..": "..playerNumber;
-			else
-				return "";
-			end
-		end
-	end
-	return "";
-end
-
 function REPorter_POIStatus(POIName)
 	if RE.POINodes[POIName]then
 		if RE.AceTimer:TimeLeft(RE.POINodes[POIName]["timer"]) == 0 then
@@ -1631,9 +1417,7 @@ function REPorter_SmallButton(number, otherNode)
 		local name = "";
 		if otherNode then
 			name = RE.ClickedPOI;
-		elseif RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" then
-			name = REPorter_GetNearestPOI();
-		elseif RE.CurrentMap == "TempleofKotmogu" then
+		elseif RE.CurrentMap == "TempleofKotmogu" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" then
 			name = "";
 		else
 			name = GetSubZoneText();
@@ -1645,7 +1429,7 @@ function REPorter_SmallButton(number, otherNode)
 			else
 				message = strupper(L["Incoming"]).." 5+";
 			end
-			SendChatMessage(message..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
+			SendChatMessage(message..REPorter_POIOwner(name)..REPorter_POIStatus(name)..RE.ReportPrefix, "INSTANCE_CHAT");
 		else
 			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."]);
 		end
@@ -1660,18 +1444,16 @@ function REPorter_BigButton(isHelp, otherNode)
 		local name = "";
 		if otherNode then
 			name = RE.ClickedPOI;
-		elseif RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" then
-			name = REPorter_GetNearestPOI();
-		elseif RE.CurrentMap == "TempleofKotmogu" then
+		elseif RE.CurrentMap == "TempleofKotmogu" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" then
 			name = "";
 		else
 			name = GetSubZoneText();
 		end
 		if name and name ~= "" then
 			if isHelp then
-				SendChatMessage(strupper(HELP_LABEL)..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
+				SendChatMessage(strupper(HELP_LABEL)..REPorter_POIOwner(name)..REPorter_POIStatus(name)..RE.ReportPrefix, "INSTANCE_CHAT");
 			else
-				SendChatMessage(strupper(L["Clear"])..REPorter_POIOwner(name)..REPorter_POIStatus(name)..REPorter_POIPlayers(name)..RE.ReportPrefix, "INSTANCE_CHAT");
+				SendChatMessage(strupper(L["Clear"])..REPorter_POIOwner(name)..REPorter_POIStatus(name)..RE.ReportPrefix, "INSTANCE_CHAT");
 			end
 		else
 			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."]);
@@ -1693,9 +1475,9 @@ end
 
 function REPorter_ReportDropDownClick(reportType)
 	if reportType ~= "" then
-		SendChatMessage(strupper(reportType)..REPorter_POIOwner(RE.ClickedPOI)..REPorter_POIStatus(RE.ClickedPOI)..REPorter_POIPlayers(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT");
+		SendChatMessage(strupper(reportType)..REPorter_POIOwner(RE.ClickedPOI)..REPorter_POIStatus(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT");
 	else
-		SendChatMessage(REPorter_POIOwner(RE.ClickedPOI, true)..REPorter_POIStatus(RE.ClickedPOI)..REPorter_POIPlayers(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT");
+		SendChatMessage(REPorter_POIOwner(RE.ClickedPOI, true)..REPorter_POIStatus(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT");
 	end
 end
 --

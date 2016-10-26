@@ -27,9 +27,6 @@ L["Bottom left"] = true
 L["Left"] = true
 L["Top left"] = true
 
-L["Top"] = true
-L["Water"] = true
-
 L["East"] = true
 L["Front"] = true
 L["West"] = true
@@ -38,6 +35,5 @@ L["gate"] = true
 L["New version released!"] = true
 L["This location don't have name. Action canceled."] = true
 L["This addon work only on battlegrounds."] = true
-L["Friendlies"] = true
 L["carts"] = true
 L["victory"] = true

@@ -1,7 +1,7 @@
-## Interface: 70000
+## Interface: 70100
 ## Title: |cFF74D06CRE|rPorter
 ## Notes: Provide battleground map.
-## Version: 0.9.7
+## Version: 1.0.0
 ## Author: AcidWeb
 ## SavedVariablesPerCharacter: REPorterSettings
 
