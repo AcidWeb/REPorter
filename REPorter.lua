@@ -9,7 +9,6 @@ RE.POINumber = 25;
 RE.MapUpdateRate = 0.05;
 RE.BGVehicles = {};
 RE.POINodes = {};
-RE.PlayersTip = {};
 RE.BGOverlayNum = 0;
 
 RE.DefaultTimer = 60;
@@ -46,7 +45,7 @@ RE.MapSettings = {
 	["AlteracValley"] = {["HE"] = 460, ["WI"] = 200, ["HO"] = 270, ["VE"] = 35, ["StartTimer"] = 120},
 	["NetherstormArena"] = {["HE"] = 340, ["WI"] = 200, ["HO"] = 275, ["VE"] = 90, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
 	["StrandoftheAncients"] = {["HE"] = 410, ["WI"] = 275, ["HO"] = 240, ["VE"] = 100, ["StartTimer"] = 120},
-	["IsleofConquest"] = {["HE"] = 370, ["WI"] = 325, ["HO"] = 230, ["VE"] = 85, ["StartTimer"] = 120},
+	["IsleofConquest"] = {["HE"] = 370, ["WI"] = 325, ["HO"] = 230, ["VE"] = 90, ["StartTimer"] = 120},
 	["GilneasBattleground2"] = {["HE"] = 360, ["WI"] = 325, ["HO"] = 230, ["VE"] = 90, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
 	["TwinPeaks"] = {["HE"] = 435, ["WI"] = 250, ["HO"] = 280, ["VE"] = 40, ["StartTimer"] = 120},
 	["TempleofKotmogu"] = {["HE"] = 250, ["WI"] = 400, ["HO"] = 185, ["VE"] = 155, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
@@ -626,7 +625,7 @@ function REPorter_OnEvent(self, event, ...)
 				REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 5, AlliancePointNum, HordePointNum);
 			end
 		end
-	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" and select(2, ...) == "SPELL_BUILDING_DAMAGE" then
+	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" and select(2, ...) == "SPELL_BUILDING_DAMAGE" and REPorter_TableCount(RE.POINodes) > 0 then
 		local guid, gateName, _, _, _, _, _, damage = select(8, ...);
 		if RE.CurrentMap ~= "IsleofConquest" then
 			RE.POINodes[gateName]["health"] = RE.POINodes[gateName]["health"] - damage;
@@ -689,11 +688,9 @@ function REPorter_OnEvent(self, event, ...)
 	elseif event == "MODIFIER_STATE_CHANGED" and REPorterExternal:IsShown() then
 		if IsShiftKeyDown() and IsAltKeyDown() then
 			REPorterExternalOverlay:Hide();
-			REPorterExternalUnitPosition:Hide();
 			REPorterTimerOverlay:Show();
 		else
 			REPorterExternalOverlay:Show();
-			REPorterExternalUnitPosition:Show();
 			REPorterTimerOverlay:Hide();
 		end
 	elseif event == "BATTLEGROUND_POINTS_UPDATE" then
@@ -719,6 +716,37 @@ function REPorter_OnUpdate(self, elapsed)
 			end
 		end
 
+		REPorterUnitPosition:ClearUnits();
+		REPorterUnitPosition:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 50, 50, 1, 1, 1, 1, 7, true);
+		if not (IsShiftKeyDown() and IsAltKeyDown()) then
+			for i = 1, MAX_RAID_MEMBERS do
+				local unit = "raid"..i;
+				if UnitExists(unit) and not UnitIsUnit(unit, "player") then
+					local texture = "Interface\\Addons\\REPorter\\Textures\\BlipNormal";
+					local r, g, b = GetClassColor(select(2, UnitClass(unit)));
+					if UnitAffectingCombat(unit) then
+							if (UnitHealth(unit) / UnitHealthMax(unit)) * 100 < 26 then
+									texture = "Interface\\Addons\\REPorter\\Textures\\BlipDying";
+							else
+									texture = "Interface\\Addons\\REPorter\\Textures\\BlipCombat";
+							end
+					elseif UnitIsDeadOrGhost(unit) then
+							texture = "Interface\\Addons\\REPorter\\Textures\\BlipDead";
+							r, g, b = r * 0.35, g * 0.35, b * 0.35;
+					end
+					if IsShiftKeyDown() and IsControlKeyDown() and UnitGroupRolesAssigned(unit) == "HEALER" then
+							texture = "Interface\\Addons\\REPorter\\Textures\\BlipHealer";
+							REPorterUnitPosition:AddUnit(unit, texture, 30, 30, r, g, b, 1);
+					elseif not (IsShiftKeyDown() and IsControlKeyDown()) then
+						REPorterUnitPosition:AddUnit(unit, texture, 25, 25, r, g, b, 1);
+					end
+				end
+			end
+		end
+		REPorterUnitPosition:FinalizeUnits();
+		REPorterUnitPosition:UpdateTooltips(GameTooltip);
+		local playerBlipFrameLevel = REPorterUnitPosition:GetFrameLevel();
+
 		local numFlags = GetNumBattlefieldFlagPositions();
 		for i=1, NUM_WORLDMAP_FLAGS do
 			local flagFrameName = "REPorterFlag"..i;
@@ -733,6 +761,7 @@ function REPorter_OnUpdate(self, elapsed)
 					flagTexture:SetTexture("Interface\\WorldStateFrame\\"..flagToken);
 					flagFrame:SetPoint("CENTER", "REPorterOverlay", "TOPLEFT", flagX, flagY);
 					flagFrame:EnableMouse(false);
+					flagFrame:SetFrameLevel(playerBlipFrameLevel - 1);
 					flagFrame:Show();
 				end
 			else
@@ -765,6 +794,7 @@ function REPorter_OnUpdate(self, elapsed)
 				RE.BGVehicles[i].texture:SetRotation(orientation);
 				RE.BGVehicles[i].name = unitName;
 				RE.BGVehicles[i]:SetPoint("CENTER", "REPorterOverlay", "TOPLEFT", vehicleX, vehicleY);
+				RE.BGVehicles[i]:SetFrameLevel(playerBlipFrameLevel - 1);
 				RE.BGVehicles[i]:Show();
 				index = i;
 			else
@@ -1003,35 +1033,6 @@ function REPorter_OnUpdate(self, elapsed)
 			end
 		end
 
-		REPorterUnitPosition:ClearUnits();
-		REPorterUnitPosition:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 50, 50, 1, 1, 1, 1, 7, true);
-    for i = 1, MAX_RAID_MEMBERS do
-      local unit = "raid"..i;
-      if UnitExists(unit) and not UnitIsUnit(unit, "player") then
-				local texture = "Interface\\Addons\\REPorter\\Textures\\BlipNormal";
-				if UnitAffectingCombat(unit) then
-						if UnitHealth(unit) / UnitHealthMax(unit) * 100 < 26 then
-								texture = "Interface\\Addons\\REPorter\\Textures\\BlipDying";
-						else
-								texture = "Interface\\Addons\\REPorter\\Textures\\BlipCombat";
-						end
-				elseif UnitIsDeadOrGhost(unit) then
-						texture = "Interface\\Addons\\REPorter\\Textures\\BlipDead";
-				end
-	      local r, g, b = GetClassColor(select(2, UnitClass(unit)));
-				if IsShiftKeyDown() and IsControlKeyDown() then
-					if UnitGroupRolesAssigned(unit) == "HEALER" then
-						texture = "Interface\\Addons\\REPorter\\Textures\\BlipHealer";
-						REPorterUnitPosition:AddUnit(unit, texture, 25, 25, r, g, b, 1);
-					end
-				else
-					REPorterUnitPosition:AddUnit(unit, texture, 25, 25, r, g, b, 1);
-				end
-			end
-    end
-		REPorterUnitPosition:FinalizeUnits();
-		REPorterUnitPosition:UpdateTooltips(GameTooltip);
-
 		if RE.AceTimer:TimeLeft(RE.EstimatorTimer) > 0 then
 			if RE.IsWinning == FACTION_ALLIANCE then
 				REPorterEstimator_Text:SetText("|cFF00A9FF"..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r");
@@ -1182,12 +1183,14 @@ function REPorter_Create(isSecond)
 		REPorterExternal:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"]);
 		REPorterExternalOverlay:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"]);
 		REPorterExternalOverlay:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"]);
-		REPorterExternalOverlay:SetPoint("TOPLEFT", REPorterEfxternal, "TOPLEFT");
+		REPorterExternalOverlay:SetPoint("TOPLEFT", REPorterExternal, "TOPLEFT");
 		REPorterExternalUnitPosition:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"]);
 		REPorterExternalUnitPosition:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"]);
 		REPorterExternalUnitPosition:SetPoint("TOPLEFT", REPorterExternal, "TOPLEFT");
 		REPorterUnitPosition:SetMouseOverUnitExcluded("player", true);
 		REPorterUnitPosition.UpdateUnitTooltips = REPorterUnit_OnEnterPlayer;
+		REPorterUnitPosition:SetFrameLevel(4);
+		REPorterBorder:SetFrameLevel(5);
 		REPorterTab:Show();
 		local texName;
 		local numDetailTiles = GetNumberOfDetailTiles();
