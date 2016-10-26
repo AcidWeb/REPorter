@@ -1053,22 +1053,36 @@ function REPorter_OnUpdate(self, elapsed)
 	end
 end
 
-function REPorterUnit_OnEnterVehicle(self)
-	local x, _ = self:GetCenter();
-	local parentX, _ = self:GetParent():GetCenter();
-	if ( x > parentX ) then
-		GameTooltip:SetOwner(self, "ANCHOR_LEFT");
-	else
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-	end
+function REPorterUnit_OnEnterPlayer(self, tooltipFrame)
+  local tooltipText = "";
+  local prefix = "";
 
-	local unitButton;
-	local newLineString = "";
-	local tooltipText = "";
+  for unit in pairs(self.currentMouseOverUnits) do
+    if not self:IsMouseOverUnitExcluded(unit) then
+			local unitName = UnitName(unit);
+			local unitHealth = (UnitHealth(unit) / UnitHealthMax(unit)) * 100;
+			local _, _, _, unitColor = GetClassColor(select(2, UnitClass(unit)));
+      tooltipText = tooltipText..prefix.."|c"..unitColor..unitName.."|r |cFFFFFFFF["..REPorter_Round(unitHealth, 0).."%]|r";
+      prefix = "\n";
+    end
+  end
+
+  if tooltipText ~= "" then
+    SetMapTooltipPosition(tooltipFrame, self, true);
+    tooltipFrame:SetText(tooltipText);
+  elseif tooltipFrame:GetOwner() == self then
+    tooltipFrame:ClearLines();
+    tooltipFrame:Hide();
+  end
+end
+
+function REPorterUnit_OnEnterVehicle(self)
+  local tooltipText = "";
+	local prefix = "";
 	local vehicleGroup = {};
 
 	for i=1, #RE.BGVehicles do
-		unitButton = RE.BGVehicles[i];
+		local unitButton = RE.BGVehicles[i];
 		if unitButton:IsVisible() and unitButton:IsMouseOver() then
 			if RE.BGVehicles[i].name and RE.BGVehicles[i].name ~= "" then
 				if vehicleGroup[RE.BGVehicles[i].name] then
@@ -1082,29 +1096,29 @@ function REPorterUnit_OnEnterVehicle(self)
 	local tableNum, tableInternal = REPorter_TableCount(vehicleGroup);
 	for i=1, tableNum do
 		if vehicleGroup[tableInternal[i]] == 1 then
-			tooltipText = tooltipText..newLineString..tableInternal[i];
+			tooltipText = tooltipText..prefix..tableInternal[i];
 		else
-			tooltipText = tooltipText..newLineString.."|cFFFFFFFF"..vehicleGroup[tableInternal[i]].."x|r "..tableInternal[i];
+			tooltipText = tooltipText..prefix.."|cFFFFFFFF"..vehicleGroup[tableInternal[i]].."x|r "..tableInternal[i];
 		end
-		newLineString = "\n";
+		prefix = "\n";
 	end
-	GameTooltip:SetText(tooltipText);
-	GameTooltip:Show();
+
+	if tooltipText ~= "" then
+		SetMapTooltipPosition(GameTooltip, self, true);
+		GameTooltip:SetText(tooltipText);
+		GameTooltip:Show();
+	elseif GameTooltip:GetOwner() == self then
+		GameTooltip:ClearLines();
+		GameTooltip:Hide();
+	end
 end
 
 function REPorterUnit_OnEnterPOI(self)
-	local x, _ = self:GetCenter();
-	local parentX, _ = self:GetParent():GetCenter();
-	if ( x > parentX ) then
-		GameTooltip:SetOwner(self, "ANCHOR_LEFT");
-	else
-		GameTooltip:SetOwner(self, "ANCHOR_RIGHT");
-	end
-
-	local newLineString = "";
 	local tooltipText = "";
+	local prefix = "";
 	local battlefieldPOIName = self:GetName();
 	local battlefieldPOI = _G[battlefieldPOIName];
+
 	if battlefieldPOI:IsMouseOver() and battlefieldPOI.name ~= "" then
 		local status = "";
 		if RE.POINodes[battlefieldPOI.name]["status"] and RE.POINodes[battlefieldPOI.name]["status"] ~= "" then
@@ -1118,14 +1132,21 @@ function REPorterUnit_OnEnterPOI(self)
 			end
 		end
 		if RE.AceTimer:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]) == 0 then
-			tooltipText = tooltipText..newLineString..battlefieldPOI.name.."|cFFFFFFFF"..status.."|r";
+			tooltipText = tooltipText..prefix..battlefieldPOI.name.."|cFFFFFFFF"..status.."|r";
 		else
-			tooltipText = tooltipText..newLineString..battlefieldPOI.name.."|cFFFFFFFF ["..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]), 0)).."]"..status.."|r";
+			tooltipText = tooltipText..prefix..battlefieldPOI.name.."|cFFFFFFFF ["..REPorter_ShortTime(REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]), 0)).."]"..status.."|r";
 		end
-		newLineString = "\n";
+		prefix = "\n";
 	end
-	GameTooltip:SetText(tooltipText);
-	GameTooltip:Show();
+
+	if tooltipText ~= "" then
+		SetMapTooltipPosition(GameTooltip, self, true);
+		GameTooltip:SetText(tooltipText);
+		GameTooltip:Show();
+	elseif GameTooltip:GetOwner() == self then
+		GameTooltip:ClearLines();
+		GameTooltip:Hide();
+	end
 end
 
 function REPorter_OnClickPOI(self)
@@ -1166,6 +1187,7 @@ function REPorter_Create(isSecond)
 		REPorterExternalUnitPosition:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"]);
 		REPorterExternalUnitPosition:SetPoint("TOPLEFT", REPorterExternal, "TOPLEFT");
 		REPorterUnitPosition:SetMouseOverUnitExcluded("player", true);
+		REPorterUnitPosition.UpdateUnitTooltips = REPorterUnit_OnEnterPlayer;
 		REPorterTab:Show();
 		local texName;
 		local numDetailTiles = GetNumberOfDetailTiles();
