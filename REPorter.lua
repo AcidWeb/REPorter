@@ -40,39 +40,6 @@ RE.FoundNewVersion = false;
 RE.Debug = 0;
 RE.AddonVersionCheck = 100;
 
-RE.BlipCoords = {
-	["WARRIOR"] = { 0, 0.125, 0, 0.25 },
-	["PALADIN"] = { 0.125, 0.25, 0, 0.25 },
-	["HUNTER"] = { 0.25, 0.375, 0, 0.25 },
-	["ROGUE"] = { 0.375, 0.5, 0, 0.25 },
-	["PRIEST"] = { 0.5, 0.625, 0, 0.25 },
-	["DEATHKNIGHT"] = { 0.625, 0.75, 0, 0.25 },
-	["SHAMAN"] = { 0.75, 0.875, 0, 0.25 },
-	["MAGE"] = { 0.875, 1, 0, 0.25 },
-	["WARLOCK"] = { 0, 0.125, 0.25, 0.5 },
-	["DRUID"] = { 0.25, 0.375, 0.25, 0.5 },
-	["MONK"] = { 0.125, 0.25, 0.25, 0.5 },
-	["DEMONHUNTER"]	= { 0.375, 0.5, 0.25, 0.5 }
-}
-RE.RoleCoords = {
-	["TANK"] = { 0, 19/64, 22/64, 41/64 },
-	["HEALER"] = { 20/64, 39/64, 1/64, 20/64 },
-	["DAMAGER"] = { 20/64, 39/64, 22/64, 41/64 }
-}
-RE.ClassColors = {
-	["HUNTER"] = "AAD372",
-	["WARLOCK"] = "9482C9",
-	["PRIEST"] = "FFFFFF",
-	["PALADIN"] = "F48CBA",
-	["MAGE"] = "68CCEF",
-	["ROGUE"] = "FFF468",
-	["DRUID"] = "FF7C0A",
-	["SHAMAN"] = "0070DD",
-	["WARRIOR"] = "C69B6D",
-	["DEATHKNIGHT"] = "C41E3A",
-	["MONK"] = "00FF96",
-	["DEMONHUNTER"] = "A330C9"
-};
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
 	["WarsongGulch"] = {["HE"] = 460, ["WI"] = 275, ["HO"] = 270, ["VE"] = 40, ["StartTimer"] = 120},
@@ -1037,18 +1004,31 @@ function REPorter_OnUpdate(self, elapsed)
 		end
 
 		REPorterUnitPosition:ClearUnits();
-		REPorterUnitPosition:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 48, 48, 1, 1, 1, 1, 7, true);
-
+		REPorterUnitPosition:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 50, 50, 1, 1, 1, 1, 7, true);
     for i = 1, MAX_RAID_MEMBERS do
       local unit = "raid"..i;
       if UnitExists(unit) and not UnitIsUnit(unit, "player") then
-				local atlas = UnitInSubgroup(unit) and "WhiteCircle-RaidBlips" or "WhiteDotCircle-RaidBlips";
-        local class = select(2, UnitClass(unit));
-        local r, g, b = GetClassColor(class);
-        REPorterUnitPosition:AddUnitAtlas(unit, atlas, 13, 13, r, g, b, 1);
-      end
+				local texture = "Interface\\Addons\\REPorter\\Textures\\BlipNormal";
+				if UnitAffectingCombat(unit) then
+						if UnitHealth(unit) / UnitHealthMax(unit) * 100 < 26 then
+								texture = "Interface\\Addons\\REPorter\\Textures\\BlipDying";
+						else
+								texture = "Interface\\Addons\\REPorter\\Textures\\BlipCombat";
+						end
+				elseif UnitIsDeadOrGhost(unit) then
+						texture = "Interface\\Addons\\REPorter\\Textures\\BlipDead";
+				end
+	      local r, g, b = GetClassColor(select(2, UnitClass(unit)));
+				if IsShiftKeyDown() and IsControlKeyDown() then
+					if UnitGroupRolesAssigned(unit) == "HEALER" then
+						texture = "Interface\\Addons\\REPorter\\Textures\\BlipHealer";
+						REPorterUnitPosition:AddUnit(unit, texture, 25, 25, r, g, b, 1);
+					end
+				else
+					REPorterUnitPosition:AddUnit(unit, texture, 25, 25, r, g, b, 1);
+				end
+			end
     end
-
 		REPorterUnitPosition:FinalizeUnits();
 		REPorterUnitPosition:UpdateTooltips(GameTooltip);
 
