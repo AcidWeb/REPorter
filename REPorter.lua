@@ -1190,7 +1190,9 @@ function REPorter_Create(isSecond)
 		REPorterUnitPosition:SetMouseOverUnitExcluded("player", true);
 		REPorterUnitPosition.UpdateUnitTooltips = REPorterUnit_OnEnterPlayer;
 		REPorterUnitPosition:SetFrameLevel(4);
-		REPorterBorder:SetFrameLevel(5);
+		if not (IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins")) then
+			REPorterBorder:SetFrameLevel(5);
+		end
 		REPorterTab:Show();
 		local texName;
 		local numDetailTiles = GetNumberOfDetailTiles();
