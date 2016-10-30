@@ -507,18 +507,18 @@ function REPorter_OnEvent(self, event, ...)
 			local AlliancePointsNeeded, AlliancePointsPerSec, AllianceTimeToWin, HordePointsNeeded, HordePointsPerSec, HordeTimeToWin = nil, 0, 0, nil, 0, 0;
 			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["TempleofKotmogu"]["WorldStateNum"]);
 			if text ~= nil then
-				local Message = {strsplit("/", text)};
-				if Message[1] then
-					Message = {strsplit(" ", Message[1])};
-					AlliancePointsNeeded = RE.MapSettings["TempleofKotmogu"]["pointsToWin"] - tonumber(Message[3]);
-				end
+			  local score = {strsplit("/", text)};
+			  if score[1] then
+			    score = {strsplit(" ", score[1])};
+			    AlliancePointsNeeded = RE.MapSettings["TempleofKotmogu"]["pointsToWin"] - tonumber(score[#score]);
+			  end
 			end
 			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["TempleofKotmogu"]["WorldStateNum"]+1);
 			if text ~= nil then
-				local Message = {strsplit("/", text)};
-				if Message[1] then
-					Message = {strsplit(" ", Message[1])};
-					HordePointsNeeded = RE.MapSettings["TempleofKotmogu"]["pointsToWin"] - tonumber(Message[3]);
+				local score = {strsplit("/", text)};
+				if score[1] then
+					score = {strsplit(" ", score[1])};
+					HordePointsNeeded = RE.MapSettings["TempleofKotmogu"]["pointsToWin"] - tonumber(score[#score]);
 				end
 			end
 			if AlliancePointsNeeded and HordePointsNeeded then
@@ -564,18 +564,18 @@ function REPorter_OnEvent(self, event, ...)
 			local AlliancePointsNeeded, AllianceCartsNeeded, HordePointsNeeded, HordeCartsNeeded = nil, 10, nil, 10;
 			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["STVDiamondMineBG"]["WorldStateNum"]);
 			if text ~= nil then
-				local Message = {strsplit("/", text)};
-				if Message[1] then
-					Message = {strsplit(" ", Message[1])};
-					AlliancePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["pointsToWin"] - tonumber(Message[2]);
+				local score = {strsplit("/", text)};
+				if score[1] then
+					score = {strsplit(" ", score[1])};
+					AlliancePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["pointsToWin"] - tonumber(score[#score]);
 				end
 			end
 			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["STVDiamondMineBG"]["WorldStateNum"]+1);
 			if text ~= nil then
-				local Message = {strsplit("/", text)};
-				if Message[1] then
-					Message = {strsplit(" ", Message[1])};
-					HordePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["pointsToWin"] - tonumber(Message[2]);
+				local score = {strsplit("/", text)};
+				if score[1] then
+					score = {strsplit(" ", score[1])};
+					HordePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["pointsToWin"] - tonumber(score[#score]);
 				end
 			end
 			if AlliancePointsNeeded and HordePointsNeeded then
@@ -593,22 +593,22 @@ function REPorter_OnEvent(self, event, ...)
 			local AllianceBaseNum, AlliancePointNum, HordeBaseNum, HordePointNum, AllianceTimeToWin, HordeTimeToWin = 0, nil, 0, nil, 0, 0;
 			local _, _, _, text = GetWorldStateUIInfo(WorldStateId);
 			if text ~= nil then
-				local Mes1 = {strsplit("/", text)};
-				if Mes1[2] then
-					local Mes2 = {strsplit(":", Mes1[1])};
-					local Mes3 = {strsplit(" ", Mes2[2])};
-					AllianceBaseNum = tonumber(Mes3[2]);
-					AlliancePointNum = tonumber(Mes2[3]);
+				local score = {strsplit("/", text)};
+				if score[2] then
+					local points = {strsplit(":", score[1])};
+					local bases = {strsplit(" ", points[2])};
+					AlliancePointNum = tonumber(points[#points]);
+					AllianceBaseNum = tonumber(bases[2]);
 				end
 			end
 			_, _, _, text = GetWorldStateUIInfo(WorldStateId+1);
 			if text ~= nil then
-				local Mes1 = {strsplit("/", text)};
-				if Mes1[2] then
-					local Mes2 = {strsplit(":", Mes1[1])};
-					local Mes3 = {strsplit(" ", Mes2[2])};
-					HordeBaseNum = tonumber(Mes3[2]);
-					HordePointNum = tonumber(Mes2[3]);
+				local score = {strsplit("/", text)};
+				if score[2] then
+					local points = {strsplit(":", score[1])};
+					local bases = {strsplit(" ", points[2])};
+					HordePointNum = tonumber(points[#points]);
+					HordeBaseNum = tonumber(bases[2]);
 				end
 			end
 			if AlliancePointNum and HordePointNum and AllianceBaseNum and HordeBaseNum then
