@@ -37,7 +37,7 @@ RE.ClickedPOI = "";
 
 RE.FoundNewVersion = false;
 RE.Debug = 0;
-RE.AddonVersionCheck = 100;
+RE.AddonVersionCheck = 101;
 
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
