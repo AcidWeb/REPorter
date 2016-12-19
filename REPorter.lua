@@ -10,6 +10,8 @@ RE.MapUpdateRate = 0.05;
 RE.BGVehicles = {};
 RE.POINodes = {};
 RE.BGOverlayNum = 0;
+RE.ScaleDisabled = true;
+RE.LastMap = 0;
 
 RE.DefaultTimer = 60;
 RE.DoIEvenCareAboutNodes = false;
@@ -51,6 +53,19 @@ RE.MapSettings = {
 	["TempleofKotmogu"] = {["HE"] = 250, ["WI"] = 400, ["HO"] = 185, ["VE"] = 155, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
 	["STVDiamondMineBG"] = {["HE"] = 325, ["WI"] = 435, ["HO"] = 175, ["VE"] = 95, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
 	["GoldRush"] = {["HE"] = 410, ["WI"] = 510, ["HO"] = 155, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120}
+};
+RE.MapNames = {
+	[GetMapNameByID(401)] = "AlteracValley",
+	[GetMapNameByID(461)] = "ArathiBasin",
+	[GetMapNameByID(935)] = "GoldRush",
+	[GetMapNameByID(482)] = "NetherstormArena",
+	[GetMapNameByID(540)] = "IsleofConquest",
+	[GetMapNameByID(860)] = "STVDiamondMineBG",
+	[GetMapNameByID(512)] = "StrandoftheAncients",
+	[GetMapNameByID(856)] = "TempleofKotmogu",
+	[GetMapNameByID(736)] = "GilneasBattleground2",
+	[GetMapNameByID(626)] = "TwinPeaks",
+	[GetMapNameByID(443)] = "WarsongGulch",
 };
 RE.EstimatorSettings = {
 	["ArathiBasin"] = { [0] = 0, [1] = 0.8333, [2] = 1.1111, [3] = 1.6667, [4] = 3.3333, [5] = 30},
@@ -154,21 +169,48 @@ RE.AceConfig = {
 			set = function(_, val) RES.barHandle = val; REPorter_UpdateConfig() end,
 			get = function(_) return RES.barHandle end
 		},
+		mapSettings = {
+			name = BATTLEGROUND,
+			desc = L["Map position and scale is saved separately for each battleground."],
+			type = "select",
+			width = "double",
+			order = 5,
+			disabled = function(_) if select(2, IsInInstance()) == "pvp" then return true else return false end end,
+			values = {
+				[401] = GetMapNameByID(401),
+				[461] = GetMapNameByID(461),
+				[935] = GetMapNameByID(935),
+				[482] = GetMapNameByID(482),
+				[540] = GetMapNameByID(540),
+				[860] = GetMapNameByID(860),
+				[512] = GetMapNameByID(512),
+				[856] = GetMapNameByID(856),
+				[736] = GetMapNameByID(736),
+				[626] = GetMapNameByID(626),
+				[443] = GetMapNameByID(443)
+			},
+			set = function(_, val) RE.LastMap = val; REPorter_ShowDummyMap(RE.MapNames[GetMapNameByID(val)]) end,
+			get = function(_) return RE.LastMap end
+		},
 		scale = {
 			name = L["Map scale"],
 			desc = L["This option control map size."],
 			type = "range",
 			width = "double",
-			disabled = function(_) if select(2, IsInInstance()) == "pvp" then return false else return true end end,
+			order = 6,
+			disabled = function(_) if select(2, IsInInstance()) == "pvp" then return false else return RE.ScaleDisabled end end,
 			min = 0.5,
 			max = 1.5,
-			step = 0.05
+			step = 0.05,
+			set = function(_, val) REPorter_UpdateScaleConfig(_, val) end,
+			get = function(_) return REPorter_UpdateScaleConfig() end
 		},
 		opacity = {
 			name = L["Map alpha"],
 			desc = L["This option control map transparency."],
 			type = "range",
 			width = "double",
+			order = 7,
 			isPercent = true,
 			min = 0.1,
 			max = 1,
@@ -176,12 +218,6 @@ RE.AceConfig = {
 			set = function(_, val) RES.opacity = val; REPorter_UpdateConfig() end,
 			get = function(_) return RES.opacity end
 		},
-		help = {
-			name = L["Map position and scale is saved separately for each battleground."],
-			type = "description",
-			fontSize = "medium",
-			order = 0
-		}
 	}
 };
 
@@ -398,6 +434,7 @@ function REPorter_OnLoad(self)
 	self:RegisterEvent("CHAT_MSG_ADDON");
 	self:RegisterEvent("MODIFIER_STATE_CHANGED");
 	self:RegisterForDrag("LeftButton");
+	InterfaceOptionsFrame:HookScript("OnHide", REPorter_HideDummyMap);
 	RE.updateTimer = 0;
 end
 
@@ -1541,10 +1578,51 @@ function REPorter_PrepareConfig()
 		REPorterSettings = RE.DefaultConfig;
 	end
 	RES = REPorterSettings;
-	RE.AceConfig["args"]["scale"]["set"] = REPorter_UpdateScaleConfig;
-	RE.AceConfig["args"]["scale"]["get"] = REPorter_UpdateScaleConfig;
 	LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", RE.AceConfig);
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions("REPorter", "REPorter");
 	REPorter_UpdateConfig();
+end
+
+function REPorter_ShowDummyMap(mapFileName)
+	RE.ScaleDisabled = false;
+	RE.CurrentMap = mapFileName;
+	REPorterExternal:ClearAllPoints();
+	REPorterExternal:SetScale(RES[mapFileName]["scale"]);
+	REPorterExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RES[mapFileName]["x"], RES[mapFileName]["y"]);
+	REPorterExternal:SetHeight(RE.MapSettings[mapFileName]["HE"]);
+	REPorterExternal:SetWidth(RE.MapSettings[mapFileName]["WI"]);
+	REPorterExternal:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"]);
+	REPorterExternal:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"]);
+	REPorterBorder:SetHeight(RE.MapSettings[mapFileName]["HE"] + 5);
+	REPorterBorder:SetWidth(RE.MapSettings[mapFileName]["WI"] + 5);
+	if not (IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins")) then
+	   REPorterBorder:SetFrameLevel(5);
+	end
+	local texName;
+	local numDetailTiles = GetNumberOfDetailTiles();
+	for i=1, numDetailTiles do
+	   if mapFileName == "STVDiamondMineBG" then
+	      texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName.."1_"..i;
+	   else
+	      texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i;
+	   end
+	   _G["REPorter"..i]:SetTexture(texName);
+	end
+	REPorterExternal:Show();
+	REPorterTab:Show();
+	InterfaceOptionsFrame:SetFrameStrata("LOW");
+	REPorterExternal:SetFrameStrata("MEDIUM");
+end
+
+function REPorter_HideDummyMap()
+	if select(2, IsInInstance()) ~= "pvp" then
+		RE.ScaleDisabled = true;
+		RE.CurrentMap = "";
+		RE.LastMap = 0;
+		REPorterExternal:Hide();
+		REPorterTab:Hide();
+		InterfaceOptionsFrame:SetFrameStrata("HIGH");
+		REPorterExternal:SetFrameStrata("LOW");
+	end
 end
 --
