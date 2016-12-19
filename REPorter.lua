@@ -397,6 +397,7 @@ function REPorter_OnLoad(self)
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA");
 	self:RegisterEvent("CHAT_MSG_ADDON");
 	self:RegisterEvent("MODIFIER_STATE_CHANGED");
+	self:RegisterForDrag("LeftButton");
 	RE.updateTimer = 0;
 end
 

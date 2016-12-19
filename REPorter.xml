@@ -43,7 +43,7 @@
 			<AbsDimension x="400"/>
 		</Size>
 		<ScrollChild>
-			<Frame name="REPorter">
+			<Frame name="REPorter" enableMouse="false">
 				<Size>
 					<AbsDimension x="800" y="600"/>
 				</Size>
@@ -147,27 +147,10 @@
 						</Texture>
 					</Layer>
 				</Layers>
-				<Scripts>
-					<OnLoad>
-						self:RegisterForDrag("LeftButton");
-					</OnLoad>
-					<OnDragStart>
-						if not REPorterSettings.locked then
-							REPorterExternal:StartMoving();
-						end
-					</OnDragStart>
-					<OnDragStop>
-						REPorterExternal:StopMovingOrSizing();
-						REPorterSettings[REPorterNamespace["CurrentMap"]].x, REPorterSettings[REPorterNamespace["CurrentMap"]].y = REPorterExternal:GetCenter();
-					</OnDragStop>
-					<OnLeave>
-						CloseDropDownMenus();
-					</OnLeave>
-				</Scripts>
 			</Frame>
 		</ScrollChild>
 		<Frames>
-			<Frame name="REPorterBorder">
+			<Frame name="REPorterBorder" enableMouse="false">
 				<Anchors>
 					<Anchor point="CENTER"/>
 				</Anchors>
@@ -185,6 +168,18 @@
 			<OnLoad>
 				REPorter_OnLoad(self);
 			</OnLoad>
+			<OnDragStart>
+				if not REPorterSettings.locked then
+					REPorterExternal:StartMoving();
+				end
+			</OnDragStart>
+			<OnDragStop>
+				REPorterExternal:StopMovingOrSizing();
+				REPorterSettings[REPorterNamespace["CurrentMap"]].x, REPorterSettings[REPorterNamespace["CurrentMap"]].y = REPorterExternal:GetCenter();
+			</OnDragStop>
+			<OnLeave>
+				CloseDropDownMenus();
+			</OnLeave>
 			<OnShow function="REPorter_OnShow"/>
 			<OnHide function="REPorter_OnHide"/>
 			<OnEvent function="REPorter_OnEvent"/>
@@ -349,9 +344,9 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="REPorterTimerOverlay" frameStrata="LOW" parent="REPorterExternal"/>
+	<Frame name="REPorterTimerOverlay" enableMouse="false" frameStrata="LOW" parent="REPorterExternal"/>
 
-	<ScrollFrame name="REPorterExternalOverlay" frameStrata="LOW" parent="REPorterExternal">
+	<ScrollFrame name="REPorterExternalOverlay" enableMouse="false" frameStrata="LOW" parent="REPorterExternal">
 		<Size>
 			<AbsDimension x="400"/>
 		</Size>
@@ -386,7 +381,7 @@
 		</ScrollChild>
 	</ScrollFrame>
 
-	<ScrollFrame name="REPorterExternalUnitPosition" frameStrata="LOW" parent="REPorterExternal">
+	<ScrollFrame name="REPorterExternalUnitPosition" enableMouse="false" frameStrata="LOW" parent="REPorterExternal">
 		<Size>
 			<AbsDimension x="400"/>
 		</Size>
