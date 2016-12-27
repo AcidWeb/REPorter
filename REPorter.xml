@@ -165,21 +165,17 @@
 			</Frame>
 		</Frames>
 		<Scripts>
-			<OnLoad>
-				REPorter_OnLoad(self);
-			</OnLoad>
+			<OnLoad>REPorter_OnLoad(self)</OnLoad>
 			<OnDragStart>
 				if not REPorterSettings.locked then
-					REPorterExternal:StartMoving();
+					REPorterExternal:StartMoving()
 				end
 			</OnDragStart>
 			<OnDragStop>
-				REPorterExternal:StopMovingOrSizing();
-				REPorterSettings[REPorterNamespace["CurrentMap"]].x, REPorterSettings[REPorterNamespace["CurrentMap"]].y = REPorterExternal:GetCenter();
+				REPorterExternal:StopMovingOrSizing()
+				REPorterSettings[REPorterNamespace["CurrentMap"]].x, REPorterSettings[REPorterNamespace["CurrentMap"]].y = REPorterExternal:GetCenter()
 			</OnDragStop>
-			<OnLeave>
-				Lib_CloseDropDownMenus();
-			</OnLeave>
+			<OnLeave>Lib_CloseDropDownMenus()</OnLeave>
 			<OnShow function="REPorter_OnShow"/>
 			<OnHide function="REPorter_OnHide"/>
 			<OnEvent function="REPorter_OnEvent"/>
@@ -214,9 +210,7 @@
 					</Anchor>
 				</Anchors>
 				<Scripts>
-					<OnClick>
-						REPorter_SmallButton(1);
-					</OnClick>
+					<OnClick>REPorter_SmallButton(1)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB2" text="2" inherits="UIPanelButtonTemplate">
@@ -227,9 +221,7 @@
 					<Anchor point="TOP" relativeTo="$parent_SB1" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>
-						REPorter_SmallButton(2);
-					</OnClick>
+					<OnClick>REPorter_SmallButton(2)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB3" text="3" inherits="UIPanelButtonTemplate">
@@ -240,9 +232,7 @@
 					<Anchor point="TOP" relativeTo="$parent_SB2" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>
-						REPorter_SmallButton(3);
-					</OnClick>
+					<OnClick>REPorter_SmallButton(3)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB4" text="4" inherits="UIPanelButtonTemplate">
@@ -253,9 +243,7 @@
 					<Anchor point="TOP" relativeTo="$parent_SB3" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>
-						REPorter_SmallButton(4);
-					</OnClick>
+					<OnClick>REPorter_SmallButton(4)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB5" text="5" inherits="UIPanelButtonTemplate">
@@ -266,9 +254,7 @@
 					<Anchor point="TOP" relativeTo="$parent_SB4" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>
-						REPorter_SmallButton(5);
-					</OnClick>
+					<OnClick>REPorter_SmallButton(5)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB6" text="Z" inherits="UIPanelButtonTemplate">
@@ -279,9 +265,7 @@
 					<Anchor point="TOP" relativeTo="$parent_SB5" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>
-						REPorter_SmallButton(6);
-					</OnClick>
+					<OnClick>REPorter_SmallButton(6)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_BB1" text="H" inherits="UIPanelButtonTemplate">
@@ -292,9 +276,7 @@
 					<Anchor point="TOP" relativeTo="$parent_SB6" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>
-						REPorter_BigButton(true);
-					</OnClick>
+					<OnClick>REPorter_BigButton(true)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_BB2" text="C" inherits="UIPanelButtonTemplate">
@@ -305,19 +287,13 @@
 					<Anchor point="TOP" relativeTo="$parent_BB1" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>
-						REPorter_BigButton(false);
-					</OnClick>
+					<OnClick>REPorter_BigButton(false)</OnClick>
 				</Scripts>
 			</Button>
 		</Frames>
 		<Scripts>
-			<OnEnter>
-				REPorter_OnEnter();
-			</OnEnter>
-			<OnLeave>
-				REPorter_OnLeave();
-			</OnLeave>
+			<OnEnter>REPorter_OnEnter()</OnEnter>
+			<OnLeave>REPorter_OnLeave()</OnLeave>
 		</Scripts>
 	</Frame>
 
@@ -338,9 +314,7 @@
 			</Layer>
 		</Layers>
 		<Scripts>
-			<OnMouseUp>
-				REPorter_ReportEstimator();
-			</OnMouseUp>
+			<OnMouseUp>REPorter_ReportEstimator()</OnMouseUp>
 		</Scripts>
 	</Frame>
 
