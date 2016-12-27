@@ -2,6 +2,7 @@ REPorterNamespace = {["AceTimer"] = {}}
 local RE = REPorterNamespace
 local RES = REPorterSettings
 local L = LibStub("AceLocale-3.0"):GetLocale("REPorter")
+local TOAST = LibStub("LibToast-1.0")
 LibStub("AceTimer-3.0"):Embed(RE.AceTimer)
 
 RE.POIIconSize = 30
@@ -509,6 +510,11 @@ function REPorter_OnEvent(self, event, ...)
 		for i=1, RE.POINumber do
 			REPorter_CreatePOI(i)
 		end
+		TOAST:Register("REPorterToastInfo", function(toast, ...)
+			toast:SetFormattedTitle("|cFF74D06CRE|r|cFFFFFFFFPorter|r")
+			toast:SetFormattedText(...)
+			toast:SetIconTexture([[Interface\Challenges\ChallengeMode_Medal_Bronze]])
+		end)
 	elseif event == "CHAT_MSG_ADDON" and ... == "REPorter" then
 		local _, REMessage, _, RESender = ...
 		if RE.Debug > 1 then
@@ -517,7 +523,7 @@ function REPorter_OnEvent(self, event, ...)
 		local REMessageEx = {strsplit(";", REMessage)}
 		if REMessageEx[1] == "Version" then
 			if not RE.FoundNewVersion and tonumber(REMessageEx[2]) > RE.AddonVersionCheck then
-				print("\124cFF74D06C[REPorter]\124r "..L["New version released!"])
+				TOAST:Spawn("REPorterToastInfo", L["New version released!"])
 				RE.FoundNewVersion = true
 			end
 		elseif REMessageEx[1] == "GateSyncRequest" and RE.PlayedFromStart then
