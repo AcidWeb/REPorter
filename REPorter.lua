@@ -39,8 +39,7 @@ RE.CurrentMap = ""
 RE.ClickedPOI = ""
 
 RE.FoundNewVersion = false
-RE.Debug = 0
-RE.AddonVersionCheck = 110
+RE.AddonVersionCheck = 111
 
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
@@ -410,9 +409,6 @@ end
 
 function RE.AceTimer.JoinCheck()
 	local BGTime = GetBattlefieldInstanceRunTime()/1000
-	if RE.Debug > 0 then
-		print("\124cFF74D06C[REPorter]\124r Join check - "..BGTime)
-	end
 	if BGTime > RE.MapSettings[RE.CurrentMap]["StartTimer"] then
 		RE.PlayedFromStart = false
 		if RE.CurrentMap == "StrandoftheAncients" or RE.CurrentMap == "IsleofConquest" then
@@ -441,9 +437,6 @@ end
 
 function REPorter_OnShow(self)
 	if RE.CurrentMap ~= GetMapInfo() then
-		if RE.Debug > 0 then
-			print("\124cFF74D06C[REPorter]\124r Show")
-		end
 		SetMapToCurrentZone()
 		REPorterEstimator:Show()
 		REPorterExternal:SetScrollChild(REPorter)
@@ -456,9 +449,6 @@ end
 
 function REPorter_OnHide(self)
 	if RE.CurrentMap ~= GetMapInfo() then
-		if RE.Debug > 0 then
-			print("\124cFF74D06C[REPorter]\124r Hide")
-		end
 		REPorterExternal:SetScript("OnUpdate", nil)
 		RE.CurrentMap = ""
 		RE.DoIEvenCareAboutNodes = false
@@ -517,9 +507,6 @@ function REPorter_OnEvent(self, event, ...)
 		end)
 	elseif event == "CHAT_MSG_ADDON" and ... == "REPorter" then
 		local _, REMessage, _, RESender = ...
-		if RE.Debug > 1 then
-			print("\124cFF74D06C[REPorter]\124r "..RESender.." - "..REMessage)
-		end
 		local REMessageEx = {strsplit(";", REMessage)}
 		if REMessageEx[1] == "Version" then
 			if not RE.FoundNewVersion and tonumber(REMessageEx[2]) > RE.AddonVersionCheck then
@@ -705,8 +692,6 @@ function REPorter_OnEvent(self, event, ...)
 				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
 					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"]
 				end
-			elseif RE.Debug > 0 then
-				print("\124cFF74D06C[REPorter]\124r Unknown gate - "..gateID)
 			end
 			REPorter_UpdateIoCEstimator()
 		end
@@ -717,9 +702,6 @@ function REPorter_OnEvent(self, event, ...)
 			REPorterExternal:Show()
 			RE.PlayedFromStart = true
 			RE.GateSyncRequested = false
-			if RE.Debug > 0 then
-				print("\124cFF74D06C[REPorter]\124r Pre-create")
-			end
 			REPorter_Create(false)
 			SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "INSTANCE_CHAT")
 			if IsInGuild() then
@@ -1206,9 +1188,6 @@ function REPorter_Create(isSecond)
 	REPorterExternal:SetScript("OnUpdate", nil)
 	local mapFileName = GetMapInfo()
 	if mapFileName and RE.MapSettings[mapFileName] then
-		if RE.Debug > 0 then
-			print("\124cFF74D06C[REPorter]\124r Create!")
-		end
 		RE.CurrentMap = mapFileName
 		RE.POINodes = {}
 		REPorterExternal:ClearAllPoints()
