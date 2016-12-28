@@ -1,6 +1,5 @@
-REPorterNamespace = {["AceTimer"] = {}}
+REPorterNamespace = {["AceTimer"] = {}, ["Settings"] = {}}
 local RE = REPorterNamespace
-local RES = REPorterSettings
 local L = LibStub("AceLocale-3.0"):GetLocale("REPorter")
 local TOAST = LibStub("LibToast-1.0")
 LibStub("AceTimer-3.0"):Embed(RE.AceTimer)
@@ -131,8 +130,8 @@ RE.AceConfig = {
 			type = "toggle",
 			width = "full",
 			order = 1,
-			set = function(_, val) RES.locked = val end,
-			get = function(_) return RES.locked end
+			set = function(_, val) RE.Settings.locked = val end,
+			get = function(_) return RE.Settings.locked end
 		},
 		nameAdvert = {
 			name = L["Add \"[REPorter]\" to end of each report"],
@@ -140,8 +139,8 @@ RE.AceConfig = {
 			type = "toggle",
 			width = "full",
 			order = 2,
-			set = function(_, val) RES.nameAdvert = val; REPorter_UpdateConfig() end,
-			get = function(_) return RES.nameAdvert end
+			set = function(_, val) RE.Settings.nameAdvert = val; REPorter_UpdateConfig() end,
+			get = function(_) return RE.Settings.nameAdvert end
 		},
 		hideMinimap = {
 			name = L["Hide minimap on battlegrounds"],
@@ -149,8 +148,8 @@ RE.AceConfig = {
 			type = "toggle",
 			width = "full",
 			order = 3,
-			set = function(_, val) RES.hideMinimap = val; REPorter_UpdateConfig() end,
-			get = function(_) return RES.hideMinimap end
+			set = function(_, val) RE.Settings.hideMinimap = val; REPorter_UpdateConfig() end,
+			get = function(_) return RE.Settings.hideMinimap end
 		},
 		barHandle = {
 			name = L["Report bar location"],
@@ -166,8 +165,8 @@ RE.AceConfig = {
 				[5] = L["Left"],
 				[6] = L["Top left"]
 			},
-			set = function(_, val) RES.barHandle = val; REPorter_UpdateConfig() end,
-			get = function(_) return RES.barHandle end
+			set = function(_, val) RE.Settings.barHandle = val; REPorter_UpdateConfig() end,
+			get = function(_) return RE.Settings.barHandle end
 		},
 		mapSettings = {
 			name = BATTLEGROUND,
@@ -215,8 +214,8 @@ RE.AceConfig = {
 			min = 0.1,
 			max = 1,
 			step = 0.01,
-			set = function(_, val) RES.opacity = val; REPorter_UpdateConfig() end,
-			get = function(_) return RES.opacity end
+			set = function(_, val) RE.Settings.opacity = val; REPorter_UpdateConfig() end,
+			get = function(_) return RE.Settings.opacity end
 		},
 	}
 }
@@ -441,7 +440,7 @@ function REPorter_OnShow(self)
 		REPorterEstimator:Show()
 		REPorterExternal:SetScrollChild(REPorter)
 		REPorterTab:SetAlpha(0.25)
-		if RES.hideMinimap then
+		if RE.Settings.hideMinimap then
 		  MinimapCluster:Hide()
 		end
 	end
@@ -465,7 +464,7 @@ function REPorter_OnHide(self)
 		REPorterEstimator_Text:SetText("")
 		REPorterEstimator:Hide()
 		RE.TimerOverride = false
-		if not MinimapCluster:IsShown() and RES.hideMinimap then
+		if not MinimapCluster:IsShown() and RE.Settings.hideMinimap then
 		  MinimapCluster:Show()
 		end
 	end
@@ -473,7 +472,7 @@ end
 
 function REPorter_OnEnter(self)
 	RE.AceTimer:CancelTimer(RE.TabHiderTimer)
-	REPorterTab:SetAlpha(RES.opacity)
+	REPorterTab:SetAlpha(RE.Settings.opacity)
 end
 
 function REPorter_OnLeave(self)
@@ -506,7 +505,7 @@ function REPorter_OnEvent(self, event, ...)
 			toast:SetIconTexture([[Interface\Challenges\ChallengeMode_Medal_Bronze]])
 		end)
 	elseif event == "CHAT_MSG_ADDON" and ... == "REPorter" then
-		local _, REMessage, _, RESender = ...
+		local _, REMessage = ...
 		local REMessageEx = {strsplit(";", REMessage)}
 		if REMessageEx[1] == "Version" then
 			if not RE.FoundNewVersion and tonumber(REMessageEx[2]) > RE.AddonVersionCheck then
@@ -1048,7 +1047,7 @@ function REPorter_OnUpdate(self, elapsed)
 							texture:SetTexCoord(0, texturePixelWidth / textureFileWidth, 0, texturePixelHeight / textureFileHeight)
 							texture:SetPoint("TOPLEFT", "REPorter", "TOPLEFT", (offsetX + (256 * (k - 1))) * scale, -((offsetY + (256 * (j - 1))) * scale))
 							texture:SetTexture(textureName..(((j - 1) * numTexturesWide) + k))
-							texture:SetAlpha(RES.opacity)
+							texture:SetAlpha(RE.Settings.opacity)
 							texture:Show()
 						end
 					end
@@ -1191,8 +1190,8 @@ function REPorter_Create(isSecond)
 		RE.CurrentMap = mapFileName
 		RE.POINodes = {}
 		REPorterExternal:ClearAllPoints()
-		REPorterExternal:SetScale(RES[mapFileName]["scale"])
-		REPorterExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RES[mapFileName]["x"], RES[mapFileName]["y"])
+		REPorterExternal:SetScale(RE.Settings[mapFileName]["scale"])
+		REPorterExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings[mapFileName]["x"], RE.Settings[mapFileName]["y"])
 		REPorterTimerOverlay:Hide()
 		REPorterExternal:SetHeight(RE.MapSettings[mapFileName]["HE"])
 		REPorterExternalOverlay:SetHeight(RE.MapSettings[mapFileName]["HE"])
@@ -1213,9 +1212,6 @@ function REPorter_Create(isSecond)
 		REPorterUnitPosition:SetMouseOverUnitExcluded("player", true)
 		REPorterUnitPosition.UpdateUnitTooltips = REPorterUnit_OnEnterPlayer
 		REPorterUnitPosition:SetFrameLevel(4)
-		if not (IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins")) then
-			REPorterBorder:SetFrameLevel(5)
-		end
 		REPorterTab:Show()
 		local texName
 		local numDetailTiles = GetNumberOfDetailTiles()
@@ -1515,43 +1511,43 @@ end
 -- *** Config functions
 function REPorter_UpdateConfig()
 	local x, y = 0, 0
-	REPorterExternal:SetAlpha(RES["opacity"])
-	if RES[RE.CurrentMap] then
-		REPorterExternal:SetScale(RES[RE.CurrentMap]["scale"])
+	REPorterExternal:SetAlpha(RE.Settings["opacity"])
+	if RE.Settings[RE.CurrentMap] then
+		REPorterExternal:SetScale(RE.Settings[RE.CurrentMap]["scale"])
 	end
-	if RES.nameAdvert then
+	if RE.Settings.nameAdvert then
 		RE.ReportPrefix = " - [REPorter]"
 	else
 		RE.ReportPrefix = ""
 	end
 	REPorterTab:ClearAllPoints()
 	if IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins") then
-		if RES.barHandle > 3 then
+		if RE.Settings.barHandle > 3 then
 			x, y = -2, 0
 		else
 			x, y = 2, 0
 		end
 	else
-		if RES.barHandle > 3 then
+		if RE.Settings.barHandle > 3 then
 			x, y = 2, 0
 		else
 			x, y = -2, 0
 		end
 	end
-	REPorterTab:SetPoint(RE.ReportBarAnchor[RES.barHandle][1], REPorterBorder, RE.ReportBarAnchor[RES.barHandle][2], x, y)
+	REPorterTab:SetPoint(RE.ReportBarAnchor[RE.Settings.barHandle][1], REPorterBorder, RE.ReportBarAnchor[RE.Settings.barHandle][2], x, y)
 	local _, instanceType = IsInInstance()
 	if instanceType == "pvp" then
-		MinimapCluster:SetShown(not RES.hideMinimap)
+		MinimapCluster:SetShown(not RE.Settings.hideMinimap)
 	end
 end
 
 function REPorter_UpdateScaleConfig(_, val)
-	if RES[RE.CurrentMap] then
+	if RE.Settings[RE.CurrentMap] then
 		if val then
-			RES[RE.CurrentMap]["scale"] = val
+			RE.Settings[RE.CurrentMap]["scale"] = val
 			REPorter_UpdateConfig()
 		else
-			return RES[RE.CurrentMap]["scale"]
+			return RE.Settings[RE.CurrentMap]["scale"]
 		end
 	else
 		return 1.0
@@ -1562,7 +1558,7 @@ function REPorter_PrepareConfig()
 	if not REPorterSettings or not REPorterSettings["configVersion"] then
 		REPorterSettings = RE.DefaultConfig
 	end
-	RES = REPorterSettings
+	RE.Settings = REPorterSettings
 	LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", RE.AceConfig)
 	LibStub("AceConfigDialog-3.0"):AddToBlizOptions("REPorter", "REPorter")
 	REPorter_UpdateConfig()
@@ -1572,17 +1568,14 @@ function REPorter_ShowDummyMap(mapFileName)
 	RE.ScaleDisabled = false
 	RE.CurrentMap = mapFileName
 	REPorterExternal:ClearAllPoints()
-	REPorterExternal:SetScale(RES[mapFileName]["scale"])
-	REPorterExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RES[mapFileName]["x"], RES[mapFileName]["y"])
+	REPorterExternal:SetScale(RE.Settings[mapFileName]["scale"])
+	REPorterExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings[mapFileName]["x"], RE.Settings[mapFileName]["y"])
 	REPorterExternal:SetHeight(RE.MapSettings[mapFileName]["HE"])
 	REPorterExternal:SetWidth(RE.MapSettings[mapFileName]["WI"])
 	REPorterExternal:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"])
 	REPorterExternal:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"])
 	REPorterBorder:SetHeight(RE.MapSettings[mapFileName]["HE"] + 5)
 	REPorterBorder:SetWidth(RE.MapSettings[mapFileName]["WI"] + 5)
-	if not (IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins")) then
-	   REPorterBorder:SetFrameLevel(5)
-	end
 	local texName
 	local numDetailTiles = GetNumberOfDetailTiles()
 	for i=1, numDetailTiles do

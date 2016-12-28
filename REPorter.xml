@@ -150,7 +150,7 @@
 			</Frame>
 		</ScrollChild>
 		<Frames>
-			<Frame name="REPorterBorder" enableMouse="false">
+			<Frame name="REPorterBorder" frameLevel="5" enableMouse="false">
 				<Anchors>
 					<Anchor point="CENTER"/>
 				</Anchors>
