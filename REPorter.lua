@@ -625,20 +625,28 @@ function REPorter_OnEvent(self, event, ...)
 			if text ~= nil then
 				local score = {strsplit("/", text)}
 				if score[2] then
-					local points = {strsplit(":", score[1])}
-					local bases = {strsplit(" ", points[2])}
-					AlliancePointNum = tonumber(points[#points])
-					AllianceBaseNum = tonumber(bases[2])
+					local data = {strsplit(" ", score[1])}
+					AlliancePointNum = tonumber(data[#data])
+					for i=1, #data do
+					  if tonumber(data[i]) ~= nil then
+					    AllianceBaseNum = tonumber(data[i])
+					    break
+					  end
+					end
 				end
 			end
 			_, _, _, text = GetWorldStateUIInfo(WorldStateId+1)
 			if text ~= nil then
 				local score = {strsplit("/", text)}
 				if score[2] then
-					local points = {strsplit(":", score[1])}
-					local bases = {strsplit(" ", points[2])}
-					HordePointNum = tonumber(points[#points])
-					HordeBaseNum = tonumber(bases[2])
+					local data = {strsplit(" ", score[1])}
+					HordePointNum = tonumber(data[#data])
+					for i=1, #data do
+						if tonumber(data[i]) ~= nil then
+							HordeBaseNum = tonumber(data[i])
+							break
+						end
+					end
 				end
 			end
 			if AlliancePointNum and HordePointNum and AllianceBaseNum and HordeBaseNum then
