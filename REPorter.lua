@@ -767,10 +767,16 @@ function REPorter_OnUpdate(self, elapsed)
 							texture = "Interface\\Addons\\REPorter\\Textures\\BlipDead"
 							r, g, b = r * 0.35, g * 0.35, b * 0.35
 					end
-					if IsShiftKeyDown() and IsControlKeyDown() and UnitGroupRolesAssigned(unit) == "HEALER" then
+					if IsShiftKeyDown() and IsControlKeyDown() then
+						local raidMarker = GetRaidTargetIndex(unit)
+						if raidMarker ~= nil then
+							texture = "Interface\\Addons\\REPorter\\Textures\\RaidMarker"..raidMarker
+							REPorterUnitPosition:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1)
+						elseif UnitGroupRolesAssigned(unit) == "HEALER" then
 							texture = "Interface\\Addons\\REPorter\\Textures\\BlipHealer"
 							REPorterUnitPosition:AddUnit(unit, texture, 30, 30, r, g, b, 1)
-					elseif not (IsShiftKeyDown() and IsControlKeyDown()) then
+						end
+					else
 						REPorterUnitPosition:AddUnit(unit, texture, 25, 25, r, g, b, 1)
 					end
 				end
