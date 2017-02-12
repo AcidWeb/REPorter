@@ -539,6 +539,7 @@ function REPorter_OnEvent(self, event, ...)
 			if text ~= nil then
 			  local score = {strsplit("/", text)}
 			  if score[1] then
+					score[1] = gsub(score[1], "：", " ")
 			    score = {strsplit(" ", score[1])}
 			    AlliancePointsNeeded = RE.MapSettings["TempleofKotmogu"]["pointsToWin"] - tonumber(score[#score])
 			  end
@@ -547,6 +548,7 @@ function REPorter_OnEvent(self, event, ...)
 			if text ~= nil then
 				local score = {strsplit("/", text)}
 				if score[1] then
+					score[1] = gsub(score[1], "：", " ")
 					score = {strsplit(" ", score[1])}
 					HordePointsNeeded = RE.MapSettings["TempleofKotmogu"]["pointsToWin"] - tonumber(score[#score])
 				end
@@ -596,6 +598,7 @@ function REPorter_OnEvent(self, event, ...)
 			if text ~= nil then
 				local score = {strsplit("/", text)}
 				if score[1] then
+					score[1] = gsub(score[1], "：", " ")
 					score = {strsplit(" ", score[1])}
 					AlliancePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["pointsToWin"] - tonumber(score[#score])
 				end
@@ -604,6 +607,7 @@ function REPorter_OnEvent(self, event, ...)
 			if text ~= nil then
 				local score = {strsplit("/", text)}
 				if score[1] then
+					score[1] = gsub(score[1], "：", " ")
 					score = {strsplit(" ", score[1])}
 					HordePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["pointsToWin"] - tonumber(score[#score])
 				end
@@ -625,6 +629,7 @@ function REPorter_OnEvent(self, event, ...)
 			if text ~= nil then
 				local score = {strsplit("/", text)}
 				if score[2] then
+					score[1] = gsub(score[1], "：", " ")
 					local data = {strsplit(" ", score[1])}
 					AlliancePointNum = tonumber(data[#data])
 					for i=1, #data do
@@ -639,6 +644,7 @@ function REPorter_OnEvent(self, event, ...)
 			if text ~= nil then
 				local score = {strsplit("/", text)}
 				if score[2] then
+					score[1] = gsub(score[1], "：", " ")
 					local data = {strsplit(" ", score[1])}
 					HordePointNum = tonumber(data[#data])
 					for i=1, #data do
