@@ -38,7 +38,7 @@ RE.CurrentMap = ""
 RE.ClickedPOI = ""
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 121
+RE.AddonVersionCheck = 122
 
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
@@ -866,23 +866,23 @@ function REPorter_OnUpdate(self, elapsed)
 				if RE.CurrentMap == "IsleofConquest" then
 					if i == 9 then
 						RE.IoCAllianceGateName = name
-						name = name.." - East"
+						name = name.." - "..L["East"]
 						x = x + 15
 					elseif i == 10 then
-						name = name.." - West"
+						name = name.." - "..L["West"]
 						x = x - 13
 					elseif i == 11 then
-						name = name.." - Front"
+						name = name.." - "..L["Front"]
 						y = y + 15
 					elseif i == 6 then
 						RE.IoCHordeGateName = name
-						name = name.." - Front"
+						name = name.." - "..L["Front"]
 						y = y - 15
 					elseif i == 7 then
-						name = name.." - East"
+						name = name.." - "..L["East"]
 						x = x + 10
 					elseif i == 8 then
-						name = name.." - West"
+						name = name.." - "..L["West"]
 						x = x - 10
 						y = y - 1
 					end
