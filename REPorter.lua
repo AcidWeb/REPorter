@@ -38,7 +38,7 @@ RE.CurrentMap = ""
 RE.ClickedPOI = ""
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 122
+RE.AddonVersionCheck = 123
 
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
@@ -366,8 +366,8 @@ function REPorter_HideTooltip()
 end
 
 function REPorter_SOTAStartCheck()
-	local startCheck = {GetMapLandmarkInfo(7)}
-	local sideCheck = {GetMapLandmarkInfo(10)}
+	local startCheck = {C_WorldMap.GetMapLandmarkInfo(7)}
+	local sideCheck = {C_WorldMap.GetMapLandmarkInfo(10)}
 	return (startCheck[4] == 46 or startCheck[4] == 48), sideCheck[4] == 102
 end
 
@@ -859,7 +859,7 @@ function REPorter_OnUpdate(self, elapsed)
 		for i=1, GetNumMapLandmarks() do
 			local battlefieldPOIName = "REPorterPOI"..i
 			local battlefieldPOI = _G[battlefieldPOIName]
-			local _, name, description, textureIndex, x, y, _, showInBattleMap = GetMapLandmarkInfo(i)
+			local _, name, description, textureIndex, x, y, _, showInBattleMap = C_WorldMap.GetMapLandmarkInfo(i)
 			if name and showInBattleMap and textureIndex ~= 0 then
 				x, y = REPorter_GetRealCoords(x, y)
 				local x1, x2, y1, y2 = GetPOITextureCoords(textureIndex)
