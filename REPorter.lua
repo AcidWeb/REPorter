@@ -38,7 +38,7 @@ RE.CurrentMap = ""
 RE.ClickedPOI = ""
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 123
+RE.AddonVersionCheck = 124
 
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
@@ -420,6 +420,14 @@ end
 function RE.AceTimer.TabHider()
 	REPorterTab:SetAlpha(0.25)
 end
+
+function REPorter_GetMapInfo()
+	if GetMapInfo() == "ArathiBasinWinter" then
+		return "ArathiBasin"
+	else
+		return GetMapInfo()
+	end
+end
 --
 
 -- *** Event functions
@@ -435,7 +443,7 @@ function REPorter_OnLoad(self)
 end
 
 function REPorter_OnShow(self)
-	if RE.CurrentMap ~= GetMapInfo() then
+	if RE.CurrentMap ~= REPorter_GetMapInfo() then
 		SetMapToCurrentZone()
 		REPorterEstimator:Show()
 		REPorterExternal:SetScrollChild(REPorter)
@@ -447,7 +455,7 @@ function REPorter_OnShow(self)
 end
 
 function REPorter_OnHide(self)
-	if RE.CurrentMap ~= GetMapInfo() then
+	if RE.CurrentMap ~= REPorter_GetMapInfo() then
 		REPorterExternal:SetScript("OnUpdate", nil)
 		RE.CurrentMap = ""
 		RE.DoIEvenCareAboutNodes = false
@@ -1205,7 +1213,7 @@ end
 -- *** Core functions
 function REPorter_Create(isSecond)
 	REPorterExternal:SetScript("OnUpdate", nil)
-	local mapFileName = GetMapInfo()
+	local mapFileName = REPorter_GetMapInfo()
 	if mapFileName and RE.MapSettings[mapFileName] then
 		RE.CurrentMap = mapFileName
 		RE.POINodes = {}
@@ -1238,6 +1246,8 @@ function REPorter_Create(isSecond)
 		for i=1, numDetailTiles do
 			if mapFileName == "STVDiamondMineBG" then
 				texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName.."1_"..i
+			elseif C_PvP.IsInBrawl() and mapFileName == "ArathiBasin" then
+				texName = "Interface\\WorldMap\\ArathiBasinWinter\\ArathiBasinWinter"..i
 			else
 				texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i
 			end
