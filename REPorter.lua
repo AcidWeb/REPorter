@@ -38,7 +38,7 @@ RE.CurrentMap = ""
 RE.ClickedPOI = ""
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 124
+RE.AddonVersionCheck = 125
 
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
@@ -868,7 +868,7 @@ function REPorter_OnUpdate(self, elapsed)
 			local battlefieldPOIName = "REPorterPOI"..i
 			local battlefieldPOI = _G[battlefieldPOIName]
 			local _, name, description, textureIndex, x, y, _, showInBattleMap = C_WorldMap.GetMapLandmarkInfo(i)
-			if name and showInBattleMap and textureIndex ~= 0 then
+			if name and showInBattleMap and textureIndex ~= nil and textureIndex ~= 0 then
 				x, y = REPorter_GetRealCoords(x, y)
 				local x1, x2, y1, y2 = GetPOITextureCoords(textureIndex)
 				if RE.CurrentMap == "IsleofConquest" then
@@ -909,7 +909,7 @@ function REPorter_OnUpdate(self, elapsed)
 						y = -192
 					elseif y < -398 and y > -402 then
 						x = 398
-					elseif y < -439 and y > -442 and x > 383 and x < 386 then
+					elseif y < -441 and y > -444 and x > 385 and x < 388 then
 						x = 410
 						y = -440
 					elseif y < -460 then
