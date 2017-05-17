@@ -27,6 +27,7 @@ RE.SMEstimatorText = ""
 RE.SMEstimatorReport = ""
 RE.IsWinning = ""
 RE.GateSyncRequested = false
+RE.IsBrawl = false
 
 RE.BlipOffsetT = 0.5
 RE.BlinkPOIMin = 0.3
@@ -458,6 +459,7 @@ function REPorter_OnHide(self)
 	if RE.CurrentMap ~= REPorter_GetMapInfo() then
 		REPorterExternal:SetScript("OnUpdate", nil)
 		RE.CurrentMap = ""
+		RE.IsBrawl = false
 		RE.DoIEvenCareAboutNodes = false
 		RE.DoIEvenCareAboutPoints = false
 		RE.DoIEvenCareAboutGates = false
@@ -805,7 +807,7 @@ function REPorter_OnUpdate(self, elapsed)
 			local flagFrameName = "REPorterFlag"..i
 			local flagFrame = _G[flagFrameName]
 			local flagTexture = _G[flagFrameName.."Texture"]
-			if i <= numFlags and RE.CurrentMap ~= "GoldRush" then
+			if i <= numFlags and (RE.CurrentMap ~= "GoldRush" or RE.IsBrawl) then
 				local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i)
 				if flagX == 0 and flagY == 0 then
 					flagFrame:Hide()
@@ -1216,6 +1218,7 @@ function REPorter_Create(isSecond)
 	local mapFileName = REPorter_GetMapInfo()
 	if mapFileName and RE.MapSettings[mapFileName] then
 		RE.CurrentMap = mapFileName
+		RE.IsBrawl = C_PvP.IsInBrawl()
 		RE.POINodes = {}
 		REPorterExternal:ClearAllPoints()
 		REPorterExternal:SetScale(RE.Settings[mapFileName]["scale"])
@@ -1246,7 +1249,7 @@ function REPorter_Create(isSecond)
 		for i=1, numDetailTiles do
 			if mapFileName == "STVDiamondMineBG" then
 				texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName.."1_"..i
-			elseif C_PvP.IsInBrawl() and mapFileName == "ArathiBasin" then
+			elseif RE.IsBrawl and mapFileName == "ArathiBasin" then
 				texName = "Interface\\WorldMap\\ArathiBasinWinter\\ArathiBasinWinter"..i
 			else
 				texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i
