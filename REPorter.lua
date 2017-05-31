@@ -52,7 +52,8 @@ RE.MapSettings = {
 	["TwinPeaks"] = {["HE"] = 435, ["WI"] = 250, ["HO"] = 280, ["VE"] = 40, ["StartTimer"] = 120},
 	["TempleofKotmogu"] = {["HE"] = 250, ["WI"] = 400, ["HO"] = 185, ["VE"] = 155, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
 	["STVDiamondMineBG"] = {["HE"] = 325, ["WI"] = 435, ["HO"] = 175, ["VE"] = 95, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["GoldRush"] = {["HE"] = 410, ["WI"] = 510, ["HO"] = 155, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120}
+	["GoldRush"] = {["HE"] = 410, ["WI"] = 510, ["HO"] = 155, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
+	["HillsbradFoothillsBG"] = {["HE"] = 360, ["WI"] = 240, ["HO"] = 280, ["VE"] = 80, ["StartTimer"] = 120}
 }
 RE.MapNames = {
 	[GetMapNameByID(401)] = "AlteracValley",
@@ -66,6 +67,7 @@ RE.MapNames = {
 	[GetMapNameByID(736)] = "GilneasBattleground2",
 	[GetMapNameByID(626)] = "TwinPeaks",
 	[GetMapNameByID(443)] = "WarsongGulch",
+	[GetMapNameByID(1010)] = "HillsbradFoothillsBG"
 }
 RE.EstimatorSettings = {
 	["ArathiBasin"] = { [0] = 0, [1] = 10/12, [2] = 10/9, [3] = 10/6, [4] = 10/3, [5] = 30},
@@ -112,7 +114,8 @@ RE.DefaultConfig = {
 	["TwinPeaks"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
 	["TempleofKotmogu"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
 	["STVDiamondMineBG"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["GoldRush"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2}
+	["GoldRush"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
+	["HillsbradFoothillsBG"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2}
 }
 RE.ReportBarAnchor = {
 	[1] = {"BOTTOMLEFT", "BOTTOMRIGHT"},
@@ -187,7 +190,8 @@ RE.AceConfig = {
 				[856] = GetMapNameByID(856),
 				[736] = GetMapNameByID(736),
 				[626] = GetMapNameByID(626),
-				[443] = GetMapNameByID(443)
+				[443] = GetMapNameByID(443),
+				[1010] = GetMapNameByID(1010)
 			},
 			set = function(_, val) RE.LastMap = val; REPorter_ShowDummyMap(RE.MapNames[GetMapNameByID(val)]) end,
 			get = function(_) return RE.LastMap end
@@ -755,7 +759,7 @@ function REPorter_OnUpdate(self, elapsed)
 	if RE.updateTimer < 0 then
 		REPorter_BlinkPOI()
 		local subZoneName = GetSubZoneText()
-		if subZoneName and subZoneName ~= "" and RE.CurrentMap ~= "GoldRush" and RE.CurrentMap ~= "STVDiamondMineBG" and RE.CurrentMap ~= "TempleofKotmogu" then
+		if subZoneName and subZoneName ~= "" and RE.CurrentMap ~= "GoldRush" and RE.CurrentMap ~= "STVDiamondMineBG" and RE.CurrentMap ~= "TempleofKotmogu" and RE.CurrentMap ~= "HillsbradFoothillsBG" then
 			for _, i in pairs({"SB1", "SB2", "SB3", "SB4", "SB5", "SB6", "BB1", "BB2"}) do
 				_G["REPorterTab_"..i]:Enable()
 			end
@@ -1476,7 +1480,7 @@ function REPorter_SmallButton(number, otherNode)
 		local name = ""
 		if otherNode then
 			name = RE.ClickedPOI
-		elseif RE.CurrentMap == "TempleofKotmogu" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" then
+		elseif RE.CurrentMap == "TempleofKotmogu" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" or RE.CurrentMap == "HillsbradFoothillsBG" then
 			name = ""
 		else
 			name = GetSubZoneText()
@@ -1503,7 +1507,7 @@ function REPorter_BigButton(isHelp, otherNode)
 		local name = ""
 		if otherNode then
 			name = RE.ClickedPOI
-		elseif RE.CurrentMap == "TempleofKotmogu" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" then
+		elseif RE.CurrentMap == "TempleofKotmogu" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" or RE.CurrentMap == "HillsbradFoothillsBG" then
 			name = ""
 		else
 			name = GetSubZoneText()
@@ -1590,6 +1594,10 @@ end
 function REPorter_PrepareConfig()
 	if not REPorterSettings or not REPorterSettings["configVersion"] then
 		REPorterSettings = RE.DefaultConfig
+	end
+	if REPorterSettings["configVersion"] < 127 then
+		REPorterSettings["HillsbradFoothillsBG"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2}
+		REPorterSettings["configVersion"] = 127
 	end
 	RE.Settings = REPorterSettings
 	LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", RE.AceConfig)
