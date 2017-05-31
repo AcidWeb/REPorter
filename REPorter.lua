@@ -68,9 +68,9 @@ RE.MapNames = {
 	[GetMapNameByID(443)] = "WarsongGulch",
 }
 RE.EstimatorSettings = {
-	["ArathiBasin"] = { [0] = 0, [1] = 0.8333, [2] = 1.1111, [3] = 1.6667, [4] = 3.3333, [5] = 30},
-	["NetherstormArena"] = { [0] = 0, [1] = 0.5, [2] = 1, [3] = 2.5, [4] = 5},
-	["GilneasBattleground2"] = { [0] = 0, [1] = 1.1111, [2] = 3.3333, [3] = 30},
+	["ArathiBasin"] = { [0] = 0, [1] = 10/12, [2] = 10/9, [3] = 10/6, [4] = 10/3, [5] = 30},
+	["NetherstormArena"] = { [0] = 0, [1] = 1, [2] = 2, [3] = 5, [4] = 10},
+	["GilneasBattleground2"] = { [0] = 0, [1] = 10/9, [2] = 10/3, [3] = 30},
 	["GoldRush"] = { [0] = 0, [1] = 1.6, [2] = 3.2, [3] = 6.4},
 	["TempleofKotmogu"] = {["CenterP"] = 1, ["InnerP"] = 0.8, ["OuterP"] = 0.6},
 	["STVDiamondMineBG"] = 150
