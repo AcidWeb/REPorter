@@ -297,7 +297,7 @@ function REPorter_ClearTextures()
 			RE.AceTimer:CancelTimer(RE.POINodes[tableInternal[i]]["timer"])
 		end
 	end
-	for i=1, NUM_WORLDMAP_FLAGS do
+	for i=1, 4 do
 		local flagFrameName = "REPorterFlag"..i
 		local flagFrame = _G[flagFrameName]
 		flagFrame:Hide()
@@ -569,7 +569,7 @@ function REPorter_OnEvent(self, event, ...)
 			end
 			if AlliancePointsNeeded and HordePointsNeeded then
 				local numFlags = GetNumBattlefieldFlagPositions()
-				for i=1, NUM_WORLDMAP_FLAGS do
+				for i=1, 4 do
 					if i <= numFlags then
 						local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i)
 						if flagX > 0 and flagY > 0 then
@@ -807,17 +807,16 @@ function REPorter_OnUpdate(self, elapsed)
 		local playerBlipFrameLevel = REPorterUnitPosition:GetFrameLevel()
 
 		local numFlags = GetNumBattlefieldFlagPositions()
-		for i=1, NUM_WORLDMAP_FLAGS do
+		for i=1, 4 do
 			local flagFrameName = "REPorterFlag"..i
 			local flagFrame = _G[flagFrameName]
-			local flagTexture = _G[flagFrameName.."Texture"]
 			if i <= numFlags and (RE.CurrentMap ~= "GoldRush" or RE.IsBrawl) then
 				local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i)
 				if flagX == 0 and flagY == 0 then
 					flagFrame:Hide()
 				else
 					flagX, flagY = REPorter_GetRealCoords(flagX, flagY)
-					flagTexture:SetTexture("Interface\\WorldStateFrame\\"..flagToken)
+					flagFrame.Texture:SetTexture("Interface\\WorldStateFrame\\"..flagToken)
 					flagFrame:SetPoint("CENTER", "REPorterOverlay", "TOPLEFT", flagX, flagY)
 					flagFrame:EnableMouse(false)
 					flagFrame:SetFrameLevel(playerBlipFrameLevel - 1)
