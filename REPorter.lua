@@ -25,9 +25,11 @@ RE.IoCGateEstimator = {}
 RE.IoCGateEstimatorText = ""
 RE.SMEstimatorText = ""
 RE.SMEstimatorReport = ""
-RE.IsWinning = ""
 RE.GateSyncRequested = false
+RE.PinTextures = {}
+RE.IsWinning = ""
 RE.IsBrawl = false
+RE.IsOverlay = false
 
 RE.BlipOffsetT = 0.5
 RE.BlinkPOIMin = 0.3
@@ -315,6 +317,7 @@ function REPorter_ClearTextures()
 		_G["REPorterMapOverlay"..i]:SetTexture(nil)
 	end
 	RE.POINodes = {}
+	REPorterUnitPosition:ClearUnits()
 end
 
 function REPorter_CreatePOI(index)
@@ -442,6 +445,7 @@ function REPorter_OnLoad(self)
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 	self:RegisterEvent("CHAT_MSG_ADDON")
 	self:RegisterEvent("MODIFIER_STATE_CHANGED")
+	self:RegisterEvent("GROUP_ROSTER_UPDATE")
 	self:RegisterForDrag("LeftButton")
 	InterfaceOptionsFrame:HookScript("OnHide", REPorter_HideDummyMap)
 	RE.updateTimer = 0
@@ -740,17 +744,26 @@ function REPorter_OnEvent(self, event, ...)
 		end
 	elseif event == "MODIFIER_STATE_CHANGED" and REPorterExternal:IsShown() then
 		if IsShiftKeyDown() and IsAltKeyDown() then
+			REPorterUnitPosition:ClearUnits()
 			REPorterExternalOverlay:Hide()
 			REPorterTimerOverlay:Show()
-		else
+		elseif IsShiftKeyDown() and IsControlKeyDown() then
+			REPorterUnitPosition:ClearUnits()
+		elseif REPorterTimerOverlay:IsShown() then
+		  REPorterUnitPosition:ClearUnits()
 			REPorterExternalOverlay:Show()
 			REPorterTimerOverlay:Hide()
+		elseif RE.IsOverlay then
+		  REPorterUnitPosition:ClearUnits()
 		end
+	elseif event == "GROUP_ROSTER_UPDATE" and REPorterExternal:IsShown() then
+		REPorterUnitPosition:ClearUnits()
 	elseif event == "BATTLEGROUND_POINTS_UPDATE" then
 		RE.TimerOverride = true
 		REPorter_CreateTimer(12)
 	elseif event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" then
 		-- SotA hack
+		REPorterUnitPosition:ClearUnits()
 		REPorter_Create(true)
 	end
 end
@@ -769,13 +782,14 @@ function REPorter_OnUpdate(self, elapsed)
 			end
 		end
 
-		REPorterUnitPosition:ClearUnits()
+		local needRefresh = false
 		REPorterUnitPosition:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 50, 50, 1, 1, 1, 1, 7, true)
 		if not (IsShiftKeyDown() and IsAltKeyDown()) then
 			for i = 1, MAX_RAID_MEMBERS do
 				local unit = "raid"..i
+				local texture = ""
 				if UnitExists(unit) and not UnitIsUnit(unit, "player") then
-					local texture = "Interface\\Addons\\REPorter\\Textures\\BlipNormal"
+					texture = "Interface\\Addons\\REPorter\\Textures\\BlipNormal"
 					local r, g, b = GetClassColor(select(2, UnitClass(unit)))
 					if UnitAffectingCombat(unit) then
 							if (UnitHealth(unit) / UnitHealthMax(unit)) * 100 < 26 then
@@ -788,6 +802,7 @@ function REPorter_OnUpdate(self, elapsed)
 							r, g, b = r * 0.35, g * 0.35, b * 0.35
 					end
 					if IsShiftKeyDown() and IsControlKeyDown() then
+						RE.IsOverlay = true
 						local raidMarker = GetRaidTargetIndex(unit)
 						if raidMarker ~= nil then
 							texture = "Interface\\Addons\\REPorter\\Textures\\RaidMarker"..raidMarker
@@ -797,14 +812,22 @@ function REPorter_OnUpdate(self, elapsed)
 							REPorterUnitPosition:AddUnit(unit, texture, 30, 30, r, g, b, 1)
 						end
 					else
+						RE.IsOverlay = false
 						REPorterUnitPosition:AddUnit(unit, texture, 25, 25, r, g, b, 1)
 					end
 				end
+				if RE.PinTextures[unit] and RE.PinTextures[unit] ~= texture then
+					needRefresh = true
+				end
+				RE.PinTextures[unit] = texture
 			end
 		end
 		REPorterUnitPosition:FinalizeUnits()
 		REPorterUnitPosition:UpdateTooltips(GameTooltip)
 		local playerBlipFrameLevel = REPorterUnitPosition:GetFrameLevel()
+		if needRefresh then
+			REPorterUnitPosition:ClearUnits()
+		end
 
 		local numFlags = GetNumBattlefieldFlagPositions()
 		for i=1, 4 do
