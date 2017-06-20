@@ -7,6 +7,7 @@ LibStub("AceTimer-3.0"):Embed(RE.AceTimer)
 RE.POIIconSize = 30
 RE.POINumber = 25
 RE.MapUpdateRate = 0.05
+RE.NeedRefresh = false
 RE.BGVehicles = {}
 RE.POINodes = {}
 RE.BGOverlayNum = 0
@@ -317,7 +318,6 @@ function REPorter_ClearTextures()
 		_G["REPorterMapOverlay"..i]:SetTexture(nil)
 	end
 	RE.POINodes = {}
-	REPorterUnitPosition:ClearUnits()
 end
 
 function REPorter_CreatePOI(index)
@@ -465,7 +465,7 @@ end
 
 function REPorter_OnHide(self)
 	if RE.CurrentMap ~= REPorter_GetMapInfo() then
-		REPorterExternal:SetScript("OnUpdate", nil)
+		REPorterUnitPosition:SetScript("OnUpdate", nil)
 		RE.CurrentMap = ""
 		RE.IsBrawl = false
 		RE.DoIEvenCareAboutNodes = false
@@ -744,26 +744,26 @@ function REPorter_OnEvent(self, event, ...)
 		end
 	elseif event == "MODIFIER_STATE_CHANGED" and REPorterExternal:IsShown() then
 		if IsShiftKeyDown() and IsAltKeyDown() then
-			REPorterUnitPosition:ClearUnits()
+			RE.NeedRefresh = true
 			REPorterExternalOverlay:Hide()
 			REPorterTimerOverlay:Show()
 		elseif IsShiftKeyDown() and IsControlKeyDown() then
-			REPorterUnitPosition:ClearUnits()
+			RE.NeedRefresh = true
 		elseif REPorterTimerOverlay:IsShown() then
-		  REPorterUnitPosition:ClearUnits()
+		  RE.NeedRefresh = true
 			REPorterExternalOverlay:Show()
 			REPorterTimerOverlay:Hide()
 		elseif RE.IsOverlay then
-		  REPorterUnitPosition:ClearUnits()
+		  RE.NeedRefresh = true
 		end
 	elseif event == "GROUP_ROSTER_UPDATE" and REPorterExternal:IsShown() then
-		REPorterUnitPosition:ClearUnits()
+		RE.NeedRefresh = true
 	elseif event == "BATTLEGROUND_POINTS_UPDATE" then
 		RE.TimerOverride = true
 		REPorter_CreateTimer(12)
 	elseif event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" then
 		-- SotA hack
-		REPorterUnitPosition:ClearUnits()
+		RE.NeedRefresh = true
 		REPorter_Create(true)
 	end
 end
@@ -782,7 +782,10 @@ function REPorter_OnUpdate(self, elapsed)
 			end
 		end
 
-		local needRefresh = false
+		if RE.NeedRefresh then
+			RE.NeedRefresh = false
+			REPorterUnitPosition:ClearUnits()
+		end
 		REPorterUnitPosition:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 50, 50, 1, 1, 1, 1, 7, true)
 		if not (IsShiftKeyDown() and IsAltKeyDown()) then
 			for i = 1, MAX_RAID_MEMBERS do
@@ -817,7 +820,7 @@ function REPorter_OnUpdate(self, elapsed)
 					end
 				end
 				if RE.PinTextures[unit] and RE.PinTextures[unit] ~= texture then
-					needRefresh = true
+					RE.NeedRefresh = true
 				end
 				RE.PinTextures[unit] = texture
 			end
@@ -825,9 +828,6 @@ function REPorter_OnUpdate(self, elapsed)
 		REPorterUnitPosition:FinalizeUnits()
 		REPorterUnitPosition:UpdateTooltips(GameTooltip)
 		local playerBlipFrameLevel = REPorterUnitPosition:GetFrameLevel()
-		if needRefresh then
-			REPorterUnitPosition:ClearUnits()
-		end
 
 		local numFlags = GetNumBattlefieldFlagPositions()
 		for i=1, 4 do
@@ -1240,7 +1240,7 @@ end
 
 -- *** Core functions
 function REPorter_Create(isSecond)
-	REPorterExternal:SetScript("OnUpdate", nil)
+	REPorterUnitPosition:SetScript("OnUpdate", nil)
 	local mapFileName = REPorter_GetMapInfo()
 	if mapFileName and RE.MapSettings[mapFileName] then
 		RE.CurrentMap = mapFileName
@@ -1328,7 +1328,7 @@ function REPorter_Create(isSecond)
 		if not isSecond then
 			RE.AceTimer:ScheduleTimer("JoinCheck", 5)
 		end
-		REPorterExternal:SetScript("OnUpdate", REPorter_OnUpdate)
+		REPorterUnitPosition:SetScript("OnUpdate", REPorter_OnUpdate)
 	end
 end
 
