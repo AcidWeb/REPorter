@@ -42,7 +42,7 @@ RE.CurrentMap = ""
 RE.ClickedPOI = ""
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 129.1
+RE.AddonVersionCheck = 129.2
 
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
@@ -83,12 +83,12 @@ RE.EstimatorSettings = {
 RE.POIDropDown = {
 	{ text = L["Incoming"], hasArrow = true, notCheckable = true,
 	menuList = {
-		{ text = "1", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(1, true); Lib_CloseDropDownMenus() end },
-		{ text = "2", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(2, true); Lib_CloseDropDownMenus() end },
-		{ text = "3", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(3, true); Lib_CloseDropDownMenus() end },
-		{ text = "4", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(4, true); Lib_CloseDropDownMenus() end },
-		{ text = "5", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(5, true); Lib_CloseDropDownMenus() end },
-		{ text = "5+", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(6, true); Lib_CloseDropDownMenus() end }
+		{ text = "1", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(1, true); L_CloseDropDownMenus() end },
+		{ text = "2", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(2, true); L_CloseDropDownMenus() end },
+		{ text = "3", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(3, true); L_CloseDropDownMenus() end },
+		{ text = "4", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(4, true); L_CloseDropDownMenus() end },
+		{ text = "5", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(5, true); L_CloseDropDownMenus() end },
+		{ text = "5+", notCheckable = true, minWidth = 15, func = function() REPorter_SmallButton(6, true); L_CloseDropDownMenus() end }
 	} },
 	{ text = HELP_LABEL, notCheckable = true, func = function() REPorter_BigButton(true, true) end },
 	{ text = L["Clear"], notCheckable = true, func = function() REPorter_BigButton(false, true) end },
@@ -416,7 +416,7 @@ end
 
 function RE.AceTimer.JoinCheck()
 	local BGTime = GetBattlefieldInstanceRunTime()/1000
-	if BGTime > RE.MapSettings[RE.CurrentMap]["StartTimer"] then
+	if RE.CurrentMap ~= "" and BGTime > RE.MapSettings[RE.CurrentMap]["StartTimer"] then
 		RE.PlayedFromStart = false
 		if RE.CurrentMap == "StrandoftheAncients" or RE.CurrentMap == "IsleofConquest" then
 			RE.GateSyncRequested = true
@@ -478,7 +478,7 @@ function REPorter_OnHide(self)
 		REPorterExternal:UnregisterEvent("BATTLEGROUND_POINTS_UPDATE")
 		RE.IsWinning = ""
 		REPorter_ClearTextures()
-		Lib_CloseDropDownMenus()
+		L_CloseDropDownMenus()
 		REPorterEstimator_Text:SetText("")
 		REPorterEstimator:Hide()
 		RE.TimerOverride = false
@@ -1232,9 +1232,9 @@ function REPorterUnit_OnEnterPOI(self)
 end
 
 function REPorter_OnClickPOI(self)
-	Lib_CloseDropDownMenus()
+	L_CloseDropDownMenus()
 	RE.ClickedPOI = RE.POINodes[self.name]["name"]
-	Lib_EasyMenu(RE.POIDropDown, REPorter_ReportDropDown, self, 0 , 0, "MENU")
+	L_EasyMenu(RE.POIDropDown, REPorter_ReportDropDown, self, 0 , 0, "MENU")
 end
 ---
 

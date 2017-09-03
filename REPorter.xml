@@ -36,7 +36,7 @@
 		</Layers>
 	</Frame>
 
-	<Frame name="REPorter_ReportDropDown" inherits="Lib_UIDropDownMenuTemplate" id="1" hidden="true"/>
+	<Frame name="REPorter_ReportDropDown" inherits="L_UIDropDownMenuTemplate" id="1" hidden="true"/>
 
 	<ScrollFrame name="REPorterExternal" frameStrata="LOW" resizable="false" hidden="true" parent="UIParent" movable="true">
 		<Size>
@@ -175,7 +175,7 @@
 				REPorterExternal:StopMovingOrSizing()
 				REPorterSettings[REPorterNamespace["CurrentMap"]].x, REPorterSettings[REPorterNamespace["CurrentMap"]].y = REPorterExternal:GetCenter()
 			</OnDragStop>
-			<OnLeave>Lib_CloseDropDownMenus()</OnLeave>
+			<OnLeave>L_CloseDropDownMenus()</OnLeave>
 			<OnShow function="REPorter_OnShow"/>
 			<OnHide function="REPorter_OnHide"/>
 			<OnEvent function="REPorter_OnEvent"/>
