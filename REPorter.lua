@@ -4,6 +4,49 @@ local L = LibStub("AceLocale-3.0"):GetLocale("REPorter")
 local TOAST = LibStub("LibToast-1.0")
 LibStub("AceTimer-3.0"):Embed(RE.AceTimer)
 
+local select, pairs, strsplit, gsub, tonumber, strfind, mod = select, pairs, strsplit, gsub, tonumber, strfind, mod
+local mfloor = math.floor
+local tinsert = table.insert
+local IsInInstance = IsInInstance
+local IsRatedBattleground = IsRatedBattleground
+local IsInGuild = IsInGuild
+local IsShiftKeyDown = IsShiftKeyDown
+local IsAltKeyDown = IsAltKeyDown
+local IsControlKeyDown = IsControlKeyDown
+local IsInBrawl = C_PvP.IsInBrawl
+local GetMapNameByID = GetMapNameByID
+local GetScreenWidth = GetScreenWidth
+local GetScreenHeight = GetScreenHeight
+local GetNumberOfDetailTiles = GetNumberOfDetailTiles
+local GetMapLandmarkInfo = C_WorldMap.GetMapLandmarkInfo
+local GetBattlefieldInstanceRunTime = GetBattlefieldInstanceRunTime
+local GetMapInfo = GetMapInfo
+local SetMapToCurrentZone = SetMapToCurrentZone
+local GetWorldStateUIInfo = GetWorldStateUIInfo
+local GetNumBattlefieldFlagPositions = GetNumBattlefieldFlagPositions
+local GetBattlefieldFlagPosition = GetBattlefieldFlagPosition
+local GetSubZoneText = GetSubZoneText
+local GetClassColor = GetClassColor
+local GetRaidTargetIndex = GetRaidTargetIndex
+local GetNumBattlefieldVehicles = GetNumBattlefieldVehicles
+local GetBattlefieldVehicleInfo = GetBattlefieldVehicleInfo
+local GetNumMapLandmarks = GetNumMapLandmarks
+local GetNumMapOverlays = GetNumMapOverlays
+local GetMapOverlayInfo = GetMapOverlayInfo
+local GetPOITextureCoords = GetPOITextureCoords
+local UnitName = UnitName
+local UnitClass = UnitClass
+local UnitExists = UnitExists
+local UnitIsUnit = UnitIsUnit
+local UnitAffectingCombat = UnitAffectingCombat
+local UnitHealth = UnitHealth
+local UnitHealthMax = UnitHealthMax
+local UnitIsDeadOrGhost = UnitIsDeadOrGhost
+local UnitGroupRolesAssigned = UnitGroupRolesAssigned
+local WorldMap_GetVehicleTexture = WorldMap_GetVehicleTexture
+local SetMapTooltipPosition = SetMapTooltipPosition
+local SendChatMessage = SendChatMessage
+
 RE.POIIconSize = 30
 RE.POINumber = 25
 RE.MapUpdateRate = 0.05
@@ -258,8 +301,8 @@ function REPorter_BlinkPOI()
 end
 
 function REPorter_ShortTime(TimeRaw)
-	local TimeSec = math.floor(TimeRaw % 60)
-	local TimeMin = math.floor(TimeRaw / 60)
+	local TimeSec = mfloor(TimeRaw % 60)
+	local TimeMin = mfloor(TimeRaw / 60)
 	if TimeSec < 10 then
 		TimeSec = "0" .. TimeSec
 	end
@@ -268,7 +311,7 @@ end
 
 function REPorter_Round(num, idp)
 	local mult = 10^(idp or 0)
-	return math.floor(num * mult + 0.5) / mult
+	return mfloor(num * mult + 0.5) / mult
 end
 
 function REPorter_GetRealCoords(rawX, rawY)
@@ -285,7 +328,7 @@ function REPorter_TableCount(Table)
 	local RETable = {}
 	for k,v in pairs(Table) do
 		RENum = RENum + 1
-		table.insert(RETable, k)
+		tinsert(RETable, k)
 	end
 	return RENum, RETable
 end
@@ -374,8 +417,8 @@ function REPorter_HideTooltip()
 end
 
 function REPorter_SOTAStartCheck()
-	local startCheck = {C_WorldMap.GetMapLandmarkInfo(7)}
-	local sideCheck = {C_WorldMap.GetMapLandmarkInfo(10)}
+	local startCheck = {GetMapLandmarkInfo(7)}
+	local sideCheck = {GetMapLandmarkInfo(10)}
 	return (startCheck[4] == 46 or startCheck[4] == 48), sideCheck[4] == 102
 end
 
@@ -895,7 +938,7 @@ function REPorter_OnUpdate(self, elapsed)
 		for i=1, GetNumMapLandmarks() do
 			local battlefieldPOIName = "REPorterPOI"..i
 			local battlefieldPOI = _G[battlefieldPOIName]
-			local _, name, description, textureIndex, x, y, _, showInBattleMap = C_WorldMap.GetMapLandmarkInfo(i)
+			local _, name, description, textureIndex, x, y, _, showInBattleMap = GetMapLandmarkInfo(i)
 			if name and showInBattleMap and textureIndex ~= nil and textureIndex ~= 0 then
 				x, y = REPorter_GetRealCoords(x, y)
 				local x1, x2, y1, y2 = GetPOITextureCoords(textureIndex)
@@ -1244,7 +1287,7 @@ function REPorter_Create(isSecond)
 	local mapFileName = REPorter_GetMapInfo()
 	if mapFileName and RE.MapSettings[mapFileName] then
 		RE.CurrentMap = mapFileName
-		RE.IsBrawl = C_PvP.IsInBrawl()
+		RE.IsBrawl = IsInBrawl()
 		RE.POINodes = {}
 		REPorterExternal:ClearAllPoints()
 		REPorterExternal:SetScale(RE.Settings[mapFileName]["scale"])
