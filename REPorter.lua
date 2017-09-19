@@ -4,9 +4,10 @@ local L = LibStub("AceLocale-3.0"):GetLocale("REPorter")
 local TOAST = LibStub("LibToast-1.0")
 LibStub("AceTimer-3.0"):Embed(RE.AceTimer)
 
-local select, pairs, strsplit, gsub, tonumber, strfind, mod = select, pairs, strsplit, gsub, tonumber, strfind, mod
+local select, pairs, strsplit, gsub, tonumber, strfind, mod, print, ceil, strupper = select, pairs, strsplit, gsub, tonumber, strfind, mod, print, ceil, strupper
 local mfloor = math.floor
 local tinsert = table.insert
+local CreateFrame = CreateFrame
 local IsInInstance = IsInInstance
 local IsRatedBattleground = IsRatedBattleground
 local IsInGuild = IsInGuild
@@ -14,6 +15,7 @@ local IsShiftKeyDown = IsShiftKeyDown
 local IsAltKeyDown = IsAltKeyDown
 local IsControlKeyDown = IsControlKeyDown
 local IsInBrawl = C_PvP.IsInBrawl
+local IsAddOnLoaded = IsAddOnLoaded
 local GetMapNameByID = GetMapNameByID
 local GetScreenWidth = GetScreenWidth
 local GetScreenHeight = GetScreenHeight
@@ -46,6 +48,9 @@ local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local WorldMap_GetVehicleTexture = WorldMap_GetVehicleTexture
 local SetMapTooltipPosition = SetMapTooltipPosition
 local SendChatMessage = SendChatMessage
+local SendAddonMessage = SendAddonMessage
+local RegisterAddonMessagePrefix = RegisterAddonMessagePrefix
+local MAX_RAID_MEMBERS, FACTION_ALLIANCE, FACTION_HORDE = MAX_RAID_MEMBERS, FACTION_ALLIANCE, FACTION_HORDE
 
 RE.POIIconSize = 30
 RE.POINumber = 25
@@ -85,7 +90,7 @@ RE.CurrentMap = ""
 RE.ClickedPOI = ""
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 129.3
+RE.AddonVersionCheck = 129.4
 
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
@@ -326,7 +331,7 @@ end
 function REPorter_TableCount(Table)
 	local RENum = 0
 	local RETable = {}
-	for k,v in pairs(Table) do
+	for k,_ in pairs(Table) do
 		RENum = RENum + 1
 		tinsert(RETable, k)
 	end
@@ -494,7 +499,7 @@ function REPorter_OnLoad(self)
 	RE.updateTimer = 0
 end
 
-function REPorter_OnShow(self)
+function REPorter_OnShow(_)
 	if RE.CurrentMap ~= REPorter_GetMapInfo() then
 		SetMapToCurrentZone()
 		REPorterEstimator:Show()
@@ -506,7 +511,7 @@ function REPorter_OnShow(self)
 	end
 end
 
-function REPorter_OnHide(self)
+function REPorter_OnHide(_)
 	if RE.CurrentMap ~= REPorter_GetMapInfo() then
 		REPorterUnitPosition:SetScript("OnUpdate", nil)
 		RE.CurrentMap = ""
@@ -531,19 +536,19 @@ function REPorter_OnHide(self)
 	end
 end
 
-function REPorter_OnEnter(self)
+function REPorter_OnEnter(_)
 	RE.AceTimer:CancelTimer(RE.TabHiderTimer)
 	REPorterTab:SetAlpha(RE.Settings.opacity)
 end
 
-function REPorter_OnLeave(self)
+function REPorter_OnLeave(_)
 	if not REPorterTab:IsMouseOver() then
 		RE.AceTimer:CancelTimer(RE.TabHiderTimer)
 		RE.TabHiderTimer = RE.AceTimer:ScheduleTimer("TabHider", 0.5)
 	end
 end
 
-function REPorter_OnEvent(self, event, ...)
+function REPorter_OnEvent(_, event, ...)
 	if event == "ADDON_LOADED" and ... == "REPorter" then
 		REPorter_PrepareConfig()
 		REPorterTab:SetHitRectInsets(-5, -5, -5, -5)
@@ -811,7 +816,7 @@ function REPorter_OnEvent(self, event, ...)
 	end
 end
 
-function REPorter_OnUpdate(self, elapsed)
+function REPorter_OnUpdate(_, elapsed)
 	if RE.updateTimer < 0 then
 		REPorter_BlinkPOI()
 		local subZoneName = GetSubZoneText()
