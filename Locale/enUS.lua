@@ -32,6 +32,11 @@ L["Front"] = true
 L["West"] = true
 L["gate"] = true
 
+L["Red"] = true
+L["Green"] = true
+L["Blue"] = true
+L["Purple"] = true
+
 L["New version released!"] = true
 L["This location don't have name. Action canceled."] = true
 L["This addon work only on battlegrounds."] = true

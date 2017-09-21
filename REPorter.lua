@@ -943,7 +943,8 @@ function REPorter_OnUpdate(_, elapsed)
 		for i=1, GetNumMapLandmarks() do
 			local battlefieldPOIName = "REPorterPOI"..i
 			local battlefieldPOI = _G[battlefieldPOIName]
-			local _, name, description, textureIndex, x, y, _, showInBattleMap = GetMapLandmarkInfo(i)
+			local _, name, description, textureIndex, x, y, _, showInBattleMap, _, _, poiID = GetMapLandmarkInfo(i)
+			local colorOverride = false
 			if name and showInBattleMap and textureIndex ~= nil and textureIndex ~= 0 then
 				x, y = REPorter_GetRealCoords(x, y)
 				local x1, x2, y1, y2 = GetPOITextureCoords(textureIndex)
@@ -990,6 +991,20 @@ function REPorter_OnUpdate(_, elapsed)
 						y = -440
 					elseif y < -460 then
 						y = -472
+					end
+				elseif RE.CurrentMap == "TempleofKotmogu" then
+					if poiID == 2774 then
+						name = name.." - "..L["Blue"]
+						colorOverride = {0, 0, 1}
+					elseif poiID == 2775 then
+						name = name.." - "..L["Purple"]
+						colorOverride = {0.5, 0, 0.5}
+					elseif poiID == 2776 then
+						name = name.." - "..L["Red"]
+						colorOverride = {1, 0, 0}
+					elseif poiID == 2777 then
+						name = name.." - "..L["Green"]
+						colorOverride = {0, 1, 0}
 					end
 				end
 				if RE.POINodes[name] == nil then
@@ -1049,6 +1064,11 @@ function REPorter_OnUpdate(_, elapsed)
 				battlefieldPOI:SetWidth(RE.POIIconSize)
 				battlefieldPOI:SetHeight(RE.POIIconSize)
 				_G[battlefieldPOIName.."Texture"]:SetTexCoord(x1, x2, y1, y2)
+				if colorOverride then
+					_G[battlefieldPOIName.."Texture"]:SetVertexColor(colorOverride[1], colorOverride[2], colorOverride[3], 1)
+				else
+					_G[battlefieldPOIName.."Texture"]:SetVertexColor(1, 1, 1, 1)
+				end
 				if RE.AceTimer:TimeLeft(RE.POINodes[name]["timer"]) == 0 then
 					if strfind(description, FACTION_HORDE) then
 						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,0.3)
