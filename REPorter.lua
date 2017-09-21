@@ -90,7 +90,7 @@ RE.CurrentMap = ""
 RE.ClickedPOI = ""
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 129.4
+RE.AddonVersionCheck = 130
 
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
@@ -1703,6 +1703,10 @@ function REPorter_PrepareConfig()
 	if REPorterSettings["configVersion"] < 127 then
 		REPorterSettings["HillsbradFoothillsBG"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2}
 		REPorterSettings["configVersion"] = 127
+	end
+	if REPorterSettings["configVersion"] < 130 then
+		REPorterSettings["displayMarks"] = false
+		REPorterSettings["configVersion"] = 130
 	end
 	RE.Settings = REPorterSettings
 	LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", RE.AceConfig)
