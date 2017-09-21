@@ -154,6 +154,7 @@ RE.DefaultConfig = {
 	nameAdvert = false,
 	opacity = 0.80,
 	hideMinimap = false,
+	displayMarks = false,
 	configVersion = RE.AddonVersionCheck,
 	["ArathiBasin"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
 	["WarsongGulch"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
@@ -206,12 +207,21 @@ RE.AceConfig = {
 			set = function(_, val) RE.Settings.hideMinimap = val; REPorter_UpdateConfig() end,
 			get = function(_) return RE.Settings.hideMinimap end
 		},
+		displayMarks = {
+			name = L["Always display raid markers"],
+			desc = L["When checked player pins will be always replaced with raid markers."],
+			type = "toggle",
+			width = "full",
+			order = 4,
+			set = function(_, val) RE.Settings.displayMarks = val; REPorter_UpdateConfig() end,
+			get = function(_) return RE.Settings.displayMarks end
+		},
 		barHandle = {
 			name = L["Report bar location"],
 			desc = L["Anchor point of bar with quick report buttons."],
 			type = "select",
 			width = "double",
-			order = 4,
+			order = 5,
 			values = {
 				[1] = L["Bottom right"],
 				[2] = L["Right"],
@@ -228,7 +238,7 @@ RE.AceConfig = {
 			desc = L["Map position and scale is saved separately for each battleground."],
 			type = "select",
 			width = "double",
-			order = 5,
+			order = 6,
 			disabled = function(_) if select(2, IsInInstance()) == "pvp" then return true else return false end end,
 			values = {
 				[401] = GetMapNameByID(401),
@@ -252,7 +262,7 @@ RE.AceConfig = {
 			desc = L["This option control map size."],
 			type = "range",
 			width = "double",
-			order = 6,
+			order = 7,
 			disabled = function(_) if select(2, IsInInstance()) == "pvp" then return false else return RE.ScaleDisabled end end,
 			min = 0.5,
 			max = 1.5,
@@ -265,7 +275,7 @@ RE.AceConfig = {
 			desc = L["This option control map transparency."],
 			type = "range",
 			width = "double",
-			order = 7,
+			order = 8,
 			isPercent = true,
 			min = 0.1,
 			max = 1,
@@ -852,9 +862,9 @@ function REPorter_OnUpdate(_, elapsed)
 							texture = "Interface\\Addons\\REPorter\\Textures\\BlipDead"
 							r, g, b = r * 0.35, g * 0.35, b * 0.35
 					end
+					local raidMarker = GetRaidTargetIndex(unit)
 					if IsShiftKeyDown() and IsControlKeyDown() then
 						RE.IsOverlay = true
-						local raidMarker = GetRaidTargetIndex(unit)
 						if raidMarker ~= nil then
 							texture = "Interface\\Addons\\REPorter\\Textures\\RaidMarker"..raidMarker
 							REPorterUnitPosition:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1)
@@ -864,7 +874,12 @@ function REPorter_OnUpdate(_, elapsed)
 						end
 					else
 						RE.IsOverlay = false
-						REPorterUnitPosition:AddUnit(unit, texture, 25, 25, r, g, b, 1)
+						if RE.Settings.displayMarks and raidMarker ~= nil then
+							texture = "Interface\\Addons\\REPorter\\Textures\\RaidMarker"..raidMarker
+							REPorterUnitPosition:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1)
+						else
+							REPorterUnitPosition:AddUnit(unit, texture, 25, 25, r, g, b, 1)
+						end
 					end
 				end
 				if RE.PinTextures[unit] and RE.PinTextures[unit] ~= texture then

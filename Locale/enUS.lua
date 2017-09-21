@@ -26,6 +26,8 @@ L["Top right"] = true
 L["Bottom left"] = true
 L["Left"] = true
 L["Top left"] = true
+L["Always display raid markers"] = true
+L["When checked player pins will be always replaced with raid markers."] = true
 
 L["East"] = true
 L["Front"] = true
