@@ -168,7 +168,7 @@
 			<OnLoad>REPorter_OnLoad(self)</OnLoad>
 			<OnDragStart>
 				if not REPorterSettings.locked then
-					REPorterExternal:StartMoving()
+				REPorterExternal:StartMoving()
 				end
 			</OnDragStart>
 			<OnDragStop>
@@ -360,7 +360,7 @@
 			<AbsDimension x="400"/>
 		</Size>
 		<ScrollChild>
-		  <UnitPositionFrame name="REPorterUnitPosition" inherits="UnitPositionFrameTemplate">
+			<UnitPositionFrame name="REPorterUnitPosition" inherits="UnitPositionFrameTemplate">
 				<Size>
 					<AbsDimension x="783" y="522"/>
 				</Size>

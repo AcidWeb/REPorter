@@ -519,7 +519,7 @@ function REPorter_OnShow(_)
 		_G.REPorterExternal:SetScrollChild(_G.REPorter)
 		_G.REPorterTab:SetAlpha(0.25)
 		if RE.Settings.hideMinimap then
-		  _G.MinimapCluster:Hide()
+			_G.MinimapCluster:Hide()
 		end
 	end
 end
@@ -544,7 +544,7 @@ function REPorter_OnHide(_)
 		_G.REPorterEstimator:Hide()
 		RE.TimerOverride = false
 		if not _G.MinimapCluster:IsShown() and RE.Settings.hideMinimap then
-		  _G.MinimapCluster:Show()
+			_G.MinimapCluster:Show()
 		end
 	end
 end
@@ -616,12 +616,12 @@ function REPorter_OnEvent(_, event, ...)
 			local AlliancePointsNeeded, AlliancePointsPerSec, AllianceTimeToWin, HordePointsNeeded, HordePointsPerSec, HordeTimeToWin = nil, 0, 0, nil, 0, 0
 			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["TempleofKotmogu"]["WorldStateNum"])
 			if text ~= nil then
-			  local score = {strsplit("/", text)}
-			  if score[1] then
+				local score = {strsplit("/", text)}
+				if score[1] then
 					score[1] = gsub(score[1], "：", " ")
-			    score = {strsplit(" ", score[1])}
-			    AlliancePointsNeeded = RE.MapSettings["TempleofKotmogu"]["pointsToWin"] - tonumber(score[#score])
-			  end
+					score = {strsplit(" ", score[1])}
+					AlliancePointsNeeded = RE.MapSettings["TempleofKotmogu"]["pointsToWin"] - tonumber(score[#score])
+				end
 			end
 			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["TempleofKotmogu"]["WorldStateNum"]+1)
 			if text ~= nil then
@@ -712,10 +712,10 @@ function REPorter_OnEvent(_, event, ...)
 					local data = {strsplit(" ", score[1])}
 					AlliancePointNum = tonumber(data[#data])
 					for i=1, #data do
-					  if tonumber(data[i]) ~= nil then
-					    AllianceBaseNum = tonumber(data[i])
-					    break
-					  end
+						if tonumber(data[i]) ~= nil then
+							AllianceBaseNum = tonumber(data[i])
+							break
+						end
 					end
 				end
 			end
@@ -811,11 +811,11 @@ function REPorter_OnEvent(_, event, ...)
 		elseif IsShiftKeyDown() and IsControlKeyDown() then
 			RE.NeedRefresh = true
 		elseif _G.REPorterTimerOverlay:IsShown() then
-		  RE.NeedRefresh = true
+			RE.NeedRefresh = true
 			_G.REPorterExternalOverlay:Show()
 			_G.REPorterTimerOverlay:Hide()
 		elseif RE.IsOverlay then
-		  RE.NeedRefresh = true
+			RE.NeedRefresh = true
 		end
 	elseif event == "GROUP_ROSTER_UPDATE" and _G.REPorterExternal:IsShown() then
 		RE.NeedRefresh = true
@@ -856,14 +856,14 @@ function REPorter_OnUpdate(_, elapsed)
 					texture = "Interface\\Addons\\REPorter\\Textures\\BlipNormal"
 					local r, g, b = GetClassColor(select(2, UnitClass(unit)))
 					if UnitAffectingCombat(unit) then
-							if (UnitHealth(unit) / UnitHealthMax(unit)) * 100 < 26 then
-									texture = "Interface\\Addons\\REPorter\\Textures\\BlipDying"
-							else
-									texture = "Interface\\Addons\\REPorter\\Textures\\BlipCombat"
-							end
+						if (UnitHealth(unit) / UnitHealthMax(unit)) * 100 < 26 then
+							texture = "Interface\\Addons\\REPorter\\Textures\\BlipDying"
+						else
+							texture = "Interface\\Addons\\REPorter\\Textures\\BlipCombat"
+						end
 					elseif UnitIsDeadOrGhost(unit) then
-							texture = "Interface\\Addons\\REPorter\\Textures\\BlipDead"
-							r, g, b = r * 0.35, g * 0.35, b * 0.35
+						texture = "Interface\\Addons\\REPorter\\Textures\\BlipDead"
+						r, g, b = r * 0.35, g * 0.35, b * 0.35
 					end
 					local raidMarker = GetRaidTargetIndex(unit)
 					if IsShiftKeyDown() and IsControlKeyDown() then
@@ -1028,10 +1028,10 @@ function REPorter_OnUpdate(_, elapsed)
 				if RE.POINodes[name] == nil then
 					RE.POINodes[name] = {["id"] = i, ["name"] = name, ["status"] = description, ["x"] = x, ["y"] = y, ["texture"] = textureIndex}
 					if RE.CurrentMap == "IsleofConquest" then
-	          if i == 6 or i == 7 or i == 8 or i == 9 or i == 10 or i == 11 then
-	              RE.POINodes[name]["health"] = 600000
-	              RE.POINodes[name]["maxHealth"] = 600000
-	          end
+						if i == 6 or i == 7 or i == 8 or i == 9 or i == 10 or i == 11 then
+							RE.POINodes[name]["health"] = 600000
+							RE.POINodes[name]["maxHealth"] = 600000
+						end
 					elseif RE.CurrentMap == "StrandoftheAncients" then
 						local isStarted, isAlliance = _G.REPorter_SOTAStartCheck()
 						if isStarted then
@@ -1222,30 +1222,30 @@ function REPorter_OnUpdate(_, elapsed)
 end
 
 function REPorterUnit_OnEnterPlayer(self, tooltipFrame)
-  local tooltipText = ""
-  local prefix = ""
+	local tooltipText = ""
+	local prefix = ""
 
-  for unit in pairs(self.currentMouseOverUnits) do
-    if not self:IsMouseOverUnitExcluded(unit) then
+	for unit in pairs(self.currentMouseOverUnits) do
+		if not self:IsMouseOverUnitExcluded(unit) then
 			local unitName = UnitName(unit)
 			local unitHealth = (UnitHealth(unit) / UnitHealthMax(unit)) * 100
 			local _, _, _, unitColor = GetClassColor(select(2, UnitClass(unit)))
-      tooltipText = tooltipText..prefix.."|c"..unitColor..unitName.."|r |cFFFFFFFF[".._G.REPorter_Round(unitHealth, 0).."%]|r"
-      prefix = "\n"
-    end
-  end
+			tooltipText = tooltipText..prefix.."|c"..unitColor..unitName.."|r |cFFFFFFFF[".._G.REPorter_Round(unitHealth, 0).."%]|r"
+			prefix = "\n"
+		end
+	end
 
-  if tooltipText ~= "" then
-    SetMapTooltipPosition(tooltipFrame, self, true)
-    tooltipFrame:SetText(tooltipText)
-  elseif tooltipFrame:GetOwner() == self then
-    tooltipFrame:ClearLines()
-    tooltipFrame:Hide()
-  end
+	if tooltipText ~= "" then
+		SetMapTooltipPosition(tooltipFrame, self, true)
+		tooltipFrame:SetText(tooltipText)
+	elseif tooltipFrame:GetOwner() == self then
+		tooltipFrame:ClearLines()
+		tooltipFrame:Hide()
+	end
 end
 
 function REPorterUnit_OnEnterVehicle(self)
-  local tooltipText = ""
+	local tooltipText = ""
 	local prefix = ""
 	local vehicleGroup = {}
 
@@ -1732,12 +1732,12 @@ function REPorter_ShowDummyMap(mapFileName)
 	local texName
 	local numDetailTiles = GetNumberOfDetailTiles()
 	for i=1, numDetailTiles do
-	   if mapFileName == "STVDiamondMineBG" then
-	      texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName.."1_"..i
-	   else
-	      texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i
-	   end
-	   _G["REPorter"..i]:SetTexture(texName)
+		if mapFileName == "STVDiamondMineBG" then
+			texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName.."1_"..i
+		else
+			texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i
+		end
+		_G["REPorter"..i]:SetTexture(texName)
 	end
 	_G.REPorterExternal:Show()
 	_G.REPorterTab:Show()
