@@ -5,6 +5,7 @@ L["Clear"] = true
 L["Guard"] = true
 L["Heavily defended"] = true
 L["Losing"] = true
+L["On my way"] = true
 L["Report status"] = true
 
 L["Lock map"] = true

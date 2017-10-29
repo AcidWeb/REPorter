@@ -149,6 +149,7 @@ RE.POIDropDown = {
 	{ text = L["Heavily defended"], notCheckable = true, func = function() _G.REPorter_ReportDropDownClick(L["Heavily defended"]) end },
 	{ text = L["Losing"], notCheckable = true, func = function() _G.REPorter_ReportDropDownClick(L["Losing"]) end },
 	{ text = "", notCheckable = true, disabled = true },
+	{ text = L["On my way"], notCheckable = true, func = function() _G.REPorter_ReportDropDownClick(L["On my way"]) end },
 	{ text = L["Report status"], notCheckable = true, func = function() _G.REPorter_ReportDropDownClick("") end }
 }
 RE.DefaultConfig = {
