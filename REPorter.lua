@@ -92,7 +92,7 @@ RE.CurrentMap = ""
 RE.ClickedPOI = ""
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 132
+RE.AddonVersionCheck = 133
 
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
@@ -1570,9 +1570,9 @@ function REPorter_POIOwner(POIName, isReport)
 		elseif strfind(RE.POINodes[POIName]["status"], FACTION_ALLIANCE) then
 			return prefix..POIName.." ("..FACTION_ALLIANCE..")"
 		else
-			if RE.POINodes[POIName]["isCapturing"] == FACTION_HORDE then
+			if RE.POINodes[POIName]["isCapturing"] == FACTION_HORDE and RE.AceTimer:TimeLeft(RE.POINodes[POIName]["timer"]) ~= 0 then
 				return prefix..POIName.." ("..FACTION_HORDE..")"
-			elseif RE.POINodes[POIName]["isCapturing"] == FACTION_ALLIANCE then
+			elseif RE.POINodes[POIName]["isCapturing"] == FACTION_ALLIANCE and RE.AceTimer:TimeLeft(RE.POINodes[POIName]["timer"]) ~= 0 then
 				return prefix..POIName.." ("..FACTION_ALLIANCE..")"
 			else
 				return prefix..POIName
