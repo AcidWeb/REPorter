@@ -1,11 +1,11 @@
 local _G = _G
-_G.REPorterNamespace = {["AceTimer"] = {}, ["Settings"] = {}}
-local RE = REPorterNamespace
+local _, RE = ...
 local L = LibStub("AceLocale-3.0"):GetLocale("REPorter")
 local TOAST = LibStub("LibToast-1.0")
-LibStub("AceTimer-3.0"):Embed(RE.AceTimer)
+local TIMER = LibStub("AceTimer-3.0")
+_G.REPorter = RE
 
---GLOBALS: REPorter_BlinkPOI, REPorter_ShortTime, REPorter_Round, REPorter_GetRealCoords, REPorter_TableCount, REPorter_ClearTextures, REPorter_CreatePOI, REPorter_UpdateIoCEstimator, REPorter_HideTooltip, REPorter_SOTAStartCheck, REPorter_EstimatorFill, REPorter_CreateTimer, REPorter_GetMapInfo, REPorter_OnLoad, REPorter_OnShow, REPorter_OnHide, REPorter_OnEnter, REPorter_OnLeave, REPorter_OnEvent, REPorter_OnUpdate, REPorterUnit_OnEnterPlayer, REPorterUnit_OnEnterVehicle, REPorterUnit_OnEnterPOI, REPorter_OnClickPOI, REPorter_Create, REPorter_NodeChange, REPorter_POIStatus, REPorter_POIOwner, REPorter_SmallButton, REPorter_BigButton, REPorter_ReportEstimator, REPorter_ReportDropDownClick, REPorter_UpdateConfig, REPorter_UpdateScaleConfig, REPorter_PrepareConfig, REPorter_ShowDummyMap, REPorter_HideDummyMap, StartTimer_BigNumberOnUpdate, StartTimer_BarOnlyOnUpdate
+--GLOBALS: FACTION_ALLIANCE, FACTION_HORDE, MAX_RAID_MEMBERS
 local select, pairs, strsplit, gsub, tonumber, strfind, mod, print, ceil, strupper = _G.select, _G.pairs, _G.strsplit, _G.gsub, _G.tonumber, _G.strfind, _G.mod, _G.print, _G.ceil, _G.strupper
 local mfloor = _G.math.floor
 local tinsert = _G.table.insert
@@ -52,7 +52,6 @@ local SetMapTooltipPosition = _G.SetMapTooltipPosition
 local SendChatMessage = _G.SendChatMessage
 local SendAddonMessage = _G.SendAddonMessage
 local RegisterAddonMessagePrefix = _G.RegisterAddonMessagePrefix
-local MAX_RAID_MEMBERS, FACTION_ALLIANCE, FACTION_HORDE = _G.MAX_RAID_MEMBERS, _G.FACTION_ALLIANCE, _G.FACTION_HORDE
 
 RE.POIIconSize = 30
 RE.POINumber = 25
@@ -85,14 +84,14 @@ RE.IsOverlay = false
 RE.BlipOffsetT = 0.5
 RE.BlinkPOIMin = 0.3
 RE.BlinkPOIMax = 0.6
-RE.BlinkPOI = 0.3
+RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.CurrentMap = ""
 RE.ClickedPOI = ""
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 134
+RE.AddonVersionCheck = 135
 
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
@@ -133,23 +132,23 @@ RE.EstimatorSettings = {
 RE.POIDropDown = {
 	{ text = L["Incoming"], hasArrow = true, notCheckable = true,
 	menuList = {
-		{ text = "1", notCheckable = true, minWidth = 15, func = function() _G.REPorter_SmallButton(1, true); _G.L_CloseDropDownMenus() end },
-		{ text = "2", notCheckable = true, minWidth = 15, func = function() _G.REPorter_SmallButton(2, true); _G.L_CloseDropDownMenus() end },
-		{ text = "3", notCheckable = true, minWidth = 15, func = function() _G.REPorter_SmallButton(3, true); _G.L_CloseDropDownMenus() end },
-		{ text = "4", notCheckable = true, minWidth = 15, func = function() _G.REPorter_SmallButton(4, true); _G.L_CloseDropDownMenus() end },
-		{ text = "5", notCheckable = true, minWidth = 15, func = function() _G.REPorter_SmallButton(5, true); _G.L_CloseDropDownMenus() end },
-		{ text = "5+", notCheckable = true, minWidth = 15, func = function() _G.REPorter_SmallButton(6, true); _G.L_CloseDropDownMenus() end }
+		{ text = "1", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(1, true); _G.L_CloseDropDownMenus() end },
+		{ text = "2", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(2, true); _G.L_CloseDropDownMenus() end },
+		{ text = "3", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(3, true); _G.L_CloseDropDownMenus() end },
+		{ text = "4", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(4, true); _G.L_CloseDropDownMenus() end },
+		{ text = "5", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(5, true); _G.L_CloseDropDownMenus() end },
+		{ text = "5+", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(6, true); _G.L_CloseDropDownMenus() end }
 	} },
-	{ text = HELP_LABEL, notCheckable = true, func = function() _G.REPorter_BigButton(true, true) end },
-	{ text = L["Clear"], notCheckable = true, func = function() _G.REPorter_BigButton(false, true) end },
+	{ text = HELP_LABEL, notCheckable = true, func = function() RE:BigButton(true, true) end },
+	{ text = L["Clear"], notCheckable = true, func = function() RE:BigButton(false, true) end },
 	{ text = "", notCheckable = true, disabled = true },
-	{ text = _G.ATTACK, notCheckable = true, func = function() _G.REPorter_ReportDropDownClick(_G.ATTACK) end },
-	{ text = L["Guard"], notCheckable = true, func = function() _G.REPorter_ReportDropDownClick(L["Guard"]) end },
-	{ text = L["Heavily defended"], notCheckable = true, func = function() _G.REPorter_ReportDropDownClick(L["Heavily defended"]) end },
-	{ text = L["Losing"], notCheckable = true, func = function() _G.REPorter_ReportDropDownClick(L["Losing"]) end },
+	{ text = _G.ATTACK, notCheckable = true, func = function() RE:ReportDropDownClick(_G.ATTACK) end },
+	{ text = L["Guard"], notCheckable = true, func = function() RE:ReportDropDownClick(L["Guard"]) end },
+	{ text = L["Heavily defended"], notCheckable = true, func = function() RE:ReportDropDownClick(L["Heavily defended"]) end },
+	{ text = L["Losing"], notCheckable = true, func = function() RE:ReportDropDownClick(L["Losing"]) end },
 	{ text = "", notCheckable = true, disabled = true },
-	{ text = L["On my way"], notCheckable = true, func = function() _G.REPorter_ReportDropDownClick(L["On my way"]) end },
-	{ text = L["Report status"], notCheckable = true, func = function() _G.REPorter_ReportDropDownClick("") end }
+	{ text = L["On my way"], notCheckable = true, func = function() RE:ReportDropDownClick(L["On my way"]) end },
+	{ text = L["Report status"], notCheckable = true, func = function() RE:ReportDropDownClick("") end }
 }
 RE.DefaultConfig = {
 	barHandle = 1,
@@ -198,7 +197,7 @@ RE.AceConfig = {
 			type = "toggle",
 			width = "full",
 			order = 2,
-			set = function(_, val) RE.Settings.nameAdvert = val; _G.REPorter_UpdateConfig() end,
+			set = function(_, val) RE.Settings.nameAdvert = val; RE:UpdateConfig() end,
 			get = function(_) return RE.Settings.nameAdvert end
 		},
 		hideMinimap = {
@@ -207,7 +206,7 @@ RE.AceConfig = {
 			type = "toggle",
 			width = "full",
 			order = 3,
-			set = function(_, val) RE.Settings.hideMinimap = val; _G.REPorter_UpdateConfig() end,
+			set = function(_, val) RE.Settings.hideMinimap = val; RE:UpdateConfig() end,
 			get = function(_) return RE.Settings.hideMinimap end
 		},
 		displayMarks = {
@@ -216,7 +215,7 @@ RE.AceConfig = {
 			type = "toggle",
 			width = "full",
 			order = 4,
-			set = function(_, val) RE.Settings.displayMarks = val; _G.REPorter_UpdateConfig() end,
+			set = function(_, val) RE.Settings.displayMarks = val; RE:UpdateConfig() end,
 			get = function(_) return RE.Settings.displayMarks end
 		},
 		barHandle = {
@@ -233,7 +232,7 @@ RE.AceConfig = {
 				[5] = L["Left"],
 				[6] = L["Top left"]
 			},
-			set = function(_, val) RE.Settings.barHandle = val; _G.REPorter_UpdateConfig() end,
+			set = function(_, val) RE.Settings.barHandle = val; RE:UpdateConfig() end,
 			get = function(_) return RE.Settings.barHandle end
 		},
 		mapSettings = {
@@ -257,7 +256,7 @@ RE.AceConfig = {
 				[443] = GetMapNameByID(443),
 				[1010] = GetMapNameByID(1010)
 			},
-			set = function(_, val) RE.LastMap = val; _G.REPorter_ShowDummyMap(RE.MapNames[GetMapNameByID(val)]) end,
+			set = function(_, val) RE.LastMap = val; RE:ShowDummyMap(RE.MapNames[GetMapNameByID(val)]) end,
 			get = function(_) return RE.LastMap end
 		},
 		scale = {
@@ -270,8 +269,8 @@ RE.AceConfig = {
 			min = 0.5,
 			max = 1.5,
 			step = 0.05,
-			set = function(_, val) _G.REPorter_UpdateScaleConfig(_, val) end,
-			get = function(_) return _G.REPorter_UpdateScaleConfig() end
+			set = function(_, val) RE:UpdateScaleConfig(_, val) end,
+			get = function(_) return RE:UpdateScaleConfig() end
 		},
 		opacity = {
 			name = L["Map alpha"],
@@ -283,7 +282,7 @@ RE.AceConfig = {
 			min = 0.1,
 			max = 1,
 			step = 0.01,
-			set = function(_, val) RE.Settings.opacity = val; _G.REPorter_UpdateConfig() end,
+			set = function(_, val) RE.Settings.opacity = val; RE:UpdateConfig() end,
 			get = function(_) return RE.Settings.opacity end
 		},
 	}
@@ -292,33 +291,33 @@ RE.AceConfig = {
 -- *** Pre-hook section
 RE.TimerOverride = false
 RE.TimerOriginal = StartTimer_BigNumberOnUpdate
-StartTimer_BigNumberOnUpdate = function(...)
-	if _G.REPorterNamespace.TimerOverride then
-		StartTimer_BarOnlyOnUpdate(...)
+_G.StartTimer_BigNumberOnUpdate = function(...)
+	if RE.TimerOverride then
+		_G.StartTimer_BarOnlyOnUpdate(...)
 	else
-		_G.REPorterNamespace.TimerOriginal(...)
+		RE.TimerOriginal(...)
 	end
 end
 --
 
 -- *** Auxiliary functions
-function REPorter_BlinkPOI()
-	if RE.BlinkPOI + 0.03 <= RE.BlinkPOIMax and RE.BlinkPOIUp then
-		RE.BlinkPOI = RE.BlinkPOI + 0.03
+function RE:BlinkPOI()
+	if RE.BlinkPOIValue + 0.03 <= RE.BlinkPOIMax and RE.BlinkPOIUp then
+		RE.BlinkPOIValue = RE.BlinkPOIValue + 0.03
 	else
 		if RE.BlinkPOIUp then
 			RE.BlinkPOIUp = false
-			RE.BlinkPOI = RE.BlinkPOI - 0.03
-		elseif RE.BlinkPOI - 0.03 <= RE.BlinkPOIMin then
+			RE.BlinkPOIValue = RE.BlinkPOIValue - 0.03
+		elseif RE.BlinkPOIValue - 0.03 <= RE.BlinkPOIMin then
 			RE.BlinkPOIUp = true
-			RE.BlinkPOI = RE.BlinkPOI - 0.03
+			RE.BlinkPOIValue = RE.BlinkPOIValue - 0.03
 		else
-			RE.BlinkPOI = RE.BlinkPOI - 0.03
+			RE.BlinkPOIValue = RE.BlinkPOIValue - 0.03
 		end
 	end
 end
 
-function REPorter_ShortTime(TimeRaw)
+function RE:ShortTime(TimeRaw)
 	local TimeSec = mfloor(TimeRaw % 60)
 	local TimeMin = mfloor(TimeRaw / 60)
 	if TimeSec < 10 then
@@ -327,12 +326,12 @@ function REPorter_ShortTime(TimeRaw)
 	return TimeMin .. ":" .. TimeSec
 end
 
-function REPorter_Round(num, idp)
+function RE:Round(num, idp)
 	local mult = 10^(idp or 0)
 	return mfloor(num * mult + 0.5) / mult
 end
 
-function REPorter_GetRealCoords(rawX, rawY)
+function RE:GetRealCoords(rawX, rawY)
 	local realX, realY = 0, 0
 	-- X -17
 	-- Y -78
@@ -341,7 +340,7 @@ function REPorter_GetRealCoords(rawX, rawY)
 	return realX, realY
 end
 
-function REPorter_TableCount(Table)
+function RE:TableCount(Table)
 	local RENum = 0
 	local RETable = {}
 	for k,_ in pairs(Table) do
@@ -351,18 +350,18 @@ function REPorter_TableCount(Table)
 	return RENum, RETable
 end
 
-function REPorter_ClearTextures()
-	RE.AceTimer:CancelTimer(RE.EstimatorTimer)
+function RE:ClearTextures()
+	TIMER:CancelTimer(RE.EstimatorTimer)
 	for i=1, RE.POINumber do
-		_G["REPorterPOI"..i]:Hide()
-		_G["REPorterPOI"..i.."Timer"]:Hide()
-		local tableCount, tableInternal = _G.REPorter_TableCount(RE.POINodes)
+		_G["REPorterFramePOI"..i]:Hide()
+		_G["REPorterFramePOI"..i.."Timer"]:Hide()
+		local tableCount, tableInternal = RE:TableCount(RE.POINodes)
 		for i=1, tableCount do
-			RE.AceTimer:CancelTimer(RE.POINodes[tableInternal[i]]["timer"])
+			TIMER:CancelTimer(RE.POINodes[tableInternal[i]]["timer"])
 		end
 	end
 	for i=1, 4 do
-		local flagFrameName = "REPorterFlag"..i
+		local flagFrameName = "REPorterFrameFlag"..i
 		local flagFrame = _G[flagFrameName]
 		flagFrame:Hide()
 	end
@@ -373,22 +372,22 @@ function REPorter_ClearTextures()
 	end
 	local numDetailTiles = GetNumberOfDetailTiles()
 	for i=1, numDetailTiles do
-		_G["REPorter"..i]:SetTexture(nil)
+		_G["REPorterFrame"..i]:SetTexture(nil)
 	end
 	for i=1, RE.BGOverlayNum do
-		_G["REPorterMapOverlay"..i]:SetTexture(nil)
+		_G["REPorterFrameMapOverlay"..i]:SetTexture(nil)
 	end
 	RE.POINodes = {}
 end
 
-function REPorter_CreatePOI(index)
-	local frameMain = CreateFrame("Frame", "REPorterPOI"..index, _G.REPorter)
+function RE:CreatePOI(index)
+	local frameMain = CreateFrame("Frame", "REPorterFramePOI"..index, _G.REPorterFrame)
 	frameMain:SetFrameLevel(10 + index)
 	frameMain:SetWidth(RE.POIIconSize)
 	frameMain:SetHeight(RE.POIIconSize)
-	frameMain:SetScript("OnEnter", _G.REPorterUnit_OnEnterPOI)
-	frameMain:SetScript("OnLeave", _G.REPorter_HideTooltip)
-	frameMain:SetScript("OnMouseDown", _G.REPorter_OnClickPOI)
+	frameMain:SetScript("OnEnter", function(self) RE:UnitOnEnterPOI(self) end)
+	frameMain:SetScript("OnLeave", RE.HideTooltip)
+	frameMain:SetScript("OnMouseDown", function(self) RE:OnClickPOI(self) end)
 	local texture = frameMain:CreateTexture(frameMain:GetName().."Texture", "BORDER")
 	texture:SetPoint("CENTER", frameMain, "CENTER")
 	texture:SetWidth(RE.POIIconSize - 13)
@@ -415,67 +414,67 @@ function REPorter_CreatePOI(index)
 	texture:SetWidth(RE.POIIconSize)
 	texture:SetHeight(3)
 	texture:SetColorTexture(0,1,0,1)
-	local frame = CreateFrame("Frame", "REPorterPOI"..index.."Timer", _G.REPorterTimerOverlay, "REPorterPOITimerTemplate")
+	local frame = CreateFrame("Frame", "REPorterFramePOI"..index.."Timer", _G.REPorterFrameTimerOverlay, "REPorter_POITimerTemplate")
 	frame:SetFrameLevel(11 + index)
 	frame:SetPoint("CENTER", frameMain, "CENTER")
 end
 
-function REPorter_UpdateIoCEstimator()
+function RE:UpdateIoCEstimator()
 	if RE.IoCGateEstimator[FACTION_HORDE] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-		RE.IoCGateEstimatorText = "|cFF00A9FF".._G.REPorter_Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%|r"
+		RE.IoCGateEstimatorText = "|cFF00A9FF"..RE:Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%|r"
 	elseif RE.IoCGateEstimator[FACTION_HORDE] > RE.IoCGateEstimator[FACTION_ALLIANCE] then
-		RE.IoCGateEstimatorText = "|cFFFF141D".._G.REPorter_Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."%|r"
+		RE.IoCGateEstimatorText = "|cFFFF141D"..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."%|r"
 	else
 		RE.IoCGateEstimatorText = ""
 	end
 end
 
-function REPorter_HideTooltip()
+function RE:HideTooltip()
 	_G.GameTooltip:Hide()
 end
 
-function REPorter_SOTAStartCheck()
+function RE:SOTAStartCheck()
 	local startCheck = {GetMapLandmarkInfo(7)}
 	local sideCheck = {GetMapLandmarkInfo(10)}
 	return (startCheck[4] == 46 or startCheck[4] == 48), sideCheck[4] == 102
 end
 
-function REPorter_EstimatorFill(ATimeToWin, HTimeToWin, RefreshTimer, APointNum, HPointNum)
+function RE:EstimatorFill(ATimeToWin, HTimeToWin, RefreshTimer, APointNum, HPointNum)
 	local APointNum = APointNum or 0
 	local HPointNum = HPointNum or 0
-	local TimeLeft = RE.AceTimer:TimeLeft(RE.EstimatorTimer)
+	local TimeLeft = TIMER:TimeLeft(RE.EstimatorTimer)
 	if ATimeToWin > 1 and HTimeToWin > 1 then
 		if ATimeToWin < HTimeToWin then
 			if RE.IsWinning ~= FACTION_ALLIANCE or (TimeLeft - ATimeToWin > RefreshTimer) or (TimeLeft - ATimeToWin < -RefreshTimer) then
-				RE.AceTimer:CancelTimer(RE.EstimatorTimer)
+				TIMER:CancelTimer(RE.EstimatorTimer)
 				RE.IsWinning = FACTION_ALLIANCE
-				RE.EstimatorTimer = RE.AceTimer:ScheduleTimer("Null", _G.REPorter_Round(ATimeToWin, 0))
+				RE.EstimatorTimer = TIMER:ScheduleTimer(RE.TimerNull, RE:Round(ATimeToWin, 0))
 			end
 		elseif ATimeToWin > HTimeToWin then
 			if RE.IsWinning ~= FACTION_HORDE or (TimeLeft - HTimeToWin > RefreshTimer) or (TimeLeft - HTimeToWin < -RefreshTimer) then
-				RE.AceTimer:CancelTimer(RE.EstimatorTimer)
+				TIMER:CancelTimer(RE.EstimatorTimer)
 				RE.IsWinning = FACTION_HORDE
-				RE.EstimatorTimer = RE.AceTimer:ScheduleTimer("Null", _G.REPorter_Round(HTimeToWin, 0))
+				RE.EstimatorTimer = TIMER:ScheduleTimer(RE.TimerNull, RE:Round(HTimeToWin, 0))
 			end
 		else
 			RE.IsWinning = ""
 		end
 	elseif APointNum >= RE.MapSettings[RE.CurrentMap]["pointsToWin"] or HPointNum >= RE.MapSettings[RE.CurrentMap]["pointsToWin"] then
-		RE.AceTimer:CancelTimer(RE.EstimatorTimer)
+		TIMER:CancelTimer(RE.EstimatorTimer)
 		RE.IsWinning = ""
 	end
 end
 
-function REPorter_CreateTimer(time)
+function RE:CreateTimer(time)
 	RE.TimerOverride = true
 	_G.TimerTracker_OnEvent(_G.TimerTracker, "START_TIMER", 1, time, time)
 end
 
-function RE.AceTimer.Null()
+function RE:TimerNull()
 	-- And Now His Watch is Ended
 end
 
-function RE.AceTimer.JoinCheck()
+function RE:TimerJoinCheck()
 	local BGTime = GetBattlefieldInstanceRunTime()/1000
 	if RE.CurrentMap ~= "" and BGTime > RE.MapSettings[RE.CurrentMap]["StartTimer"] then
 		RE.PlayedFromStart = false
@@ -486,11 +485,11 @@ function RE.AceTimer.JoinCheck()
 	end
 end
 
-function RE.AceTimer.TabHider()
-	_G.REPorterTab:SetAlpha(0.25)
+function RE:TimerTabHider()
+	_G.REPorterFrameTab:SetAlpha(0.25)
 end
 
-function REPorter_GetMapInfo()
+function RE:GetMapInfo()
 	if GetMapInfo() == "ArathiBasinWinter" then
 		return "ArathiBasin"
 	else
@@ -500,7 +499,7 @@ end
 --
 
 -- *** Event functions
-function REPorter_OnLoad(self)
+function RE:OnLoad(self)
 	self:RegisterEvent("ADDON_LOADED")
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
 	self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
@@ -508,40 +507,40 @@ function REPorter_OnLoad(self)
 	self:RegisterEvent("MODIFIER_STATE_CHANGED")
 	self:RegisterEvent("GROUP_ROSTER_UPDATE")
 	self:RegisterForDrag("LeftButton")
-	_G.InterfaceOptionsFrame:HookScript("OnHide", _G.REPorter_HideDummyMap)
+	_G.InterfaceOptionsFrame:HookScript("OnHide", RE.HideDummyMap)
 	RE.updateTimer = 0
 end
 
-function REPorter_OnShow(_)
-	if RE.CurrentMap ~= _G.REPorter_GetMapInfo() then
+function RE:OnShow(_)
+	if RE.CurrentMap ~= RE:GetMapInfo() then
 		SetMapToCurrentZone()
-		_G.REPorterEstimator:Show()
-		_G.REPorterExternal:SetScrollChild(_G.REPorter)
-		_G.REPorterTab:SetAlpha(0.25)
+		_G.REPorterFrameEstimator:Show()
+		_G.REPorterFrameExternal:SetScrollChild(_G.REPorterFrame)
+		_G.REPorterFrameTab:SetAlpha(0.25)
 		if RE.Settings.hideMinimap then
 			_G.MinimapCluster:Hide()
 		end
 	end
 end
 
-function REPorter_OnHide(_)
-	if RE.CurrentMap ~= _G.REPorter_GetMapInfo() then
-		_G.REPorterUnitPosition:SetScript("OnUpdate", nil)
+function RE:OnHide(_)
+	if RE.CurrentMap ~= RE:GetMapInfo() then
+		_G.REPorterFrameUnitPosition:SetScript("OnUpdate", nil)
 		RE.CurrentMap = ""
 		RE.IsBrawl = false
 		RE.DoIEvenCareAboutNodes = false
 		RE.DoIEvenCareAboutPoints = false
 		RE.DoIEvenCareAboutGates = false
 		RE.DoIEvenCareAboutFlags = false
-		_G.REPorterExternal:UnregisterEvent("UPDATE_WORLD_STATES")
-		_G.REPorterExternal:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-		_G.REPorterExternal:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
-		_G.REPorterExternal:UnregisterEvent("BATTLEGROUND_POINTS_UPDATE")
+		_G.REPorterFrameExternal:UnregisterEvent("UPDATE_WORLD_STATES")
+		_G.REPorterFrameExternal:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		_G.REPorterFrameExternal:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
+		_G.REPorterFrameExternal:UnregisterEvent("BATTLEGROUND_POINTS_UPDATE")
 		RE.IsWinning = ""
-		_G.REPorter_ClearTextures()
+		RE:ClearTextures()
 		_G.L_CloseDropDownMenus()
-		_G.REPorterEstimator_Text:SetText("")
-		_G.REPorterEstimator:Hide()
+		_G.REPorterFrameEstimator_Text:SetText("")
+		_G.REPorterFrameEstimator:Hide()
 		RE.TimerOverride = false
 		if not _G.MinimapCluster:IsShown() and RE.Settings.hideMinimap then
 			_G.MinimapCluster:Show()
@@ -549,22 +548,22 @@ function REPorter_OnHide(_)
 	end
 end
 
-function REPorter_OnEnter(_)
-	RE.AceTimer:CancelTimer(RE.TabHiderTimer)
-	_G.REPorterTab:SetAlpha(RE.Settings.opacity)
+function RE:OnEnter(_)
+	TIMER:CancelTimer(RE.TabHiderTimer)
+	_G.REPorterFrameTab:SetAlpha(RE.Settings.opacity)
 end
 
-function REPorter_OnLeave(_)
-	if not _G.REPorterTab:IsMouseOver() then
-		RE.AceTimer:CancelTimer(RE.TabHiderTimer)
-		RE.TabHiderTimer = RE.AceTimer:ScheduleTimer("TabHider", 0.5)
+function RE:OnLeave(_)
+	if not _G.REPorterFrameTab:IsMouseOver() then
+		TIMER:CancelTimer(RE.TabHiderTimer)
+		RE.TabHiderTimer = TIMER:ScheduleTimer(RE.TimerTabHider, 0.5)
 	end
 end
 
-function REPorter_OnEvent(_, event, ...)
+function RE:OnEvent(_, event, ...)
 	if event == "ADDON_LOADED" and ... == "REPorter" then
-		_G.REPorter_PrepareConfig()
-		_G.REPorterTab:SetHitRectInsets(-5, -5, -5, -5)
+		RE:PrepareConfig()
+		_G.REPorterFrameTab:SetHitRectInsets(-5, -5, -5, -5)
 		RegisterAddonMessagePrefix("REPorter")
 		_G.BINDING_HEADER_REPORTERB = "REPorter"
 		_G.BINDING_NAME_REPORTERINC1 = L["Incoming"].." 1"
@@ -576,7 +575,7 @@ function REPorter_OnEvent(_, event, ...)
 		_G.BINDING_NAME_REPORTERHELP = _G.HELP_LABEL
 		_G.BINDING_NAME_REPORTERCLEAR = L["Clear"]
 		for i=1, RE.POINumber do
-			_G.REPorter_CreatePOI(i)
+			RE:CreatePOI(i)
 		end
 		TOAST:Register("REPorterToastInfo", function(toast, ...)
 			toast:SetFormattedTitle("|cFF74D06CRE|r|cFFFFFFFFPorter|r")
@@ -593,7 +592,7 @@ function REPorter_OnEvent(_, event, ...)
 			end
 		elseif REMessageEx[1] == "GateSyncRequest" and RE.PlayedFromStart then
 			local message = "GateSync;"
-			local tableCount, tableInternal = _G.REPorter_TableCount(RE.POINodes)
+			local tableCount, tableInternal = RE:TableCount(RE.POINodes)
 			for i=1, tableCount do
 				if RE.POINodes[tableInternal[i]]["health"] then
 					message = message..RE.POINodes[tableInternal[i]]["id"]..";"..RE.POINodes[tableInternal[i]]["health"]..";"
@@ -602,7 +601,7 @@ function REPorter_OnEvent(_, event, ...)
 			SendAddonMessage("REPorter", message, "INSTANCE_CHAT")
 		elseif RE.GateSyncRequested and REMessageEx[1] == "GateSync" then
 			RE.GateSyncRequested = false
-			local tableCount, tableInternal = _G.REPorter_TableCount(RE.POINodes)
+			local tableCount, tableInternal = RE:TableCount(RE.POINodes)
 			for i=1, tableCount do
 				for k=2, #REMessageEx do
 					if REMessageEx[k] == RE.POINodes[tableInternal[i]]["id"] then
@@ -638,7 +637,7 @@ function REPorter_OnEvent(_, event, ...)
 					if i <= numFlags then
 						local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i)
 						if flagX > 0 and flagY > 0 then
-							flagX, flagY = _G.REPorter_GetRealCoords(flagX, flagY)
+							flagX, flagY = RE:GetRealCoords(flagX, flagY)
 							if flagToken == "AllianceFlag" then
 								if flagX < 420 and flagX > 350 and flagY < -255 and flagY > -305 then
 									AlliancePointsPerSec = AlliancePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"]["CenterP"]
@@ -669,7 +668,7 @@ function REPorter_OnEvent(_, event, ...)
 				else
 					HordeTimeToWin = 10000
 				end
-				_G.REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 2)
+				RE:EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 2)
 			end
 		elseif RE.CurrentMap == "STVDiamondMineBG" then
 			local AlliancePointsNeeded, AllianceCartsNeeded, HordePointsNeeded, HordeCartsNeeded = nil, 10, nil, 10
@@ -694,8 +693,8 @@ function REPorter_OnEvent(_, event, ...)
 			if AlliancePointsNeeded and HordePointsNeeded then
 				AllianceCartsNeeded = AlliancePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"]
 				HordeCartsNeeded = HordePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"]
-				RE.SMEstimatorText = "|cFF00A9FF".._G.REPorter_Round(AllianceCartsNeeded, 1).."|r\n|cFFFF141D".._G.REPorter_Round(HordeCartsNeeded, 1).."|r"
-				RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": ".._G.REPorter_Round(AllianceCartsNeeded, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": ".._G.REPorter_Round(HordeCartsNeeded, 1).." "..L["carts"]
+				RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(AllianceCartsNeeded, 1).."|r\n|cFFFF141D"..RE:Round(HordeCartsNeeded, 1).."|r"
+				RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(AllianceCartsNeeded, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HordeCartsNeeded, 1).." "..L["carts"]
 			end
 		else
 			local WorldStateId = RE.MapSettings[RE.CurrentMap]["WorldStateNum"]
@@ -745,10 +744,10 @@ function REPorter_OnEvent(_, event, ...)
 				else
 					HordeTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - HordePointNum) / RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum]
 				end
-				_G.REPorter_EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 5, AlliancePointNum, HordePointNum)
+				RE:EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 5, AlliancePointNum, HordePointNum)
 			end
 		end
-	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" and select(2, ...) == "SPELL_BUILDING_DAMAGE" and _G.REPorter_TableCount(RE.POINodes) > 0 then
+	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" and select(2, ...) == "SPELL_BUILDING_DAMAGE" and RE:TableCount(RE.POINodes) > 0 then
 		local guid, gateName, _, _, _, _, _, damage = select(8, ...)
 		if RE.CurrentMap ~= "IsleofConquest" then
 			RE.POINodes[gateName]["health"] = RE.POINodes[gateName]["health"] - damage
@@ -785,69 +784,69 @@ function REPorter_OnEvent(_, event, ...)
 					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"]
 				end
 			end
-			_G.REPorter_UpdateIoCEstimator()
+			RE:UpdateIoCEstimator()
 		end
 	elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
 		local _, instanceType = IsInInstance()
-		_G.REPorterExternal:Hide()
+		_G.REPorterFrameExternal:Hide()
 		if instanceType == "pvp" then
-			_G.REPorterExternal:Show()
+			_G.REPorterFrameExternal:Show()
 			RE.PlayedFromStart = true
 			RE.GateSyncRequested = false
-			_G.REPorter_Create(false)
+			RE:Create(false)
 			SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "INSTANCE_CHAT")
 			if IsInGuild() then
 				SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "GUILD")
 			end
 		elseif RE.CurrentMap ~= "" then
 			RE.CurrentMap = ""
-			_G.REPorter_OnHide()
+			RE:OnHide()
 		end
-	elseif event == "MODIFIER_STATE_CHANGED" and _G.REPorterExternal:IsShown() then
+	elseif event == "MODIFIER_STATE_CHANGED" and _G.REPorterFrameExternal:IsShown() then
 		if IsShiftKeyDown() and IsAltKeyDown() then
 			RE.NeedRefresh = true
-			_G.REPorterExternalOverlay:Hide()
-			_G.REPorterTimerOverlay:Show()
+			_G.REPorterFrameExternalOverlay:Hide()
+			_G.REPorterFrameTimerOverlay:Show()
 		elseif IsShiftKeyDown() and IsControlKeyDown() then
 			RE.NeedRefresh = true
-		elseif _G.REPorterTimerOverlay:IsShown() then
+		elseif _G.REPorterFrameTimerOverlay:IsShown() then
 			RE.NeedRefresh = true
-			_G.REPorterExternalOverlay:Show()
-			_G.REPorterTimerOverlay:Hide()
+			_G.REPorterFrameExternalOverlay:Show()
+			_G.REPorterFrameTimerOverlay:Hide()
 		elseif RE.IsOverlay then
 			RE.NeedRefresh = true
 		end
-	elseif event == "GROUP_ROSTER_UPDATE" and _G.REPorterExternal:IsShown() then
+	elseif event == "GROUP_ROSTER_UPDATE" and _G.REPorterFrameExternal:IsShown() then
 		RE.NeedRefresh = true
 	elseif event == "BATTLEGROUND_POINTS_UPDATE" then
 		RE.TimerOverride = true
-		_G.REPorter_CreateTimer(12)
+		RE:CreateTimer(12)
 	elseif event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" then
 		-- SotA hack
 		RE.NeedRefresh = true
-		_G.REPorter_Create(true)
+		RE:Create(true)
 	end
 end
 
-function REPorter_OnUpdate(_, elapsed)
+function RE:OnUpdate(elapsed)
 	if RE.updateTimer < 0 then
-		_G.REPorter_BlinkPOI()
+		RE:BlinkPOI()
 		local subZoneName = GetSubZoneText()
 		if subZoneName and subZoneName ~= "" and RE.CurrentMap ~= "GoldRush" and RE.CurrentMap ~= "STVDiamondMineBG" and RE.CurrentMap ~= "TempleofKotmogu" and RE.CurrentMap ~= "HillsbradFoothillsBG" then
 			for _, i in pairs({"SB1", "SB2", "SB3", "SB4", "SB5", "SB6", "BB1", "BB2"}) do
-				_G["REPorterTab_"..i]:Enable()
+				_G["REPorterFrameTab_"..i]:Enable()
 			end
 		else
 			for _, i in pairs({"SB1", "SB2", "SB3", "SB4", "SB5", "SB6", "BB1", "BB2"}) do
-				_G["REPorterTab_"..i]:Disable()
+				_G["REPorterFrameTab_"..i]:Disable()
 			end
 		end
 
 		if RE.NeedRefresh then
 			RE.NeedRefresh = false
-			_G.REPorterUnitPosition:ClearUnits()
+			_G.REPorterFrameUnitPosition:ClearUnits()
 		end
-		_G.REPorterUnitPosition:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 50, 50, 1, 1, 1, 1, 7, true)
+		_G.REPorterFrameUnitPosition:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 50, 50, 1, 1, 1, 1, 7, true)
 		if not (IsShiftKeyDown() and IsAltKeyDown()) then
 			for i = 1, MAX_RAID_MEMBERS do
 				local unit = "raid"..i
@@ -870,18 +869,18 @@ function REPorter_OnUpdate(_, elapsed)
 						RE.IsOverlay = true
 						if raidMarker ~= nil then
 							texture = "Interface\\Addons\\REPorter\\Textures\\RaidMarker"..raidMarker
-							_G.REPorterUnitPosition:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1)
+							_G.REPorterFrameUnitPosition:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1)
 						elseif UnitGroupRolesAssigned(unit) == "HEALER" then
 							texture = "Interface\\Addons\\REPorter\\Textures\\BlipHealer"
-							_G.REPorterUnitPosition:AddUnit(unit, texture, 30, 30, r, g, b, 1)
+							_G.REPorterFrameUnitPosition:AddUnit(unit, texture, 30, 30, r, g, b, 1)
 						end
 					else
 						RE.IsOverlay = false
 						if RE.Settings.displayMarks and raidMarker ~= nil then
 							texture = "Interface\\Addons\\REPorter\\Textures\\RaidMarker"..raidMarker
-							_G.REPorterUnitPosition:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1)
+							_G.REPorterFrameUnitPosition:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1)
 						else
-							_G.REPorterUnitPosition:AddUnit(unit, texture, 25, 25, r, g, b, 1)
+							_G.REPorterFrameUnitPosition:AddUnit(unit, texture, 25, 25, r, g, b, 1)
 						end
 					end
 				end
@@ -891,22 +890,22 @@ function REPorter_OnUpdate(_, elapsed)
 				RE.PinTextures[unit] = texture
 			end
 		end
-		_G.REPorterUnitPosition:FinalizeUnits()
-		_G.REPorterUnitPosition:UpdateTooltips(_G.GameTooltip)
-		local playerBlipFrameLevel = _G.REPorterUnitPosition:GetFrameLevel()
+		_G.REPorterFrameUnitPosition:FinalizeUnits()
+		_G.REPorterFrameUnitPosition:UpdateTooltips(_G.GameTooltip)
+		local playerBlipFrameLevel = _G.REPorterFrameUnitPosition:GetFrameLevel()
 
 		local numFlags = GetNumBattlefieldFlagPositions()
 		for i=1, 4 do
-			local flagFrameName = "REPorterFlag"..i
+			local flagFrameName = "REPorterFrameFlag"..i
 			local flagFrame = _G[flagFrameName]
 			if i <= numFlags and (RE.CurrentMap ~= "GoldRush" or RE.IsBrawl) then
 				local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i)
 				if flagX == 0 and flagY == 0 then
 					flagFrame:Hide()
 				else
-					flagX, flagY = _G.REPorter_GetRealCoords(flagX, flagY)
+					flagX, flagY = RE:GetRealCoords(flagX, flagY)
 					flagFrame.Texture:SetTexture("Interface\\WorldStateFrame\\"..flagToken)
-					flagFrame:SetPoint("CENTER", "REPorterOverlay", "TOPLEFT", flagX, flagY)
+					flagFrame:SetPoint("CENTER", "REPorterFrameOverlay", "TOPLEFT", flagX, flagY)
 					flagFrame:EnableMouse(false)
 					flagFrame:SetFrameLevel(playerBlipFrameLevel - 1)
 					flagFrame:Show()
@@ -921,14 +920,14 @@ function REPorter_OnUpdate(_, elapsed)
 		local index = 0
 		for i=1, RE.numVehicles do
 			if i > totalVehicles then
-				local vehicleName = "REPorter"..i
-				RE.BGVehicles[i] = CreateFrame("FRAME", vehicleName, _G.REPorterOverlay, "REPorterVehicleTemplate")
+				local vehicleName = "REPorterFrame"..i
+				RE.BGVehicles[i] = CreateFrame("FRAME", vehicleName, _G.REPorterFrameOverlay, "REPorter_VehicleTemplate")
 				RE.BGVehicles[i].texture = _G[vehicleName.."Texture"]
 			end
 			if RE.CurrentMap == "IsleofConquest" then
 				RE.BGVehicles[i]:EnableMouse(true)
-				RE.BGVehicles[i]:SetScript("OnEnter", _G.REPorterUnit_OnEnterVehicle)
-				RE.BGVehicles[i]:SetScript("OnLeave", _G.REPorter_HideTooltip)
+				RE.BGVehicles[i]:SetScript("OnEnter", function(self) RE:UnitOnEnterVehicle(self) end)
+				RE.BGVehicles[i]:SetScript("OnLeave", RE.HideTooltip)
 			else
 				RE.BGVehicles[i]:EnableMouse(false)
 				RE.BGVehicles[i]:SetScript("OnEnter", nil)
@@ -936,11 +935,11 @@ function REPorter_OnUpdate(_, elapsed)
 			end
 			local vehicleX, vehicleY, unitName, isPossessed, vehicleType, orientation, isPlayer = GetBattlefieldVehicleInfo(i)
 			if vehicleX and not isPlayer and vehicleType ~= "Idle" then
-				vehicleX, vehicleY = _G.REPorter_GetRealCoords(vehicleX, vehicleY)
+				vehicleX, vehicleY = RE:GetRealCoords(vehicleX, vehicleY)
 				RE.BGVehicles[i].texture:SetTexture(WorldMap_GetVehicleTexture(vehicleType, isPossessed))
 				RE.BGVehicles[i].texture:SetRotation(orientation)
 				RE.BGVehicles[i].name = unitName
-				RE.BGVehicles[i]:SetPoint("CENTER", "REPorterOverlay", "TOPLEFT", vehicleX, vehicleY)
+				RE.BGVehicles[i]:SetPoint("CENTER", "REPorterFrameOverlay", "TOPLEFT", vehicleX, vehicleY)
 				RE.BGVehicles[i]:SetFrameLevel(playerBlipFrameLevel - 1)
 				RE.BGVehicles[i]:Show()
 				index = i
@@ -955,16 +954,16 @@ function REPorter_OnUpdate(_, elapsed)
 		end
 
 		for i=1, RE.POINumber do
-			_G["REPorterPOI"..i]:Hide()
-			_G["REPorterPOI"..i.."Timer"]:Hide()
+			_G["REPorterFramePOI"..i]:Hide()
+			_G["REPorterFramePOI"..i.."Timer"]:Hide()
 		end
 		for i=1, GetNumMapLandmarks() do
-			local battlefieldPOIName = "REPorterPOI"..i
+			local battlefieldPOIName = "REPorterFramePOI"..i
 			local battlefieldPOI = _G[battlefieldPOIName]
 			local _, name, description, textureIndex, x, y, _, showInBattleMap, _, _, poiID = GetMapLandmarkInfo(i)
 			local colorOverride = false
 			if name and showInBattleMap and textureIndex ~= nil and textureIndex ~= 0 then
-				x, y = _G.REPorter_GetRealCoords(x, y)
+				x, y = RE:GetRealCoords(x, y)
 				local x1, x2, y1, y2 = GetPOITextureCoords(textureIndex)
 				if RE.CurrentMap == "IsleofConquest" then
 					if i == 9 then
@@ -1033,7 +1032,7 @@ function REPorter_OnUpdate(_, elapsed)
 							RE.POINodes[name]["maxHealth"] = 600000
 						end
 					elseif RE.CurrentMap == "StrandoftheAncients" then
-						local isStarted, isAlliance = _G.REPorter_SOTAStartCheck()
+						local isStarted, isAlliance = RE:SOTAStartCheck()
 						if isStarted then
 							if isAlliance then
 								if i == 3 or i == 4 then
@@ -1073,12 +1072,12 @@ function REPorter_OnUpdate(_, elapsed)
 					RE.POINodes[name]["x"] = x
 					RE.POINodes[name]["y"] = y
 					if RE.DoIEvenCareAboutNodes and RE.POINodes[name]["texture"] and RE.POINodes[name]["texture"] ~= textureIndex then
-						_G.REPorter_NodeChange(textureIndex, name)
+						RE:NodeChange(textureIndex, name)
 					end
 					RE.POINodes[name]["texture"] = textureIndex
 				end
 				battlefieldPOI.name = name
-				battlefieldPOI:SetPoint("CENTER", "REPorter", "TOPLEFT", x, y)
+				battlefieldPOI:SetPoint("CENTER", "REPorterFrame", "TOPLEFT", x, y)
 				battlefieldPOI:SetWidth(RE.POIIconSize)
 				battlefieldPOI:SetHeight(RE.POIIconSize)
 				_G[battlefieldPOIName.."Texture"]:SetTexCoord(x1, x2, y1, y2)
@@ -1087,7 +1086,7 @@ function REPorter_OnUpdate(_, elapsed)
 				else
 					_G[battlefieldPOIName.."Texture"]:SetVertexColor(1, 1, 1, 1)
 				end
-				if RE.AceTimer:TimeLeft(RE.POINodes[name]["timer"]) == 0 then
+				if TIMER:TimeLeft(RE.POINodes[name]["timer"]) == 0 then
 					if strfind(description, FACTION_HORDE) then
 						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,0.3)
 					elseif strfind(description, FACTION_ALLIANCE) then
@@ -1102,9 +1101,9 @@ function REPorter_OnUpdate(_, elapsed)
 						_G[battlefieldPOIName.."TextureBGTop2"]:Show()
 						_G[battlefieldPOIName.."TextureBGTop2"]:SetWidth((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"]) * RE.POIIconSize)
 						if RE.GateSyncRequested then
-							_G[battlefieldPOIName.."Timer_Caption"]:SetText("|cFFFF141D".._G.REPorter_Round((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"])*100, 0).."%|r")
+							_G[battlefieldPOIName.."Timer_Caption"]:SetText("|cFFFF141D"..RE:Round((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"])*100, 0).."%|r")
 						else
-							_G[battlefieldPOIName.."Timer_Caption"]:SetText(_G.REPorter_Round((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"])*100, 0).."%")
+							_G[battlefieldPOIName.."Timer_Caption"]:SetText(RE:Round((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"])*100, 0).."%")
 						end
 						_G[battlefieldPOIName.."Timer"]:Show()
 					else
@@ -1113,14 +1112,14 @@ function REPorter_OnUpdate(_, elapsed)
 						_G[battlefieldPOIName.."Timer"]:Hide()
 					end
 				else
-					local timeLeft = RE.AceTimer:TimeLeft(RE.POINodes[name]["timer"])
+					local timeLeft = TIMER:TimeLeft(RE.POINodes[name]["timer"])
 					_G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize - ((timeLeft / RE.DefaultTimer) * RE.POIIconSize))
 					_G[battlefieldPOIName.."TextureBGofBG"]:Show()
 					_G[battlefieldPOIName.."TextureBGofBG"]:SetWidth((timeLeft / RE.DefaultTimer) * RE.POIIconSize)
 					if RE.POINodes[name]["isCapturing"] == FACTION_HORDE then
-						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,RE.BlinkPOI)
+						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,RE.BlinkPOIValue)
 					elseif RE.POINodes[name]["isCapturing"] == FACTION_ALLIANCE then
-						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,RE.BlinkPOI)
+						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,RE.BlinkPOIValue)
 					end
 					if timeLeft <= 10 then
 						_G[battlefieldPOIName.."TextureBGTop1"]:Show()
@@ -1132,7 +1131,7 @@ function REPorter_OnUpdate(_, elapsed)
 						_G[battlefieldPOIName.."TextureBGTop2"]:Hide()
 					end
 					_G[battlefieldPOIName.."Timer"]:Show()
-					_G[battlefieldPOIName.."Timer_Caption"]:SetText(_G.REPorter_ShortTime(_G.REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[name]["timer"]), 0)))
+					_G[battlefieldPOIName.."Timer_Caption"]:SetText(RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[name]["timer"]), 0)))
 				end
 				battlefieldPOI:Show()
 			end
@@ -1149,7 +1148,7 @@ function REPorter_OnUpdate(_, elapsed)
 					local neededTextures = textureCount + (numTexturesWide * numTexturesTall)
 					if neededTextures > RE.BGOverlayNum then
 						for j=RE.BGOverlayNum + 1, neededTextures do
-							_G.REPorter:CreateTexture("REPorterMapOverlay"..j, "ARTWORK")
+							_G.REPorterFrame:CreateTexture("REPorterFrameMapOverlay"..j, "ARTWORK")
 						end
 						RE.BGOverlayNum = neededTextures
 					end
@@ -1170,7 +1169,7 @@ function REPorter_OnUpdate(_, elapsed)
 						end
 						for k=1, numTexturesWide do
 							textureCount = textureCount + 1
-							local texture = _G["REPorterMapOverlay"..textureCount]
+							local texture = _G["REPorterFrameMapOverlay"..textureCount]
 							if ( k < numTexturesWide ) then
 								texturePixelWidth = 256
 								textureFileWidth = 256
@@ -1187,7 +1186,7 @@ function REPorter_OnUpdate(_, elapsed)
 							texture:SetWidth(texturePixelWidth * scale)
 							texture:SetHeight(texturePixelHeight * scale)
 							texture:SetTexCoord(0, texturePixelWidth / textureFileWidth, 0, texturePixelHeight / textureFileHeight)
-							texture:SetPoint("TOPLEFT", "REPorter", "TOPLEFT", (offsetX + (256 * (k - 1))) * scale, -((offsetY + (256 * (j - 1))) * scale))
+							texture:SetPoint("TOPLEFT", "REPorterFrame", "TOPLEFT", (offsetX + (256 * (k - 1))) * scale, -((offsetY + (256 * (j - 1))) * scale))
 							texture:SetTexture(textureName..(((j - 1) * numTexturesWide) + k))
 							texture:SetAlpha(RE.Settings.opacity)
 							texture:Show()
@@ -1196,24 +1195,24 @@ function REPorter_OnUpdate(_, elapsed)
 				end
 			end
 			for i=textureCount + 1, RE.BGOverlayNum do
-				_G["REPorterMapOverlay"..i]:Hide()
+				_G["REPorterFrameMapOverlay"..i]:Hide()
 			end
 		end
 
-		if RE.AceTimer:TimeLeft(RE.EstimatorTimer) > 0 then
+		if TIMER:TimeLeft(RE.EstimatorTimer) > 0 then
 			if RE.IsWinning == FACTION_ALLIANCE then
-				_G.REPorterEstimator_Text:SetText("|cFF00A9FF".._G.REPorter_ShortTime(_G.REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r")
+				_G.REPorterFrameEstimator_Text:SetText("|cFF00A9FF"..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)).."|r")
 			elseif RE.IsWinning == FACTION_HORDE then
-				_G.REPorterEstimator_Text:SetText("|cFFFF141D".._G.REPorter_ShortTime(_G.REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0)).."|r")
+				_G.REPorterFrameEstimator_Text:SetText("|cFFFF141D"..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)).."|r")
 			else
-				_G.REPorterEstimator_Text:SetText("")
+				_G.REPorterFrameEstimator_Text:SetText("")
 			end
 		elseif RE.CurrentMap == "STVDiamondMineBG" then
-			_G.REPorterEstimator_Text:SetText(RE.SMEstimatorText)
+			_G.REPorterFrameEstimator_Text:SetText(RE.SMEstimatorText)
 		elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
-			_G.REPorterEstimator_Text:SetText(RE.IoCGateEstimatorText)
+			_G.REPorterFrameEstimator_Text:SetText(RE.IoCGateEstimatorText)
 		else
-			_G.REPorterEstimator_Text:SetText("")
+			_G.REPorterFrameEstimator_Text:SetText("")
 		end
 		RE.updateTimer = RE.MapUpdateRate
 	else
@@ -1221,7 +1220,7 @@ function REPorter_OnUpdate(_, elapsed)
 	end
 end
 
-function REPorterUnit_OnEnterPlayer(self, tooltipFrame)
+function RE:UnitOnEnterPlayer(self, tooltipFrame)
 	local tooltipText = ""
 	local prefix = ""
 
@@ -1230,7 +1229,7 @@ function REPorterUnit_OnEnterPlayer(self, tooltipFrame)
 			local unitName = UnitName(unit)
 			local unitHealth = (UnitHealth(unit) / UnitHealthMax(unit)) * 100
 			local _, _, _, unitColor = GetClassColor(select(2, UnitClass(unit)))
-			tooltipText = tooltipText..prefix.."|c"..unitColor..unitName.."|r |cFFFFFFFF[".._G.REPorter_Round(unitHealth, 0).."%]|r"
+			tooltipText = tooltipText..prefix.."|c"..unitColor..unitName.."|r |cFFFFFFFF["..RE:Round(unitHealth, 0).."%]|r"
 			prefix = "\n"
 		end
 	end
@@ -1244,7 +1243,7 @@ function REPorterUnit_OnEnterPlayer(self, tooltipFrame)
 	end
 end
 
-function REPorterUnit_OnEnterVehicle(self)
+function RE:UnitOnEnterVehicle(self)
 	local tooltipText = ""
 	local prefix = ""
 	local vehicleGroup = {}
@@ -1261,7 +1260,7 @@ function REPorterUnit_OnEnterVehicle(self)
 			end
 		end
 	end
-	local tableNum, tableInternal = _G.REPorter_TableCount(vehicleGroup)
+	local tableNum, tableInternal = RE:TableCount(vehicleGroup)
 	for i=1, tableNum do
 		if vehicleGroup[tableInternal[i]] == 1 then
 			tooltipText = tooltipText..prefix..tableInternal[i]
@@ -1281,7 +1280,7 @@ function REPorterUnit_OnEnterVehicle(self)
 	end
 end
 
-function REPorterUnit_OnEnterPOI(self)
+function RE:UnitOnEnterPOI(self)
 	local tooltipText = ""
 	local prefix = ""
 	local battlefieldPOIName = self:GetName()
@@ -1294,15 +1293,15 @@ function REPorterUnit_OnEnterPOI(self)
 		end
 		if RE.POINodes[battlefieldPOI.name]["health"] then
 			if RE.GateSyncRequested then
-				status = "\n[|r|cFFFF141D".._G.REPorter_Round((RE.POINodes[battlefieldPOI.name]["health"]/RE.POINodes[battlefieldPOI.name]["maxHealth"])*100, 0).."%|r|cFFFFFFFF]"
+				status = "\n[|r|cFFFF141D"..RE:Round((RE.POINodes[battlefieldPOI.name]["health"]/RE.POINodes[battlefieldPOI.name]["maxHealth"])*100, 0).."%|r|cFFFFFFFF]"
 			else
-				status = "\n[".._G.REPorter_Round((RE.POINodes[battlefieldPOI.name]["health"]/RE.POINodes[battlefieldPOI.name]["maxHealth"])*100, 0).."%]"
+				status = "\n["..RE:Round((RE.POINodes[battlefieldPOI.name]["health"]/RE.POINodes[battlefieldPOI.name]["maxHealth"])*100, 0).."%]"
 			end
 		end
-		if RE.AceTimer:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]) == 0 then
+		if TIMER:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]) == 0 then
 			tooltipText = tooltipText..prefix..battlefieldPOI.name.."|cFFFFFFFF"..status.."|r"
 		else
-			tooltipText = tooltipText..prefix..battlefieldPOI.name.."|cFFFFFFFF [".._G.REPorter_ShortTime(_G.REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]), 0)).."]"..status.."|r"
+			tooltipText = tooltipText..prefix..battlefieldPOI.name.."|cFFFFFFFF ["..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]), 0)).."]"..status.."|r"
 		end
 		prefix = "\n"
 	end
@@ -1317,45 +1316,45 @@ function REPorterUnit_OnEnterPOI(self)
 	end
 end
 
-function REPorter_OnClickPOI(self)
+function RE:OnClickPOI(self)
 	_G.L_CloseDropDownMenus()
 	RE.ClickedPOI = RE.POINodes[self.name]["name"]
-	_G.L_EasyMenu(RE.POIDropDown, _G.REPorter_ReportDropDown, self, 0 , 0, "MENU")
+	_G.L_EasyMenu(RE.POIDropDown, _G.REPorterReportDropDown, self, 0 , 0, "MENU")
 end
 ---
 
 -- *** Core functions
-function REPorter_Create(isSecond)
-	_G.REPorterUnitPosition:SetScript("OnUpdate", nil)
-	local mapFileName = _G.REPorter_GetMapInfo()
+function RE:Create(isSecond)
+	_G.REPorterFrameUnitPosition:SetScript("OnUpdate", nil)
+	local mapFileName = RE:GetMapInfo()
 	if mapFileName and RE.MapSettings[mapFileName] then
 		RE.CurrentMap = mapFileName
 		RE.IsBrawl = IsInBrawl()
 		RE.POINodes = {}
-		_G.REPorterExternal:ClearAllPoints()
-		_G.REPorterExternal:SetScale(RE.Settings[mapFileName]["scale"])
-		_G.REPorterExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings[mapFileName]["x"], RE.Settings[mapFileName]["y"])
-		_G.REPorterTimerOverlay:Hide()
-		_G.REPorterExternal:SetHeight(RE.MapSettings[mapFileName]["HE"])
-		_G.REPorterExternalOverlay:SetHeight(RE.MapSettings[mapFileName]["HE"])
-		_G.REPorterExternalUnitPosition:SetHeight(RE.MapSettings[mapFileName]["HE"])
-		_G.REPorterBorder:SetHeight(RE.MapSettings[mapFileName]["HE"] + 5)
-		_G.REPorterExternal:SetWidth(RE.MapSettings[mapFileName]["WI"])
-		_G.REPorterExternalOverlay:SetWidth(RE.MapSettings[mapFileName]["WI"])
-		_G.REPorterExternalUnitPosition:SetWidth(RE.MapSettings[mapFileName]["WI"])
-		_G.REPorterBorder:SetWidth(RE.MapSettings[mapFileName]["WI"] + 5)
-		_G.REPorterExternal:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"])
-		_G.REPorterExternal:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"])
-		_G.REPorterExternalOverlay:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"])
-		_G.REPorterExternalOverlay:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"])
-		_G.REPorterExternalOverlay:SetPoint("TOPLEFT", _G.REPorterExternal, "TOPLEFT")
-		_G.REPorterExternalUnitPosition:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"])
-		_G.REPorterExternalUnitPosition:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"])
-		_G.REPorterExternalUnitPosition:SetPoint("TOPLEFT", _G.REPorterExternal, "TOPLEFT")
-		_G.REPorterUnitPosition:SetMouseOverUnitExcluded("player", true)
-		_G.REPorterUnitPosition.UpdateUnitTooltips = _G.REPorterUnit_OnEnterPlayer
-		_G.REPorterUnitPosition:SetFrameLevel(4)
-		_G.REPorterTab:Show()
+		_G.REPorterFrameExternal:ClearAllPoints()
+		_G.REPorterFrameExternal:SetScale(RE.Settings[mapFileName]["scale"])
+		_G.REPorterFrameExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings[mapFileName]["x"], RE.Settings[mapFileName]["y"])
+		_G.REPorterFrameTimerOverlay:Hide()
+		_G.REPorterFrameExternal:SetHeight(RE.MapSettings[mapFileName]["HE"])
+		_G.REPorterFrameExternalOverlay:SetHeight(RE.MapSettings[mapFileName]["HE"])
+		_G.REPorterFrameExternalUnitPosition:SetHeight(RE.MapSettings[mapFileName]["HE"])
+		_G.REPorterFrameBorder:SetHeight(RE.MapSettings[mapFileName]["HE"] + 5)
+		_G.REPorterFrameExternal:SetWidth(RE.MapSettings[mapFileName]["WI"])
+		_G.REPorterFrameExternalOverlay:SetWidth(RE.MapSettings[mapFileName]["WI"])
+		_G.REPorterFrameExternalUnitPosition:SetWidth(RE.MapSettings[mapFileName]["WI"])
+		_G.REPorterFrameBorder:SetWidth(RE.MapSettings[mapFileName]["WI"] + 5)
+		_G.REPorterFrameExternal:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"])
+		_G.REPorterFrameExternal:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"])
+		_G.REPorterFrameExternalOverlay:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"])
+		_G.REPorterFrameExternalOverlay:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"])
+		_G.REPorterFrameExternalOverlay:SetPoint("TOPLEFT", _G.REPorterFrameExternal, "TOPLEFT")
+		_G.REPorterFrameExternalUnitPosition:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"])
+		_G.REPorterFrameExternalUnitPosition:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"])
+		_G.REPorterFrameExternalUnitPosition:SetPoint("TOPLEFT", _G.REPorterFrameExternal, "TOPLEFT")
+		_G.REPorterFrameUnitPosition:SetMouseOverUnitExcluded("player", true)
+		_G.REPorterFrameUnitPosition.UpdateUnitTooltips = function(self, tooltipFrame) RE:UnitOnEnterPlayer(self, tooltipFrame) end
+		_G.REPorterFrameUnitPosition:SetFrameLevel(4)
+		_G.REPorterFrameTab:Show()
 		local texName
 		local numDetailTiles = GetNumberOfDetailTiles()
 		for i=1, numDetailTiles do
@@ -1366,7 +1365,7 @@ function REPorter_Create(isSecond)
 			else
 				texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i
 			end
-			_G["REPorter"..i]:SetTexture(texName)
+			_G["REPorterFrame"..i]:SetTexture(texName)
 		end
 		if mapFileName == "IsleofConquest" then
 			RE.IoCGateEstimator = {}
@@ -1392,174 +1391,174 @@ function REPorter_Create(isSecond)
 		end
 		if mapFileName == "GilneasBattleground2" or mapFileName == "NetherstormArena" or mapFileName == "ArathiBasin" or mapFileName == "GoldRush" or mapFileName == "STVDiamondMineBG" or mapFileName == "TempleofKotmogu" then
 			RE.DoIEvenCareAboutPoints = true
-			_G.REPorterExternal:RegisterEvent("UPDATE_WORLD_STATES")
+			_G.REPorterFrameExternal:RegisterEvent("UPDATE_WORLD_STATES")
 		else
 			RE.DoIEvenCareAboutPoints = false
 		end
 		if mapFileName == "StrandoftheAncients" or mapFileName == "IsleofConquest" then
 			RE.DoIEvenCareAboutGates = true
-			_G.REPorterExternal:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+			_G.REPorterFrameExternal:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		else
 			RE.DoIEvenCareAboutGates = false
 		end
 		if mapFileName == "WarsongGulch" or mapFileName == "TwinPeaks" then
 			RE.DoIEvenCareAboutFlags = true
-			_G.REPorterExternal:RegisterEvent("BATTLEGROUND_POINTS_UPDATE")
+			_G.REPorterFrameExternal:RegisterEvent("BATTLEGROUND_POINTS_UPDATE")
 		else
 			RE.DoIEvenCareAboutFlags = false
 		end
 		if mapFileName == "StrandoftheAncients" then
-			_G.REPorterExternal:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
+			_G.REPorterFrameExternal:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
 		end
 		if not isSecond then
-			RE.AceTimer:ScheduleTimer("JoinCheck", 5)
+			TIMER:ScheduleTimer(RE.TimerJoinCheck, 5)
 		end
-		_G.REPorterUnitPosition:SetScript("OnUpdate", _G.REPorter_OnUpdate)
+		_G.REPorterFrameUnitPosition:SetScript("OnUpdate", RE.OnUpdate)
 	end
 end
 
-function REPorter_NodeChange(newTexture, nodeName)
-	RE.AceTimer:CancelTimer(RE.POINodes[nodeName]["timer"])
+function RE:NodeChange(newTexture, nodeName)
+	TIMER:CancelTimer(RE.POINodes[nodeName]["timer"])
 	if RE.CurrentMap == "AlteracValley" then
 		if newTexture == 9 then -- Tower Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 12 then -- Tower Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		elseif newTexture == 4 then -- GY Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 14 then -- GY Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		end
 	elseif RE.CurrentMap == "NetherstormArena" then
 		if newTexture == 9 then -- Tower Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 12 then -- Tower Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		end
 	elseif RE.CurrentMap == "GilneasBattleground2" then
 		if newTexture == 9 then -- Lighthouse Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 12 then -- Lighthouse Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		elseif newTexture == 27 then -- Waterworks Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 29 then -- Waterworks Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		elseif newTexture == 17 then -- Mine Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 19 then -- Mine Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		end
 	elseif RE.CurrentMap == "IsleofConquest" then
 		if newTexture == 9 then -- Keep Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 12 then -- Keep Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		elseif newTexture == 152 then -- Oil Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 154 then -- Oil Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		elseif newTexture == 147 then -- Dock Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 149 then -- Dock Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		elseif newTexture == 137 then -- Workshop Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 139 then -- Workshop Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		elseif newTexture == 142 then -- Air Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 144 then -- Air Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		elseif newTexture == 17 then -- Quary Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 19 then -- Quary Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		end
 	elseif RE.CurrentMap == "ArathiBasin" then
 		if newTexture == 32 then -- Farm Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 34 then -- Farm Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		elseif newTexture == 17 then -- Mine Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 19 then -- Mine Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		elseif newTexture == 37 then -- Stables Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 39 then -- Stables Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		elseif newTexture == 27 then -- Blacksmith Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 29 then -- Blacksmith Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		elseif newTexture == 22 then -- Lumbermill Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 24 then -- Lumbermill Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		end
 	elseif RE.CurrentMap == "GoldRush" then
 		if newTexture == 17 then -- Mine Ally
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
 		elseif newTexture == 19 then -- Mine Horde
-			RE.POINodes[nodeName]["timer"] = RE.AceTimer:ScheduleTimer("Null", RE.DefaultTimer)
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		end
 	end
 end
 
-function REPorter_POIStatus(POIName)
+function RE:POIStatus(POIName)
 	if RE.POINodes[POIName]then
-		if RE.AceTimer:TimeLeft(RE.POINodes[POIName]["timer"]) == 0 then
+		if TIMER:TimeLeft(RE.POINodes[POIName]["timer"]) == 0 then
 			if RE.POINodes[POIName]["health"] and not RE.GateSyncRequested then
-				local gateHealth = _G.REPorter_Round((RE.POINodes[POIName]["health"]/RE.POINodes[POIName]["maxHealth"])*100, 0)
+				local gateHealth = RE:Round((RE.POINodes[POIName]["health"]/RE.POINodes[POIName]["maxHealth"])*100, 0)
 				return " - ".._G.HEALTH..": "..gateHealth.."%"
 			end
 			return ""
 		else
-			local timeLeft = _G.REPorter_ShortTime(_G.REPorter_Round(RE.AceTimer:TimeLeft(RE.POINodes[POIName]["timer"]), 0))
+			local timeLeft = RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[POIName]["timer"]), 0))
 			return " - "..timeLeft
 		end
 	end
 	return ""
 end
 
-function REPorter_POIOwner(POIName, isReport)
+function RE:POIOwner(POIName, isReport)
 	local prefix = " - "
 	if isReport then
 		prefix = ""
@@ -1570,9 +1569,9 @@ function REPorter_POIOwner(POIName, isReport)
 		elseif strfind(RE.POINodes[POIName]["status"], FACTION_ALLIANCE) then
 			return prefix..POIName.." ("..FACTION_ALLIANCE..")"
 		else
-			if RE.POINodes[POIName]["isCapturing"] == FACTION_HORDE and RE.AceTimer:TimeLeft(RE.POINodes[POIName]["timer"]) ~= 0 then
+			if RE.POINodes[POIName]["isCapturing"] == FACTION_HORDE and TIMER:TimeLeft(RE.POINodes[POIName]["timer"]) ~= 0 then
 				return prefix..POIName.." ("..FACTION_HORDE..")"
-			elseif RE.POINodes[POIName]["isCapturing"] == FACTION_ALLIANCE and RE.AceTimer:TimeLeft(RE.POINodes[POIName]["timer"]) ~= 0 then
+			elseif RE.POINodes[POIName]["isCapturing"] == FACTION_ALLIANCE and TIMER:TimeLeft(RE.POINodes[POIName]["timer"]) ~= 0 then
 				return prefix..POIName.." ("..FACTION_ALLIANCE..")"
 			else
 				return prefix..POIName
@@ -1582,7 +1581,7 @@ function REPorter_POIOwner(POIName, isReport)
 	return prefix..POIName
 end
 
-function REPorter_SmallButton(number, otherNode)
+function RE:SmallButton(number, otherNode)
 	local _, instanceType = IsInInstance()
 	if instanceType == "pvp" then
 		local name = ""
@@ -1600,7 +1599,7 @@ function REPorter_SmallButton(number, otherNode)
 			else
 				message = strupper(L["Incoming"]).." 5+"
 			end
-			SendChatMessage(message.._G.REPorter_POIOwner(name).._G.REPorter_POIStatus(name)..RE.ReportPrefix, "INSTANCE_CHAT")
+			SendChatMessage(message..RE:POIOwner(name)..RE:POIStatus(name)..RE.ReportPrefix, "INSTANCE_CHAT")
 		else
 			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."])
 		end
@@ -1609,7 +1608,7 @@ function REPorter_SmallButton(number, otherNode)
 	end
 end
 
-function REPorter_BigButton(isHelp, otherNode)
+function RE:BigButton(isHelp, otherNode)
 	local _, instanceType = IsInInstance()
 	if instanceType == "pvp" then
 		local name = ""
@@ -1622,9 +1621,9 @@ function REPorter_BigButton(isHelp, otherNode)
 		end
 		if name and name ~= "" then
 			if isHelp then
-				SendChatMessage(strupper(_G.HELP_LABEL).._G.REPorter_POIOwner(name).._G.REPorter_POIStatus(name)..RE.ReportPrefix, "INSTANCE_CHAT")
+				SendChatMessage(strupper(_G.HELP_LABEL)..RE:POIOwner(name)..RE:POIStatus(name)..RE.ReportPrefix, "INSTANCE_CHAT")
 			else
-				SendChatMessage(strupper(L["Clear"]).._G.REPorter_POIOwner(name).._G.REPorter_POIStatus(name)..RE.ReportPrefix, "INSTANCE_CHAT")
+				SendChatMessage(strupper(L["Clear"])..RE:POIOwner(name)..RE:POIStatus(name)..RE.ReportPrefix, "INSTANCE_CHAT")
 			end
 		else
 			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."])
@@ -1634,38 +1633,38 @@ function REPorter_BigButton(isHelp, otherNode)
 	end
 end
 
-function REPorter_ReportEstimator()
-	if RE.AceTimer:TimeLeft(RE.EstimatorTimer) > 0 then
-		SendChatMessage(RE.IsWinning.." "..L["victory"]..": ".._G.REPorter_ShortTime(_G.REPorter_Round(RE.AceTimer:TimeLeft(RE.EstimatorTimer), 0))..RE.ReportPrefix, "INSTANCE_CHAT")
+function RE:ReportEstimator()
+	if TIMER:TimeLeft(RE.EstimatorTimer) > 0 then
+		SendChatMessage(RE.IsWinning.." "..L["victory"]..": "..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0))..RE.ReportPrefix, "INSTANCE_CHAT")
 	elseif RE.CurrentMap == "STVDiamondMineBG" and RE.SMEstimatorReport ~= "" then
 		SendChatMessage(RE.SMEstimatorReport, "INSTANCE_CHAT")
 	elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
-		SendChatMessage(FACTION_ALLIANCE.." "..L["gate"]..": ".._G.REPorter_Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."% - "..FACTION_HORDE.." "..L["gate"]..": ".._G.REPorter_Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%"..RE.ReportPrefix, "INSTANCE_CHAT")
+		SendChatMessage(FACTION_ALLIANCE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."% - "..FACTION_HORDE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%"..RE.ReportPrefix, "INSTANCE_CHAT")
 	end
 end
 
-function REPorter_ReportDropDownClick(reportType)
+function RE:ReportDropDownClick(reportType)
 	if reportType ~= "" then
-		SendChatMessage(strupper(reportType).._G.REPorter_POIOwner(RE.ClickedPOI).._G.REPorter_POIStatus(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT")
+		SendChatMessage(strupper(reportType)..RE:POIOwner(RE.ClickedPOI)..RE:POIStatus(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT")
 	else
-		SendChatMessage(_G.REPorter_POIOwner(RE.ClickedPOI, true).._G.REPorter_POIStatus(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT")
+		SendChatMessage(RE:POIOwner(RE.ClickedPOI, true)..RE:POIStatus(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT")
 	end
 end
 --
 
 -- *** Config functions
-function REPorter_UpdateConfig()
+function RE:UpdateConfig()
 	local x, y = 0, 0
-	_G.REPorterExternal:SetAlpha(RE.Settings["opacity"])
+	_G.REPorterFrameExternal:SetAlpha(RE.Settings["opacity"])
 	if RE.Settings[RE.CurrentMap] then
-		_G.REPorterExternal:SetScale(RE.Settings[RE.CurrentMap]["scale"])
+		_G.REPorterFrameExternal:SetScale(RE.Settings[RE.CurrentMap]["scale"])
 	end
 	if RE.Settings.nameAdvert then
 		RE.ReportPrefix = " - [REPorter]"
 	else
 		RE.ReportPrefix = ""
 	end
-	_G.REPorterTab:ClearAllPoints()
+	_G.REPorterFrameTab:ClearAllPoints()
 	if IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins") then
 		if RE.Settings.barHandle > 3 then
 			x, y = -2, 0
@@ -1679,18 +1678,18 @@ function REPorter_UpdateConfig()
 			x, y = -2, 0
 		end
 	end
-	_G.REPorterTab:SetPoint(RE.ReportBarAnchor[RE.Settings.barHandle][1], _G.REPorterBorder, RE.ReportBarAnchor[RE.Settings.barHandle][2], x, y)
+	_G.REPorterFrameTab:SetPoint(RE.ReportBarAnchor[RE.Settings.barHandle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[RE.Settings.barHandle][2], x, y)
 	local _, instanceType = IsInInstance()
 	if instanceType == "pvp" then
 		_G.MinimapCluster:SetShown(not RE.Settings.hideMinimap)
 	end
 end
 
-function REPorter_UpdateScaleConfig(_, val)
+function RE:UpdateScaleConfig(_, val)
 	if RE.Settings[RE.CurrentMap] then
 		if val then
 			RE.Settings[RE.CurrentMap]["scale"] = val
-			_G.REPorter_UpdateConfig()
+			RE:UpdateConfig()
 		else
 			return RE.Settings[RE.CurrentMap]["scale"]
 		end
@@ -1699,36 +1698,33 @@ function REPorter_UpdateScaleConfig(_, val)
 	end
 end
 
-function REPorter_PrepareConfig()
+function RE:PrepareConfig()
 	if not _G.REPorterSettings or not _G.REPorterSettings["configVersion"] then
 		_G.REPorterSettings = RE.DefaultConfig
 	end
-	if _G.REPorterSettings["configVersion"] < 127 then
-		_G.REPorterSettings["HillsbradFoothillsBG"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2}
-		_G.REPorterSettings["configVersion"] = 127
-	end
-	if _G.REPorterSettings["configVersion"] < 130 then
-		_G.REPorterSettings["displayMarks"] = false
-		_G.REPorterSettings["configVersion"] = 130
-	end
 	RE.Settings = _G.REPorterSettings
+	for key, value in pairs(RE.DefaultConfig) do
+		if RE.Settings[key] == nil then
+			RE.Settings[key] = value
+		end
+	end
 	_G.LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", RE.AceConfig)
 	_G.LibStub("AceConfigDialog-3.0"):AddToBlizOptions("REPorter", "REPorter")
-	_G.REPorter_UpdateConfig()
+	RE:UpdateConfig()
 end
 
-function REPorter_ShowDummyMap(mapFileName)
+function RE:ShowDummyMap(mapFileName)
 	RE.ScaleDisabled = false
 	RE.CurrentMap = mapFileName
-	_G.REPorterExternal:ClearAllPoints()
-	_G.REPorterExternal:SetScale(RE.Settings[mapFileName]["scale"])
-	_G.REPorterExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings[mapFileName]["x"], RE.Settings[mapFileName]["y"])
-	_G.REPorterExternal:SetHeight(RE.MapSettings[mapFileName]["HE"])
-	_G.REPorterExternal:SetWidth(RE.MapSettings[mapFileName]["WI"])
-	_G.REPorterExternal:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"])
-	_G.REPorterExternal:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"])
-	_G.REPorterBorder:SetHeight(RE.MapSettings[mapFileName]["HE"] + 5)
-	_G.REPorterBorder:SetWidth(RE.MapSettings[mapFileName]["WI"] + 5)
+	_G.REPorterFrameExternal:ClearAllPoints()
+	_G.REPorterFrameExternal:SetScale(RE.Settings[mapFileName]["scale"])
+	_G.REPorterFrameExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings[mapFileName]["x"], RE.Settings[mapFileName]["y"])
+	_G.REPorterFrameExternal:SetHeight(RE.MapSettings[mapFileName]["HE"])
+	_G.REPorterFrameExternal:SetWidth(RE.MapSettings[mapFileName]["WI"])
+	_G.REPorterFrameExternal:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"])
+	_G.REPorterFrameExternal:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"])
+	_G.REPorterFrameBorder:SetHeight(RE.MapSettings[mapFileName]["HE"] + 5)
+	_G.REPorterFrameBorder:SetWidth(RE.MapSettings[mapFileName]["WI"] + 5)
 	local texName
 	local numDetailTiles = GetNumberOfDetailTiles()
 	for i=1, numDetailTiles do
@@ -1737,23 +1733,23 @@ function REPorter_ShowDummyMap(mapFileName)
 		else
 			texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i
 		end
-		_G["REPorter"..i]:SetTexture(texName)
+		_G["REPorterFrame"..i]:SetTexture(texName)
 	end
-	_G.REPorterExternal:Show()
-	_G.REPorterTab:Show()
+	_G.REPorterFrameExternal:Show()
+	_G.REPorterFrameTab:Show()
 	_G.InterfaceOptionsFrame:SetFrameStrata("LOW")
-	_G.REPorterExternal:SetFrameStrata("MEDIUM")
+	_G.REPorterFrameExternal:SetFrameStrata("MEDIUM")
 end
 
-function REPorter_HideDummyMap()
+function RE:HideDummyMap()
 	if select(2, IsInInstance()) ~= "pvp" then
 		RE.ScaleDisabled = true
 		RE.CurrentMap = ""
 		RE.LastMap = 0
-		_G.REPorterExternal:Hide()
-		_G.REPorterTab:Hide()
+		_G.REPorterFrameExternal:Hide()
+		_G.REPorterFrameTab:Hide()
 		_G.InterfaceOptionsFrame:SetFrameStrata("HIGH")
-		_G.REPorterExternal:SetFrameStrata("LOW")
+		_G.REPorterFrameExternal:SetFrameStrata("LOW")
 	end
 end
 --

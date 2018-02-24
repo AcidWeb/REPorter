@@ -2,7 +2,7 @@
 
 	<Script file="REPorter.lua"/>
 
-	<Frame name="REPorterPOITimerTemplate" parent="REPorterTimerOverlay" virtual="true">
+	<Frame name="REPorter_POITimerTemplate" parent="REPorterFrameTimerOverlay" virtual="true">
 		<Size>
 			<AbsDimension x="30" y="17"/>
 		</Size>
@@ -22,7 +22,7 @@
 		</Layers>
 	</Frame>
 
-	<Frame name="REPorterVehicleTemplate" hidden="true" virtual="true">
+	<Frame name="REPorter_VehicleTemplate" hidden="true" virtual="true">
 		<Size>
 			<AbsDimension x="65" y="65"/>
 		</Size>
@@ -36,20 +36,20 @@
 		</Layers>
 	</Frame>
 
-	<Frame name="REPorter_ReportDropDown" inherits="L_UIDropDownMenuTemplate" id="1" hidden="true"/>
+	<Frame name="REPorterReportDropDown" inherits="L_UIDropDownMenuTemplate" id="1" hidden="true"/>
 
-	<ScrollFrame name="REPorterExternal" frameStrata="LOW" resizable="false" hidden="true" parent="UIParent" movable="true">
+	<ScrollFrame name="REPorterFrameExternal" frameStrata="LOW" resizable="false" hidden="true" parent="UIParent" movable="true">
 		<Size>
 			<AbsDimension x="400"/>
 		</Size>
 		<ScrollChild>
-			<Frame name="REPorter" enableMouse="false">
+			<Frame name="REPorterFrame" enableMouse="false">
 				<Size>
 					<AbsDimension x="800" y="600"/>
 				</Size>
 				<Layers>
 					<Layer level="BACKGROUND">
-						<Texture name="REPorter1">
+						<Texture name="REPorterFrame1">
 							<Size>
 								<AbsDimension x="200" y="200"/>
 							</Size>
@@ -57,92 +57,92 @@
 								<Anchor point="TOPLEFT"/>
 							</Anchors>
 						</Texture>
-						<Texture name="REPorter2">
+						<Texture name="REPorterFrame2">
 							<Size>
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter1" relativePoint="TOPRIGHT"/>
+								<Anchor point="TOPLEFT" relativeTo="REPorterFrame1" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
-						<Texture name="REPorter3">
+						<Texture name="REPorterFrame3">
 							<Size>
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter2" relativePoint="TOPRIGHT"/>
+								<Anchor point="TOPLEFT" relativeTo="REPorterFrame2" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
-						<Texture name="REPorter4">
+						<Texture name="REPorterFrame4">
 							<Size>
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter3" relativePoint="TOPRIGHT"/>
+								<Anchor point="TOPLEFT" relativeTo="REPorterFrame3" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
-						<Texture name="REPorter5">
+						<Texture name="REPorterFrame5">
 							<Size>
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter1" relativePoint="BOTTOMLEFT"/>
+								<Anchor point="TOPLEFT" relativeTo="REPorterFrame1" relativePoint="BOTTOMLEFT"/>
 							</Anchors>
 						</Texture>
-						<Texture name="REPorter6">
+						<Texture name="REPorterFrame6">
 							<Size>
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter5" relativePoint="TOPRIGHT"/>
+								<Anchor point="TOPLEFT" relativeTo="REPorterFrame5" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
-						<Texture name="REPorter7">
+						<Texture name="REPorterFrame7">
 							<Size>
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter6" relativePoint="TOPRIGHT"/>
+								<Anchor point="TOPLEFT" relativeTo="REPorterFrame6" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
-						<Texture name="REPorter8">
+						<Texture name="REPorterFrame8">
 							<Size>
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter7" relativePoint="TOPRIGHT"/>
+								<Anchor point="TOPLEFT" relativeTo="REPorterFrame7" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
-						<Texture name="REPorter9">
+						<Texture name="REPorterFrame9">
 							<Size>
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter5" relativePoint="BOTTOMLEFT"/>
+								<Anchor point="TOPLEFT" relativeTo="REPorterFrame5" relativePoint="BOTTOMLEFT"/>
 							</Anchors>
 						</Texture>
-						<Texture name="REPorter10">
+						<Texture name="REPorterFrame10">
 							<Size>
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter9" relativePoint="TOPRIGHT"/>
+								<Anchor point="TOPLEFT" relativeTo="REPorterFrame9" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
-						<Texture name="REPorter11">
+						<Texture name="REPorterFrame11">
 							<Size>
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter10" relativePoint="TOPRIGHT"/>
+								<Anchor point="TOPLEFT" relativeTo="REPorterFrame10" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
-						<Texture name="REPorter12">
+						<Texture name="REPorterFrame12">
 							<Size>
 								<AbsDimension x="200" y="200"/>
 							</Size>
 							<Anchors>
-								<Anchor point="TOPLEFT" relativeTo="REPorter11" relativePoint="TOPRIGHT"/>
+								<Anchor point="TOPLEFT" relativeTo="REPorterFrame11" relativePoint="TOPRIGHT"/>
 							</Anchors>
 						</Texture>
 					</Layer>
@@ -150,7 +150,7 @@
 			</Frame>
 		</ScrollChild>
 		<Frames>
-			<Frame name="REPorterBorder" frameLevel="5" enableMouse="false">
+			<Frame name="REPorterFrameBorder" frameLevel="5" enableMouse="false">
 				<Anchors>
 					<Anchor point="CENTER"/>
 				</Anchors>
@@ -165,24 +165,17 @@
 			</Frame>
 		</Frames>
 		<Scripts>
-			<OnLoad>REPorter_OnLoad(self)</OnLoad>
-			<OnDragStart>
-				if not REPorterSettings.locked then
-				REPorterExternal:StartMoving()
-				end
-			</OnDragStart>
-			<OnDragStop>
-				REPorterExternal:StopMovingOrSizing()
-				REPorterSettings[REPorterNamespace["CurrentMap"]].x, REPorterSettings[REPorterNamespace["CurrentMap"]].y = REPorterExternal:GetCenter()
-			</OnDragStop>
+			<OnLoad>REPorter:OnLoad(self)</OnLoad>
+			<OnShow>REPorter:OnShow(self)</OnShow>
+			<OnHide>REPorter:OnHide(self)</OnHide>
+			<OnEvent>REPorter:OnEvent(self, event, ...)</OnEvent>
+			<OnDragStart>if not REPorterSettings.locked then REPorterFrameExternal:StartMoving() end</OnDragStart>
+			<OnDragStop>REPorterFrameExternal:StopMovingOrSizing(); REPorterSettings[REPorter["CurrentMap"]].x, REPorterSettings[REPorter["CurrentMap"]].y = REPorterFrameExternal:GetCenter()</OnDragStop>
 			<OnLeave>L_CloseDropDownMenus()</OnLeave>
-			<OnShow function="REPorter_OnShow"/>
-			<OnHide function="REPorter_OnHide"/>
-			<OnEvent function="REPorter_OnEvent"/>
 		</Scripts>
 	</ScrollFrame>
 
-	<Frame name="REPorterTab" parent="REPorterExternal" frameStrata="MEDIUM">
+	<Frame name="REPorterFrameTab" parent="REPorterFrameExternal" frameStrata="MEDIUM">
 		<Size>
 			<AbsDimension x="45" y="220"/>
 		</Size>
@@ -210,7 +203,7 @@
 					</Anchor>
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_SmallButton(1)</OnClick>
+					<OnClick>REPorter:SmallButton(1)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB2" text="2" inherits="UIPanelButtonTemplate">
@@ -221,7 +214,7 @@
 					<Anchor point="TOP" relativeTo="$parent_SB1" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_SmallButton(2)</OnClick>
+					<OnClick>REPorter:SmallButton(2)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB3" text="3" inherits="UIPanelButtonTemplate">
@@ -232,7 +225,7 @@
 					<Anchor point="TOP" relativeTo="$parent_SB2" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_SmallButton(3)</OnClick>
+					<OnClick>REPorter:SmallButton(3)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB4" text="4" inherits="UIPanelButtonTemplate">
@@ -243,7 +236,7 @@
 					<Anchor point="TOP" relativeTo="$parent_SB3" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_SmallButton(4)</OnClick>
+					<OnClick>REPorter:SmallButton(4)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB5" text="5" inherits="UIPanelButtonTemplate">
@@ -254,7 +247,7 @@
 					<Anchor point="TOP" relativeTo="$parent_SB4" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_SmallButton(5)</OnClick>
+					<OnClick>REPorter:SmallButton(5)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_SB6" text="Z" inherits="UIPanelButtonTemplate">
@@ -265,7 +258,7 @@
 					<Anchor point="TOP" relativeTo="$parent_SB5" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_SmallButton(6)</OnClick>
+					<OnClick>REPorter:SmallButton(6)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_BB1" text="H" inherits="UIPanelButtonTemplate">
@@ -276,7 +269,7 @@
 					<Anchor point="TOP" relativeTo="$parent_SB6" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_BigButton(true)</OnClick>
+					<OnClick>REPorter:BigButton(true)</OnClick>
 				</Scripts>
 			</Button>
 			<Button name="$parent_BB2" text="C" inherits="UIPanelButtonTemplate">
@@ -287,17 +280,17 @@
 					<Anchor point="TOP" relativeTo="$parent_BB1" relativePoint="BOTTOM"/>
 				</Anchors>
 				<Scripts>
-					<OnClick>REPorter_BigButton(false)</OnClick>
+					<OnClick>REPorter:BigButton(false)</OnClick>
 				</Scripts>
 			</Button>
 		</Frames>
 		<Scripts>
-			<OnEnter>REPorter_OnEnter()</OnEnter>
-			<OnLeave>REPorter_OnLeave()</OnLeave>
+			<OnEnter>REPorter:OnEnter()</OnEnter>
+			<OnLeave>REPorter:OnLeave()</OnLeave>
 		</Scripts>
 	</Frame>
 
-	<Frame name="REPorterEstimator" parent="WorldStateAlwaysUpFrame" hidden="true" resizable="false" movable="false">
+	<Frame name="REPorterFrameEstimator" parent="WorldStateAlwaysUpFrame" hidden="true" resizable="false" movable="false">
 		<Size>
 			<AbsDimension x="100" y="50"/>
 		</Size>
@@ -314,38 +307,38 @@
 			</Layer>
 		</Layers>
 		<Scripts>
-			<OnMouseUp>REPorter_ReportEstimator()</OnMouseUp>
+			<OnMouseUp>REPorter:ReportEstimator()</OnMouseUp>
 		</Scripts>
 	</Frame>
 
-	<Frame name="REPorterTimerOverlay" enableMouse="false" frameStrata="LOW" parent="REPorterExternal"/>
+	<Frame name="REPorterFrameTimerOverlay" enableMouse="false" frameStrata="LOW" parent="REPorterFrameExternal"/>
 
-	<ScrollFrame name="REPorterExternalOverlay" enableMouse="false" frameStrata="LOW" parent="REPorterExternal">
+	<ScrollFrame name="REPorterFrameExternalOverlay" enableMouse="false" frameStrata="LOW" parent="REPorterFrameExternal">
 		<Size>
 			<AbsDimension x="400"/>
 		</Size>
 		<ScrollChild>
-			<Frame name="REPorterOverlay">
+			<Frame name="REPorterFrameOverlay">
 				<Size>
 					<AbsDimension x="783" y="522"/>
 				</Size>
 				<Frames>
-					<Frame name="REPorterFlag1" inherits="WorldMapFlagTemplate" id="1">
+					<Frame name="REPorterFrameFlag1" inherits="WorldMapFlagTemplate" id="1">
 						<Size>
 							<AbsDimension x="35" y="35"/>
 						</Size>
 					</Frame>
-					<Frame name="REPorterFlag2" inherits="WorldMapFlagTemplate" id="2">
+					<Frame name="REPorterFrameFlag2" inherits="WorldMapFlagTemplate" id="2">
 						<Size>
 							<AbsDimension x="35" y="35"/>
 						</Size>
 					</Frame>
-					<Frame name="REPorterFlag3" inherits="WorldMapFlagTemplate" id="3">
+					<Frame name="REPorterFrameFlag3" inherits="WorldMapFlagTemplate" id="3">
 						<Size>
 							<AbsDimension x="35" y="35"/>
 						</Size>
 					</Frame>
-					<Frame name="REPorterFlag4" inherits="WorldMapFlagTemplate" id="4">
+					<Frame name="REPorterFrameFlag4" inherits="WorldMapFlagTemplate" id="4">
 						<Size>
 							<AbsDimension x="35" y="35"/>
 						</Size>
@@ -355,12 +348,12 @@
 		</ScrollChild>
 	</ScrollFrame>
 
-	<ScrollFrame name="REPorterExternalUnitPosition" enableMouse="false" frameStrata="LOW" parent="REPorterExternal">
+	<ScrollFrame name="REPorterFrameExternalUnitPosition" enableMouse="false" frameStrata="LOW" parent="REPorterFrameExternal">
 		<Size>
 			<AbsDimension x="400"/>
 		</Size>
 		<ScrollChild>
-			<UnitPositionFrame name="REPorterUnitPosition" inherits="UnitPositionFrameTemplate">
+			<UnitPositionFrame name="REPorterFrameUnitPosition" inherits="UnitPositionFrameTemplate">
 				<Size>
 					<AbsDimension x="783" y="522"/>
 				</Size>
