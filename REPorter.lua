@@ -91,7 +91,7 @@ RE.CurrentMap = ""
 RE.ClickedPOI = ""
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 135
+RE.AddonVersionCheck = 140
 
 RE.MapSettings = {
 	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
@@ -105,7 +105,8 @@ RE.MapSettings = {
 	["TempleofKotmogu"] = {["HE"] = 250, ["WI"] = 400, ["HO"] = 185, ["VE"] = 155, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
 	["STVDiamondMineBG"] = {["HE"] = 325, ["WI"] = 435, ["HO"] = 175, ["VE"] = 95, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
 	["GoldRush"] = {["HE"] = 410, ["WI"] = 510, ["HO"] = 155, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["HillsbradFoothillsBG"] = {["HE"] = 360, ["WI"] = 240, ["HO"] = 280, ["VE"] = 80, ["StartTimer"] = 120}
+	["HillsbradFoothillsBG"] = {["HE"] = 360, ["WI"] = 240, ["HO"] = 280, ["VE"] = 80, ["StartTimer"] = 120},
+	["AzeriteBG"] = {["HE"] = 330, ["WI"] = 355, ["HO"] = 155, ["VE"] = 85, ["StartTimer"] = 120}
 }
 RE.MapNames = {
 	[GetMapNameByID(401)] = "AlteracValley",
@@ -119,7 +120,8 @@ RE.MapNames = {
 	[GetMapNameByID(736)] = "GilneasBattleground2",
 	[GetMapNameByID(626)] = "TwinPeaks",
 	[GetMapNameByID(443)] = "WarsongGulch",
-	[GetMapNameByID(1010)] = "HillsbradFoothillsBG"
+	[GetMapNameByID(1010)] = "HillsbradFoothillsBG",
+	[GetMapNameByID(1186)] = "AzeriteBG"
 }
 RE.EstimatorSettings = {
 	["ArathiBasin"] = { [0] = 0, [1] = 10/12, [2] = 10/9, [3] = 10/6, [4] = 10/3, [5] = 30},
@@ -169,7 +171,8 @@ RE.DefaultConfig = {
 	["TempleofKotmogu"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
 	["STVDiamondMineBG"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
 	["GoldRush"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["HillsbradFoothillsBG"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2}
+	["HillsbradFoothillsBG"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
+	["AzeriteBG"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2}
 }
 RE.ReportBarAnchor = {
 	[1] = {"BOTTOMLEFT", "BOTTOMRIGHT"},
@@ -254,7 +257,8 @@ RE.AceConfig = {
 				[736] = GetMapNameByID(736),
 				[626] = GetMapNameByID(626),
 				[443] = GetMapNameByID(443),
-				[1010] = GetMapNameByID(1010)
+				[1010] = GetMapNameByID(1010),
+				[1186] = GetMapNameByID(1186)
 			},
 			set = function(_, val) RE.LastMap = val; RE:ShowDummyMap(RE.MapNames[GetMapNameByID(val)]) end,
 			get = function(_) return RE.LastMap end
@@ -355,6 +359,8 @@ function RE:ClearTextures()
 	for i=1, RE.POINumber do
 		_G["REPorterFramePOI"..i]:Hide()
 		_G["REPorterFramePOI"..i.."Timer"]:Hide()
+		_G["REPorterFramePOI"..i.."Texture"]:SetTexture("Interface\\Minimap\\POIIcons")
+		_G["REPorterFramePOI"..i.."Texture"]:SetTexCoord(0, 1, 0, 1)
 		local tableCount, tableInternal = RE:TableCount(RE.POINodes)
 		for i=1, tableCount do
 			TIMER:CancelTimer(RE.POINodes[tableInternal[i]]["timer"])
@@ -960,8 +966,13 @@ function RE:OnUpdate(elapsed)
 		for i=1, GetNumMapLandmarks() do
 			local battlefieldPOIName = "REPorterFramePOI"..i
 			local battlefieldPOI = _G[battlefieldPOIName]
-			local _, name, description, textureIndex, x, y, _, showInBattleMap, _, _, poiID = GetMapLandmarkInfo(i)
+			local _, name, description, textureIndex, x, y, _, showInBattleMap, _, _, poiID, _, atlasID = GetMapLandmarkInfo(i)
 			local colorOverride = false
+			if RE.CurrentMap == "AzeriteBG" and atlasID and not showInBattleMap then
+				showInBattleMap = true
+				description = ""
+				textureIndex = -1
+			end
 			if name and showInBattleMap and textureIndex ~= nil and textureIndex ~= 0 then
 				x, y = RE:GetRealCoords(x, y)
 				local x1, x2, y1, y2 = GetPOITextureCoords(textureIndex)
@@ -1080,7 +1091,11 @@ function RE:OnUpdate(elapsed)
 				battlefieldPOI:SetPoint("CENTER", "REPorterFrame", "TOPLEFT", x, y)
 				battlefieldPOI:SetWidth(RE.POIIconSize)
 				battlefieldPOI:SetHeight(RE.POIIconSize)
-				_G[battlefieldPOIName.."Texture"]:SetTexCoord(x1, x2, y1, y2)
+				if textureIndex == -1 then
+					_G[battlefieldPOIName.."Texture"]:SetAtlas(atlasID)
+				else
+					_G[battlefieldPOIName.."Texture"]:SetTexCoord(x1, x2, y1, y2)
+				end
 				if colorOverride then
 					_G[battlefieldPOIName.."Texture"]:SetVertexColor(colorOverride[1], colorOverride[2], colorOverride[3], 1)
 				else
@@ -1092,7 +1107,15 @@ function RE:OnUpdate(elapsed)
 					elseif strfind(description, FACTION_ALLIANCE) then
 						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,0.3)
 					else
-						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,0,0.3)
+						if RE.CurrentMap == "AzeriteBG" then
+							if atlasID == "AzeriteReady" then
+								_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,1,0,0.3)
+							elseif atlasID == "AzeriteSpawning" then
+								_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,0.3)
+							end
+						else
+							_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,0,0.3)
+						end
 					end
 					_G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize)
 					_G[battlefieldPOIName.."TextureBGofBG"]:Hide()
