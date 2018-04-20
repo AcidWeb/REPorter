@@ -5,10 +5,9 @@ local TOAST = LibStub("LibToast-1.0")
 local TIMER = LibStub("AceTimer-3.0")
 _G.REPorter = RE
 
---GLOBALS: FACTION_ALLIANCE, FACTION_HORDE, MAX_RAID_MEMBERS
-local select, pairs, strsplit, gsub, tonumber, strfind, mod, print, ceil, strupper = _G.select, _G.pairs, _G.strsplit, _G.gsub, _G.tonumber, _G.strfind, _G.mod, _G.print, _G.ceil, _G.strupper
+--GLOBALS: FACTION_ALLIANCE, FACTION_HORDE, HELP_LABEL, ATTACK, HEALTH, BLUE_GEM, RED_GEM, MAX_RAID_MEMBERS
+local select, pairs, strsplit, gsub, tonumber, strfind, mod, print, ceil, strupper, next = _G.select, _G.pairs, _G.strsplit, _G.gsub, _G.tonumber, _G.strfind, _G.mod, _G.print, _G.ceil, _G.strupper, _G.next
 local mfloor = _G.math.floor
-local tinsert = _G.table.insert
 local CreateFrame = _G.CreateFrame
 local IsInInstance = _G.IsInInstance
 local IsRatedBattleground = _G.IsRatedBattleground
@@ -17,7 +16,6 @@ local IsShiftKeyDown = _G.IsShiftKeyDown
 local IsAltKeyDown = _G.IsAltKeyDown
 local IsControlKeyDown = _G.IsControlKeyDown
 local IsInBrawl = _G.C_PvP.IsInBrawl
-local IsAddOnLoaded = _G.IsAddOnLoaded
 local GetMapNameByID = _G.GetMapNameByID
 local GetScreenWidth = _G.GetScreenWidth
 local GetScreenHeight = _G.GetScreenHeight
@@ -47,36 +45,37 @@ local UnitHealth = _G.UnitHealth
 local UnitHealthMax = _G.UnitHealthMax
 local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
 local UnitGroupRolesAssigned = _G.UnitGroupRolesAssigned
-local WorldMap_GetVehicleTexture = _G.WorldMap_GetVehicleTexture
-local SetMapTooltipPosition = _G.SetMapTooltipPosition
 local SendChatMessage = _G.SendChatMessage
 local SendAddonMessage = _G.SendAddonMessage
+local SetMapTooltipPosition = _G.SetMapTooltipPosition
+local WorldMap_GetVehicleTexture = _G.WorldMap_GetVehicleTexture
 local RegisterAddonMessagePrefix = _G.RegisterAddonMessagePrefix
 
 RE.POIIconSize = 30
 RE.POINumber = 25
 RE.MapUpdateRate = 0.05
+RE.BGOverlayNum = 0
+RE.LastMap = 0
 RE.NeedRefresh = false
 RE.BGVehicles = {}
 RE.POINodes = {}
-RE.BGOverlayNum = 0
-RE.ScaleDisabled = true
-RE.LastMap = 0
+RE.PinTextures = {}
+RE.CurrentMap = ""
+RE.ClickedPOI = ""
 
 RE.DefaultTimer = 60
-RE.DoIEvenCareAboutNodes = false
-RE.DoIEvenCareAboutPoints = false
-RE.DoIEvenCareAboutGates = false
-RE.DoIEvenCareAboutFlags = false
+RE.CareAboutNodes = false
+RE.CareAboutPoints = false
+RE.CareAboutGates = false
+RE.CareAboutFlags = false
 RE.PlayedFromStart = true
+RE.GateSyncRequested = false
 RE.IoCAllianceGateName = ""
 RE.IoCHordeGateName = ""
 RE.IoCGateEstimator = {}
 RE.IoCGateEstimatorText = ""
 RE.SMEstimatorText = ""
 RE.SMEstimatorReport = ""
-RE.GateSyncRequested = false
-RE.PinTextures = {}
 RE.IsWinning = ""
 RE.IsBrawl = false
 RE.IsOverlay = false
@@ -87,26 +86,37 @@ RE.BlinkPOIMax = 0.6
 RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
-RE.CurrentMap = ""
-RE.ClickedPOI = ""
-
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 140
+RE.AddonVersionCheck = 200
 
 RE.MapSettings = {
-	["ArathiBasin"] = {["HE"] = 340, ["WI"] = 340, ["HO"] = 210, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["WarsongGulch"] = {["HE"] = 460, ["WI"] = 275, ["HO"] = 270, ["VE"] = 40, ["StartTimer"] = 120},
-	["AlteracValley"] = {["HE"] = 460, ["WI"] = 200, ["HO"] = 270, ["VE"] = 35, ["StartTimer"] = 120},
-	["NetherstormArena"] = {["HE"] = 340, ["WI"] = 200, ["HO"] = 275, ["VE"] = 90, ["pointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
-	["StrandoftheAncients"] = {["HE"] = 410, ["WI"] = 275, ["HO"] = 240, ["VE"] = 100, ["StartTimer"] = 120},
-	["IsleofConquest"] = {["HE"] = 370, ["WI"] = 325, ["HO"] = 230, ["VE"] = 90, ["StartTimer"] = 120},
-	["GilneasBattleground2"] = {["HE"] = 360, ["WI"] = 325, ["HO"] = 230, ["VE"] = 90, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["TwinPeaks"] = {["HE"] = 435, ["WI"] = 250, ["HO"] = 280, ["VE"] = 40, ["StartTimer"] = 120},
-	["TempleofKotmogu"] = {["HE"] = 250, ["WI"] = 400, ["HO"] = 185, ["VE"] = 155, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["STVDiamondMineBG"] = {["HE"] = 325, ["WI"] = 435, ["HO"] = 175, ["VE"] = 95, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["GoldRush"] = {["HE"] = 410, ["WI"] = 510, ["HO"] = 155, ["VE"] = 50, ["pointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["HillsbradFoothillsBG"] = {["HE"] = 360, ["WI"] = 240, ["HO"] = 280, ["VE"] = 80, ["StartTimer"] = 120},
-	["AzeriteBG"] = {["HE"] = 330, ["WI"] = 355, ["HO"] = 155, ["VE"] = 85, ["StartTimer"] = 120}
+	["ArathiBasin"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
+	["WarsongGulch"] = {["StartTimer"] = 120},
+	["AlteracValley"] = {["StartTimer"] = 120},
+	["NetherstormArena"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
+	["StrandoftheAncients"] = {["StartTimer"] = 120},
+	["IsleofConquest"] = {["StartTimer"] = 120},
+	["GilneasBattleground2"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
+	["TwinPeaks"] = {["StartTimer"] = 120},
+	["TempleofKotmogu"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
+	["STVDiamondMineBG"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
+	["GoldRush"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
+	["HillsbradFoothillsBG"] = {["VE"] = 80, ["StartTimer"] = 120},
+	["AzeriteBG"] = {["StartTimer"] = 120}
+}
+RE.ZonesWithoutSubZones = {
+	["GoldRush"] = true,
+	["STVDiamondMineBG"] = true,
+	["TempleofKotmogu"] = true,
+	["HillsbradFoothillsBG"] = true
+}
+RE.EstimatorSettings = {
+	["ArathiBasin"] = { [0] = 0, [1] = 10/12, [2] = 10/9, [3] = 10/6, [4] = 10/3, [5] = 30},
+	["NetherstormArena"] = { [0] = 0, [1] = 1, [2] = 2, [3] = 5, [4] = 10},
+	["GilneasBattleground2"] = { [0] = 0, [1] = 10/9, [2] = 10/3, [3] = 30},
+	["GoldRush"] = { [0] = 0, [1] = 1.6, [2] = 3.2, [3] = 6.4},
+	["TempleofKotmogu"] = {["CenterP"] = 1, ["InnerP"] = 0.8, ["OuterP"] = 0.6},
+	["STVDiamondMineBG"] = 150
 }
 RE.MapNames = {
 	[GetMapNameByID(401)] = "AlteracValley",
@@ -123,14 +133,6 @@ RE.MapNames = {
 	[GetMapNameByID(1010)] = "HillsbradFoothillsBG",
 	[GetMapNameByID(1186)] = "AzeriteBG"
 }
-RE.EstimatorSettings = {
-	["ArathiBasin"] = { [0] = 0, [1] = 10/12, [2] = 10/9, [3] = 10/6, [4] = 10/3, [5] = 30},
-	["NetherstormArena"] = { [0] = 0, [1] = 1, [2] = 2, [3] = 5, [4] = 10},
-	["GilneasBattleground2"] = { [0] = 0, [1] = 10/9, [2] = 10/3, [3] = 30},
-	["GoldRush"] = { [0] = 0, [1] = 1.6, [2] = 3.2, [3] = 6.4},
-	["TempleofKotmogu"] = {["CenterP"] = 1, ["InnerP"] = 0.8, ["OuterP"] = 0.6},
-	["STVDiamondMineBG"] = 150
-}
 RE.POIDropDown = {
 	{ text = L["Incoming"], hasArrow = true, notCheckable = true,
 	menuList = {
@@ -144,7 +146,7 @@ RE.POIDropDown = {
 	{ text = HELP_LABEL, notCheckable = true, func = function() RE:BigButton(true, true) end },
 	{ text = L["Clear"], notCheckable = true, func = function() RE:BigButton(false, true) end },
 	{ text = "", notCheckable = true, disabled = true },
-	{ text = _G.ATTACK, notCheckable = true, func = function() RE:ReportDropDownClick(_G.ATTACK) end },
+	{ text = ATTACK, notCheckable = true, func = function() RE:ReportDropDownClick(ATTACK) end },
 	{ text = L["Guard"], notCheckable = true, func = function() RE:ReportDropDownClick(L["Guard"]) end },
 	{ text = L["Heavily defended"], notCheckable = true, func = function() RE:ReportDropDownClick(L["Heavily defended"]) end },
 	{ text = L["Losing"], notCheckable = true, func = function() RE:ReportDropDownClick(L["Losing"]) end },
@@ -153,26 +155,28 @@ RE.POIDropDown = {
 	{ text = L["Report status"], notCheckable = true, func = function() RE:ReportDropDownClick("") end }
 }
 RE.DefaultConfig = {
-	barHandle = 1,
-	locked = false,
-	nameAdvert = false,
-	opacity = 0.80,
-	hideMinimap = false,
-	displayMarks = false,
-	configVersion = RE.AddonVersionCheck,
-	["ArathiBasin"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["WarsongGulch"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["AlteracValley"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["NetherstormArena"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["StrandoftheAncients"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["IsleofConquest"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["GilneasBattleground2"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["TwinPeaks"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["TempleofKotmogu"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["STVDiamondMineBG"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["GoldRush"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["HillsbradFoothillsBG"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2},
-	["AzeriteBG"] = {["scale"] = 1.0, ["x"] = GetScreenWidth()/2, ["y"] = GetScreenHeight()/2}
+	BarHandle = 11,
+	BarX = 250,
+	BarY = 250,
+	Locked = false,
+	Opacity = 0.80,
+	HideMinimap = false,
+	DisplayMarks = false,
+	Map = {
+		["ArathiBasin"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
+		["WarsongGulch"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
+		["AlteracValley"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
+		["NetherstormArena"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
+		["StrandoftheAncients"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
+		["IsleofConquest"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
+		["GilneasBattleground2"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
+		["TwinPeaks"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
+		["TempleofKotmogu"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
+		["STVDiamondMineBG"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
+		["GoldRush"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
+		["HillsbradFoothillsBG"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
+		["AzeriteBG"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1}
+	}
 }
 RE.ReportBarAnchor = {
 	[1] = {"BOTTOMLEFT", "BOTTOMRIGHT"},
@@ -180,67 +184,78 @@ RE.ReportBarAnchor = {
 	[3] = {"TOPLEFT", "TOPRIGHT"},
 	[4] = {"BOTTOMRIGHT", "BOTTOMLEFT"},
 	[5] = {"RIGHT", "LEFT"},
-	[6] = {"TOPRIGHT", "TOPLEFT"}
+	[6] = {"TOPRIGHT", "TOPLEFT"},
+	[7] = {"BOTTOMLEFT", "TOPLEFT"},
+	[8] = {"BOTTOM", "TOP"},
+	[9] = {"BOTTOMRIGHT", "TOPRIGHT"},
+	[10] = {"TOPLEFT", "BOTTOMLEFT"},
+	[11] = {"TOP", "BOTTOM"},
+	[12] = {"TOPRIGHT", "BOTTOMRIGHT"}
 }
 RE.AceConfig = {
 	type = "group",
 	args = {
-		locked = {
+		Locked = {
 			name = L["Lock map"],
-			desc = L["When checked map is locked in place."],
+			desc = L["When checked map and report bar is locked in place."],
 			type = "toggle",
 			width = "full",
 			order = 1,
-			set = function(_, val) RE.Settings.locked = val end,
-			get = function(_) return RE.Settings.locked end
+			set = function(_, val) RE.Settings.Locked = val; RE:UpdateConfig() end,
+			get = function(_) return RE.Settings.Locked end
 		},
-		nameAdvert = {
-			name = L["Add \"[REPorter]\" to end of each report"],
-			desc = L["When checked shameless advert is added to each battleground report."],
-			type = "toggle",
-			width = "full",
+		Description = {
+			type = "description",
+			name = L["When the lock is disabled map can be moved by dragging.\nMap frame can be resized by using holder at the bottom right corner.\nHold SHIFT to move map inside the frame.\nScroll wheel control map zoom."],
 			order = 2,
-			set = function(_, val) RE.Settings.nameAdvert = val; RE:UpdateConfig() end,
-			get = function(_) return RE.Settings.nameAdvert end
 		},
-		hideMinimap = {
+		HideMinimap = {
 			name = L["Hide minimap on battlegrounds"],
-			desc = L["When checked minimap will be hidden when player is on battleground."],
+			desc = L["When checked minimap will be hidden when a player is on the battleground."],
 			type = "toggle",
 			width = "full",
 			order = 3,
-			set = function(_, val) RE.Settings.hideMinimap = val; RE:UpdateConfig() end,
-			get = function(_) return RE.Settings.hideMinimap end
+			set = function(_, val) RE.Settings.HideMinimap = val; RE:UpdateConfig() end,
+			get = function(_) return RE.Settings.HideMinimap end
 		},
-		displayMarks = {
+		DisplayMarks = {
 			name = L["Always display raid markers"],
 			desc = L["When checked player pins will be always replaced with raid markers."],
 			type = "toggle",
 			width = "full",
 			order = 4,
-			set = function(_, val) RE.Settings.displayMarks = val; RE:UpdateConfig() end,
-			get = function(_) return RE.Settings.displayMarks end
+			set = function(_, val) RE.Settings.DisplayMarks = val; RE:UpdateConfig() end,
+			get = function(_) return RE.Settings.DisplayMarks end
 		},
-		barHandle = {
+		BarHandle = {
 			name = L["Report bar location"],
-			desc = L["Anchor point of bar with quick report buttons."],
+			desc = L["Anchor point of a bar with quick report buttons."],
 			type = "select",
 			width = "double",
 			order = 5,
 			values = {
-				[1] = L["Bottom right"],
+				[1] = L["Right bottom"],
 				[2] = L["Right"],
-				[3] = L["Top right"],
-				[4] = L["Bottom left"],
+				[3] = L["Right top"],
+				[4] = L["Left bottom"],
 				[5] = L["Left"],
-				[6] = L["Top left"]
+				[6] = L["Left top"],
+				[7] = L["Top left"],
+				[8] = L["Top"],
+				[9] = L["Top right"],
+				[10] = L["Bottom left"],
+				[11] = L["Bottom"],
+				[12] = L["Bottom right"],
+				[13] = L["Standalone - Horizontal"],
+				[14] = L["Standalone - Vertical"],
+				[15] = L["Hidden"]
 			},
-			set = function(_, val) RE.Settings.barHandle = val; RE:UpdateConfig() end,
-			get = function(_) return RE.Settings.barHandle end
+			set = function(_, val) RE.Settings.BarHandle = val; RE:UpdateConfig() end,
+			get = function(_) return RE.Settings.BarHandle end
 		},
-		mapSettings = {
+		MapSettings = {
 			name = BATTLEGROUND,
-			desc = L["Map position and scale is saved separately for each battleground."],
+			desc = L["Map position is saved separately for each battleground."],
 			type = "select",
 			width = "double",
 			order = 6,
@@ -263,20 +278,19 @@ RE.AceConfig = {
 			set = function(_, val) RE.LastMap = val; RE:ShowDummyMap(RE.MapNames[GetMapNameByID(val)]) end,
 			get = function(_) return RE.LastMap end
 		},
-		scale = {
+		Scale = {
 			name = L["Map scale"],
 			desc = L["This option control map size."],
 			type = "range",
 			width = "double",
 			order = 7,
-			disabled = function(_) if select(2, IsInInstance()) == "pvp" then return false else return RE.ScaleDisabled end end,
 			min = 0.5,
 			max = 1.5,
 			step = 0.05,
 			set = function(_, val) RE:UpdateScaleConfig(_, val) end,
 			get = function(_) return RE:UpdateScaleConfig() end
 		},
-		opacity = {
+		Opacity = {
 			name = L["Map alpha"],
 			desc = L["This option control map transparency."],
 			type = "range",
@@ -286,8 +300,8 @@ RE.AceConfig = {
 			min = 0.1,
 			max = 1,
 			step = 0.01,
-			set = function(_, val) RE.Settings.opacity = val; RE:UpdateConfig() end,
-			get = function(_) return RE.Settings.opacity end
+			set = function(_, val) RE.Settings.Opacity = val; RE:UpdateConfig() end,
+			get = function(_) return RE.Settings.Opacity end
 		},
 	}
 }
@@ -336,39 +350,31 @@ function RE:Round(num, idp)
 end
 
 function RE:GetRealCoords(rawX, rawY)
-	local realX, realY = 0, 0
-	-- X -17
-	-- Y -78
-	realX = rawX * 783
-	realY = -rawY * 522
-	return realX, realY
+	-- X -17 Y -78
+	return rawX * 783, -rawY * 522
 end
 
-function RE:TableCount(Table)
-	local RENum = 0
-	local RETable = {}
-	for k,_ in pairs(Table) do
-		RENum = RENum + 1
-		tinsert(RETable, k)
-	end
-	return RENum, RETable
+function RE:FramesOverlap(frameA, frameB)
+	local sA, sB = frameA:GetEffectiveScale(), frameB:GetEffectiveScale()
+	return (frameA:GetLeft() * sA) < (frameB:GetRight() * sB)
+	and (frameB:GetLeft() * sB) < (frameA:GetRight() * sA)
+	and (frameA:GetBottom() * sA) < (frameB:GetTop() * sB)
+	and (frameB:GetBottom() * sB) < (frameA:GetTop() * sA)
 end
 
 function RE:ClearTextures()
 	TIMER:CancelTimer(RE.EstimatorTimer)
 	for i=1, RE.POINumber do
-		_G["REPorterFramePOI"..i]:Hide()
-		_G["REPorterFramePOI"..i.."Timer"]:Hide()
-		_G["REPorterFramePOI"..i.."Texture"]:SetTexture("Interface\\Minimap\\POIIcons")
-		_G["REPorterFramePOI"..i.."Texture"]:SetTexCoord(0, 1, 0, 1)
-		local tableCount, tableInternal = RE:TableCount(RE.POINodes)
-		for i=1, tableCount do
-			TIMER:CancelTimer(RE.POINodes[tableInternal[i]]["timer"])
+		_G["REPorterFrameCorePOI"..i]:Hide()
+		_G["REPorterFrameCorePOI"..i.."Timer"]:Hide()
+		_G["REPorterFrameCorePOI"..i.."Texture"]:SetTexture("Interface\\Minimap\\POIIcons")
+		_G["REPorterFrameCorePOI"..i.."Texture"]:SetTexCoord(0, 1, 0, 1)
+		for k, _ in pairs(RE.POINodes) do
+			TIMER:CancelTimer(RE.POINodes[k]["timer"])
 		end
 	end
 	for i=1, 4 do
-		local flagFrameName = "REPorterFrameFlag"..i
-		local flagFrame = _G[flagFrameName]
+		local flagFrame = _G["REPorterFrameCorePOIFlag"..i]
 		flagFrame:Hide()
 	end
 	if RE.numVehicles then
@@ -378,17 +384,17 @@ function RE:ClearTextures()
 	end
 	local numDetailTiles = GetNumberOfDetailTiles()
 	for i=1, numDetailTiles do
-		_G["REPorterFrame"..i]:SetTexture(nil)
+		_G["REPorterFrameCoreMap"..i]:SetTexture(nil)
 	end
 	for i=1, RE.BGOverlayNum do
-		_G["REPorterFrameMapOverlay"..i]:SetTexture(nil)
+		_G["REPorterFrameCoreMapOverlay"..i]:SetTexture(nil)
 	end
 	RE.POINodes = {}
 end
 
 function RE:CreatePOI(index)
-	local frameMain = CreateFrame("Frame", "REPorterFramePOI"..index, _G.REPorterFrame)
-	frameMain:SetFrameLevel(10 + index)
+	local frameMain = CreateFrame("Frame", "REPorterFrameCorePOI"..index, _G.REPorterFrameCorePOI)
+	frameMain:SetFrameLevel(10)
 	frameMain:SetWidth(RE.POIIconSize)
 	frameMain:SetHeight(RE.POIIconSize)
 	frameMain:SetScript("OnEnter", function(self) RE:UnitOnEnterPOI(self) end)
@@ -413,16 +419,22 @@ function RE:CreatePOI(index)
 	local texture = frameMain:CreateTexture(frameMain:GetName().."TextureBGTop1", "BORDER")
 	texture:SetPoint("TOPLEFT", frameMain, "TOPLEFT")
 	texture:SetWidth(RE.POIIconSize)
-	texture:SetHeight(3)
+	texture:SetHeight(2)
 	texture:SetColorTexture(0,1,0,1)
 	local texture = frameMain:CreateTexture(frameMain:GetName().."TextureBGTop2", "BORDER")
 	texture:SetPoint("BOTTOMLEFT", frameMain, "BOTTOMLEFT")
 	texture:SetWidth(RE.POIIconSize)
-	texture:SetHeight(3)
+	texture:SetHeight(2)
 	texture:SetColorTexture(0,1,0,1)
-	local frame = CreateFrame("Frame", "REPorterFramePOI"..index.."Timer", _G.REPorterFrameTimerOverlay, "REPorter_POITimerTemplate")
-	frame:SetFrameLevel(11 + index)
+	local frame = CreateFrame("Frame", "REPorterFrameCorePOI"..index.."Timer", _G.REPorterFrameCorePOITimers, "REPorterPOITimerTemplate")
+	frame:SetFrameLevel(11)
 	frame:SetPoint("CENTER", frameMain, "CENTER")
+end
+
+function RE:SOTAStartCheck()
+	local startCheck = {GetMapLandmarkInfo(7)}
+	local sideCheck = {GetMapLandmarkInfo(10)}
+	return (startCheck[4] == 46 or startCheck[4] == 48), sideCheck[4] == 102
 end
 
 function RE:UpdateIoCEstimator()
@@ -433,16 +445,6 @@ function RE:UpdateIoCEstimator()
 	else
 		RE.IoCGateEstimatorText = ""
 	end
-end
-
-function RE:HideTooltip()
-	_G.GameTooltip:Hide()
-end
-
-function RE:SOTAStartCheck()
-	local startCheck = {GetMapLandmarkInfo(7)}
-	local sideCheck = {GetMapLandmarkInfo(10)}
-	return (startCheck[4] == 46 or startCheck[4] == 48), sideCheck[4] == 102
 end
 
 function RE:EstimatorFill(ATimeToWin, HTimeToWin, RefreshTimer, APointNum, HPointNum)
@@ -465,7 +467,7 @@ function RE:EstimatorFill(ATimeToWin, HTimeToWin, RefreshTimer, APointNum, HPoin
 		else
 			RE.IsWinning = ""
 		end
-	elseif APointNum >= RE.MapSettings[RE.CurrentMap]["pointsToWin"] or HPointNum >= RE.MapSettings[RE.CurrentMap]["pointsToWin"] then
+	elseif APointNum >= RE.MapSettings[RE.CurrentMap]["PointsToWin"] or HPointNum >= RE.MapSettings[RE.CurrentMap]["PointsToWin"] then
 		TIMER:CancelTimer(RE.EstimatorTimer)
 		RE.IsWinning = ""
 	end
@@ -491,15 +493,24 @@ function RE:TimerJoinCheck()
 	end
 end
 
-function RE:TimerTabHider()
-	_G.REPorterFrameTab:SetAlpha(0.25)
+function RE:TimerBarHider()
+	_G.REPorterBar:SetAlpha(0.25)
+end
+
+function RE:TimerDropDownHider()
+	_G.L_CloseDropDownMenus()
+end
+
+function RE:HideTooltip()
+	_G.GameTooltip:Hide()
 end
 
 function RE:GetMapInfo()
-	if GetMapInfo() == "ArathiBasinWinter" then
+	local map = GetMapInfo()
+	if map == "ArathiBasinWinter" then
 		return "ArathiBasin"
 	else
-		return GetMapInfo()
+		return map
 	end
 end
 --
@@ -512,18 +523,13 @@ function RE:OnLoad(self)
 	self:RegisterEvent("CHAT_MSG_ADDON")
 	self:RegisterEvent("MODIFIER_STATE_CHANGED")
 	self:RegisterEvent("GROUP_ROSTER_UPDATE")
-	self:RegisterForDrag("LeftButton")
-	_G.InterfaceOptionsFrame:HookScript("OnHide", RE.HideDummyMap)
-	RE.updateTimer = 0
 end
 
 function RE:OnShow(_)
 	if RE.CurrentMap ~= RE:GetMapInfo() then
 		SetMapToCurrentZone()
 		_G.REPorterFrameEstimator:Show()
-		_G.REPorterFrameExternal:SetScrollChild(_G.REPorterFrame)
-		_G.REPorterFrameTab:SetAlpha(0.25)
-		if RE.Settings.hideMinimap then
+		if RE.Settings.HideMinimap then
 			_G.MinimapCluster:Hide()
 		end
 	end
@@ -531,45 +537,101 @@ end
 
 function RE:OnHide(_)
 	if RE.CurrentMap ~= RE:GetMapInfo() then
-		_G.REPorterFrameUnitPosition:SetScript("OnUpdate", nil)
-		RE.CurrentMap = ""
-		RE.IsBrawl = false
-		RE.DoIEvenCareAboutNodes = false
-		RE.DoIEvenCareAboutPoints = false
-		RE.DoIEvenCareAboutGates = false
-		RE.DoIEvenCareAboutFlags = false
-		_G.REPorterFrameExternal:UnregisterEvent("UPDATE_WORLD_STATES")
-		_G.REPorterFrameExternal:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-		_G.REPorterFrameExternal:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
-		_G.REPorterFrameExternal:UnregisterEvent("BATTLEGROUND_POINTS_UPDATE")
-		RE.IsWinning = ""
+		_G.REPorterFrameCore:SetScript("OnUpdate", nil)
+		RE:SaveMapSettings()
 		RE:ClearTextures()
-		_G.L_CloseDropDownMenus()
-		_G.REPorterFrameEstimator_Text:SetText("")
-		_G.REPorterFrameEstimator:Hide()
+		RE.CurrentMap = ""
+		RE.IsWinning = ""
+		RE.IsBrawl = false
+		RE.CareAboutNodes = false
+		RE.CareAboutPoints = false
+		RE.CareAboutGates = false
+		RE.CareAboutFlags = false
 		RE.TimerOverride = false
-		if not _G.MinimapCluster:IsShown() and RE.Settings.hideMinimap then
+		_G.REPorterFrame:UnregisterEvent("UPDATE_WORLD_STATES")
+		_G.REPorterFrame:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		_G.REPorterFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
+		_G.REPorterFrame:UnregisterEvent("BATTLEGROUND_POINTS_UPDATE")
+		_G.REPorterFrameEstimator:Hide()
+		_G.REPorterFrameEstimatorText:SetText("")
+		_G.L_CloseDropDownMenus()
+		if not _G.MinimapCluster:IsShown() and RE.Settings.HideMinimap then
 			_G.MinimapCluster:Show()
 		end
 	end
 end
 
-function RE:OnEnter(_)
-	TIMER:CancelTimer(RE.TabHiderTimer)
-	_G.REPorterFrameTab:SetAlpha(RE.Settings.opacity)
+function RE:OnEnterBar(_)
+	TIMER:CancelTimer(RE.TimerBar)
+	_G.REPorterBar:SetAlpha(RE.Settings.Opacity)
+end
+
+function RE:OnLeaveBar(_)
+	if not _G.REPorterBar:IsMouseOver() then
+		TIMER:CancelTimer(RE.TimerBar)
+		RE.TimerBar = TIMER:ScheduleTimer(RE.TimerBarHider, 0.5)
+	end
 end
 
 function RE:OnLeave(_)
-	if not _G.REPorterFrameTab:IsMouseOver() then
-		TIMER:CancelTimer(RE.TabHiderTimer)
-		RE.TabHiderTimer = TIMER:ScheduleTimer(RE.TimerTabHider, 0.5)
+	TIMER:CancelTimer(RE.TimerDropDown)
+	RE.TimerDropDown = TIMER:ScheduleTimer(RE.TimerDropDownHider, 3)
+end
+
+function RE:OnDragStart(_)
+	_G.REPorterFrameCore:ClearAllPoints()
+	_G.REPorterFrameCore:SetPoint("CENTER", _G.REPorterFrameCoreAnchor, "CENTER")
+	if IsShiftKeyDown() then
+		_G.REPorterFrameCoreAnchor:StartMoving()
+	else
+		local x1, y1 = _G.REPorterFrameClip:GetCenter()
+		local x2, y2 = _G.REPorterFrameCoreAnchor:GetCenter()
+		_G.REPorterFrameCoreAnchor:ClearAllPoints()
+		_G.REPorterFrameCoreAnchor:SetPoint("CENTER", _G.REPorterFrameClip, "CENTER", x2-x1, y2-y1)
+		_G.REPorterFrame:StartMoving()
+	end
+end
+
+function RE:OnDragStop(_)
+	_G.REPorterFrameCore:ClearAllPoints()
+	_G.REPorterFrameCore:SetPoint("CENTER", _G.REPorterFrameCoreAnchor, "CENTER")
+	if not RE:FramesOverlap(_G.REPorterFrameClip, _G.REPorterFrameCore) then
+		_G.REPorterFrameCoreAnchor:ClearAllPoints()
+		_G.REPorterFrameCoreAnchor:SetPoint("CENTER", _G.REPorterFrameClip, "CENTER", 9, -39)
+	end
+end
+
+function RE:OnMouseWheel(delta)
+	local newscale = _G.REPorterFrameCore:GetScale() + (delta * 0.05)
+	if newscale > 1.5 then
+		newscale = 1.5
+	elseif newscale < 0.5 then
+		newscale = 0.5
+	end
+	newscale = RE:Round(newscale, 2)
+	_G.REPorterFrameCore:SetScale(newscale)
+	if _G.InterfaceOptionsFrame:IsShown() then
+		RE.ConfigFrame.obj.children[1].children[7]:SetValue(newscale)
 	end
 end
 
 function RE:OnEvent(_, event, ...)
 	if event == "ADDON_LOADED" and ... == "REPorter" then
-		RE:PrepareConfig()
-		_G.REPorterFrameTab:SetHitRectInsets(-5, -5, -5, -5)
+		RE.UpdateTimer = 0
+		if not _G.REPorterSettings then
+			_G.REPorterSettings = RE.DefaultConfig
+		end
+		RE.Settings = _G.REPorterSettings
+		for key, value in pairs(RE.DefaultConfig) do
+			if RE.Settings[key] == nil then
+				RE.Settings[key] = value
+			end
+		end
+		_G.LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", RE.AceConfig)
+		RE.ConfigFrame = _G.LibStub("AceConfigDialog-3.0"):AddToBlizOptions("REPorter", "REPorter")
+		_G.InterfaceOptionsFrame:HookScript("OnHide", RE.HideDummyMap)
+		RE:UpdateConfig()
+
 		RegisterAddonMessagePrefix("REPorter")
 		_G.BINDING_HEADER_REPORTERB = "REPorter"
 		_G.BINDING_NAME_REPORTERINC1 = L["Incoming"].." 1"
@@ -578,11 +640,18 @@ function RE:OnEvent(_, event, ...)
 		_G.BINDING_NAME_REPORTERINC4 = L["Incoming"].." 4"
 		_G.BINDING_NAME_REPORTERINC5 = L["Incoming"].." 5"
 		_G.BINDING_NAME_REPORTERINC6 = L["Incoming"].." 5+"
-		_G.BINDING_NAME_REPORTERHELP = _G.HELP_LABEL
+		_G.BINDING_NAME_REPORTERHELP = HELP_LABEL
 		_G.BINDING_NAME_REPORTERCLEAR = L["Clear"]
+		_G.REPorterBar:SetHitRectInsets(-5, -5, -5, -5)
+		_G.REPorterFrameClip:SetClipsChildren(true)
+		_G.REPorterFrameCoreUP:SetMouseOverUnitExcluded("player", true)
+		_G.REPorterFrameCoreUP.UpdateUnitTooltips = function(self, tooltipFrame) RE:UnitOnEnterPlayer(self, tooltipFrame) end
+		_G.REPorterFrameCoreUP:SetFrameLevel(15)
+
 		for i=1, RE.POINumber do
 			RE:CreatePOI(i)
 		end
+
 		TOAST:Register("REPorterToastInfo", function(toast, ...)
 			toast:SetFormattedTitle("|cFF74D06CRE|r|cFFFFFFFFPorter|r")
 			toast:SetFormattedText(...)
@@ -591,6 +660,7 @@ function RE:OnEvent(_, event, ...)
 	elseif event == "CHAT_MSG_ADDON" and ... == "REPorter" then
 		local _, REMessage = ...
 		local REMessageEx = {strsplit(";", REMessage)}
+
 		if REMessageEx[1] == "Version" then
 			if not RE.FoundNewVersion and tonumber(REMessageEx[2]) > RE.AddonVersionCheck then
 				TOAST:Spawn("REPorterToastInfo", L["New version released!"])
@@ -598,20 +668,18 @@ function RE:OnEvent(_, event, ...)
 			end
 		elseif REMessageEx[1] == "GateSyncRequest" and RE.PlayedFromStart then
 			local message = "GateSync;"
-			local tableCount, tableInternal = RE:TableCount(RE.POINodes)
-			for i=1, tableCount do
-				if RE.POINodes[tableInternal[i]]["health"] then
-					message = message..RE.POINodes[tableInternal[i]]["id"]..";"..RE.POINodes[tableInternal[i]]["health"]..";"
+			for k, _ in pairs(RE.POINodes) do
+				if RE.POINodes[k]["health"] then
+					message = message..RE.POINodes[k]["id"]..";"..RE.POINodes[k]["health"]..";"
 				end
 			end
 			SendAddonMessage("REPorter", message, "INSTANCE_CHAT")
 		elseif RE.GateSyncRequested and REMessageEx[1] == "GateSync" then
 			RE.GateSyncRequested = false
-			local tableCount, tableInternal = RE:TableCount(RE.POINodes)
-			for i=1, tableCount do
+			for key, _ in pairs(RE.POINodes) do
 				for k=2, #REMessageEx do
-					if REMessageEx[k] == RE.POINodes[tableInternal[i]]["id"] then
-						RE.POINodes[tableInternal[i]]["health"] = REMessageEx[k+1]
+					if REMessageEx[k] == RE.POINodes[key]["id"] then
+						RE.POINodes[key]["health"] = REMessageEx[k+1]
 					end
 				end
 			end
@@ -625,7 +693,7 @@ function RE:OnEvent(_, event, ...)
 				if score[1] then
 					score[1] = gsub(score[1], "：", " ")
 					score = {strsplit(" ", score[1])}
-					AlliancePointsNeeded = RE.MapSettings["TempleofKotmogu"]["pointsToWin"] - tonumber(score[#score])
+					AlliancePointsNeeded = RE.MapSettings["TempleofKotmogu"]["PointsToWin"] - tonumber(score[#score])
 				end
 			end
 			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["TempleofKotmogu"]["WorldStateNum"]+1)
@@ -634,7 +702,7 @@ function RE:OnEvent(_, event, ...)
 				if score[1] then
 					score[1] = gsub(score[1], "：", " ")
 					score = {strsplit(" ", score[1])}
-					HordePointsNeeded = RE.MapSettings["TempleofKotmogu"]["pointsToWin"] - tonumber(score[#score])
+					HordePointsNeeded = RE.MapSettings["TempleofKotmogu"]["PointsToWin"] - tonumber(score[#score])
 				end
 			end
 			if AlliancePointsNeeded and HordePointsNeeded then
@@ -684,7 +752,7 @@ function RE:OnEvent(_, event, ...)
 				if score[1] then
 					score[1] = gsub(score[1], "：", " ")
 					score = {strsplit(" ", score[1])}
-					AlliancePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["pointsToWin"] - tonumber(score[#score])
+					AlliancePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["PointsToWin"] - tonumber(score[#score])
 				end
 			end
 			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["STVDiamondMineBG"]["WorldStateNum"]+1)
@@ -693,7 +761,7 @@ function RE:OnEvent(_, event, ...)
 				if score[1] then
 					score[1] = gsub(score[1], "：", " ")
 					score = {strsplit(" ", score[1])}
-					HordePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["pointsToWin"] - tonumber(score[#score])
+					HordePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["PointsToWin"] - tonumber(score[#score])
 				end
 			end
 			if AlliancePointsNeeded and HordePointsNeeded then
@@ -743,17 +811,17 @@ function RE:OnEvent(_, event, ...)
 				if RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum] == 0 then
 					AllianceTimeToWin = 10000
 				else
-					AllianceTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - AlliancePointNum) / RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum]
+					AllianceTimeToWin = (RE.MapSettings[RE.CurrentMap]["PointsToWin"] - AlliancePointNum) / RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum]
 				end
 				if RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum] == 0 then
 					HordeTimeToWin = 10000
 				else
-					HordeTimeToWin = (RE.MapSettings[RE.CurrentMap]["pointsToWin"] - HordePointNum) / RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum]
+					HordeTimeToWin = (RE.MapSettings[RE.CurrentMap]["PointsToWin"] - HordePointNum) / RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum]
 				end
 				RE:EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 5, AlliancePointNum, HordePointNum)
 			end
 		end
-	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" and select(2, ...) == "SPELL_BUILDING_DAMAGE" and RE:TableCount(RE.POINodes) > 0 then
+	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" and select(2, ...) == "SPELL_BUILDING_DAMAGE" and next(RE.POINodes) ~= nil then
 		local guid, gateName, _, _, _, _, _, damage = select(8, ...)
 		if RE.CurrentMap ~= "IsleofConquest" then
 			RE.POINodes[gateName]["health"] = RE.POINodes[gateName]["health"] - damage
@@ -793,13 +861,14 @@ function RE:OnEvent(_, event, ...)
 			RE:UpdateIoCEstimator()
 		end
 	elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
-		local _, instanceType = IsInInstance()
-		_G.REPorterFrameExternal:Hide()
-		if instanceType == "pvp" then
-			_G.REPorterFrameExternal:Show()
+		_G.REPorterFrame:Hide()
+		_G.REPorterBar:Hide()
+		if select(2, IsInInstance()) == "pvp" then
 			RE.PlayedFromStart = true
 			RE.GateSyncRequested = false
 			RE:Create(false)
+			_G.REPorterFrame:Show()
+			_G.REPorterBar:Show()
 			SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "INSTANCE_CHAT")
 			if IsInGuild() then
 				SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "GUILD")
@@ -808,24 +877,23 @@ function RE:OnEvent(_, event, ...)
 			RE.CurrentMap = ""
 			RE:OnHide()
 		end
-	elseif event == "MODIFIER_STATE_CHANGED" and _G.REPorterFrameExternal:IsShown() then
+	elseif event == "MODIFIER_STATE_CHANGED" and _G.REPorterFrame:IsShown() then
 		if IsShiftKeyDown() and IsAltKeyDown() then
 			RE.NeedRefresh = true
-			_G.REPorterFrameExternalOverlay:Hide()
-			_G.REPorterFrameTimerOverlay:Show()
+			_G.REPorterFrameCoreUP:Hide()
+			_G.REPorterFrameCorePOITimers:Show()
 		elseif IsShiftKeyDown() and IsControlKeyDown() then
 			RE.NeedRefresh = true
-		elseif _G.REPorterFrameTimerOverlay:IsShown() then
+		elseif _G.REPorterFrameCorePOITimers:IsShown() then
 			RE.NeedRefresh = true
-			_G.REPorterFrameExternalOverlay:Show()
-			_G.REPorterFrameTimerOverlay:Hide()
+			_G.REPorterFrameCoreUP:Show()
+			_G.REPorterFrameCorePOITimers:Hide()
 		elseif RE.IsOverlay then
 			RE.NeedRefresh = true
 		end
-	elseif event == "GROUP_ROSTER_UPDATE" and _G.REPorterFrameExternal:IsShown() then
+	elseif event == "GROUP_ROSTER_UPDATE" and _G.REPorterFrame:IsShown() then
 		RE.NeedRefresh = true
 	elseif event == "BATTLEGROUND_POINTS_UPDATE" then
-		RE.TimerOverride = true
 		RE:CreateTimer(12)
 	elseif event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" then
 		-- SotA hack
@@ -835,24 +903,24 @@ function RE:OnEvent(_, event, ...)
 end
 
 function RE:OnUpdate(elapsed)
-	if RE.updateTimer < 0 then
+	if RE.UpdateTimer < 0 then
 		RE:BlinkPOI()
 		local subZoneName = GetSubZoneText()
-		if subZoneName and subZoneName ~= "" and RE.CurrentMap ~= "GoldRush" and RE.CurrentMap ~= "STVDiamondMineBG" and RE.CurrentMap ~= "TempleofKotmogu" and RE.CurrentMap ~= "HillsbradFoothillsBG" then
-			for _, i in pairs({"SB1", "SB2", "SB3", "SB4", "SB5", "SB6", "BB1", "BB2"}) do
-				_G["REPorterFrameTab_"..i]:Enable()
+		if subZoneName and subZoneName ~= "" and not RE.ZonesWithoutSubZones[RE.CurrentMap] then
+			for _, i in pairs({"B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"}) do
+				_G["REPorterBar"..i]:Enable()
 			end
 		else
-			for _, i in pairs({"SB1", "SB2", "SB3", "SB4", "SB5", "SB6", "BB1", "BB2"}) do
-				_G["REPorterFrameTab_"..i]:Disable()
+			for _, i in pairs({"B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"}) do
+				_G["REPorterBar"..i]:Disable()
 			end
 		end
 
 		if RE.NeedRefresh then
 			RE.NeedRefresh = false
-			_G.REPorterFrameUnitPosition:ClearUnits()
+			_G.REPorterFrameCoreUP:ClearUnits()
 		end
-		_G.REPorterFrameUnitPosition:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 50, 50, 1, 1, 1, 1, 7, true)
+		_G.REPorterFrameCoreUP:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 50, 50, 1, 1, 1, 1, 7, true)
 		if not (IsShiftKeyDown() and IsAltKeyDown()) then
 			for i = 1, MAX_RAID_MEMBERS do
 				local unit = "raid"..i
@@ -875,18 +943,18 @@ function RE:OnUpdate(elapsed)
 						RE.IsOverlay = true
 						if raidMarker ~= nil then
 							texture = "Interface\\Addons\\REPorter\\Textures\\RaidMarker"..raidMarker
-							_G.REPorterFrameUnitPosition:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1)
+							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1)
 						elseif UnitGroupRolesAssigned(unit) == "HEALER" then
 							texture = "Interface\\Addons\\REPorter\\Textures\\BlipHealer"
-							_G.REPorterFrameUnitPosition:AddUnit(unit, texture, 30, 30, r, g, b, 1)
+							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 30, 30, r, g, b, 1)
 						end
 					else
 						RE.IsOverlay = false
-						if RE.Settings.displayMarks and raidMarker ~= nil then
+						if RE.Settings.DisplayMarks and raidMarker ~= nil then
 							texture = "Interface\\Addons\\REPorter\\Textures\\RaidMarker"..raidMarker
-							_G.REPorterFrameUnitPosition:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1)
+							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1)
 						else
-							_G.REPorterFrameUnitPosition:AddUnit(unit, texture, 25, 25, r, g, b, 1)
+							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 25, 25, r, g, b, 1)
 						end
 					end
 				end
@@ -896,14 +964,13 @@ function RE:OnUpdate(elapsed)
 				RE.PinTextures[unit] = texture
 			end
 		end
-		_G.REPorterFrameUnitPosition:FinalizeUnits()
-		_G.REPorterFrameUnitPosition:UpdateTooltips(_G.GameTooltip)
-		local playerBlipFrameLevel = _G.REPorterFrameUnitPosition:GetFrameLevel()
+		_G.REPorterFrameCoreUP:FinalizeUnits()
+		_G.REPorterFrameCoreUP:UpdateTooltips(_G.GameTooltip)
+		local playerBlipFrameLevel = _G.REPorterFrameCoreUP:GetFrameLevel()
 
 		local numFlags = GetNumBattlefieldFlagPositions()
 		for i=1, 4 do
-			local flagFrameName = "REPorterFrameFlag"..i
-			local flagFrame = _G[flagFrameName]
+			local flagFrame = _G["REPorterFrameCorePOIFlag"..i]
 			if i <= numFlags and (RE.CurrentMap ~= "GoldRush" or RE.IsBrawl) then
 				local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i)
 				if flagX == 0 and flagY == 0 then
@@ -911,7 +978,7 @@ function RE:OnUpdate(elapsed)
 				else
 					flagX, flagY = RE:GetRealCoords(flagX, flagY)
 					flagFrame.Texture:SetTexture("Interface\\WorldStateFrame\\"..flagToken)
-					flagFrame:SetPoint("CENTER", "REPorterFrameOverlay", "TOPLEFT", flagX, flagY)
+					flagFrame:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", flagX, flagY)
 					flagFrame:EnableMouse(false)
 					flagFrame:SetFrameLevel(playerBlipFrameLevel - 1)
 					flagFrame:Show()
@@ -926,8 +993,8 @@ function RE:OnUpdate(elapsed)
 		local index = 0
 		for i=1, RE.numVehicles do
 			if i > totalVehicles then
-				local vehicleName = "REPorterFrame"..i
-				RE.BGVehicles[i] = CreateFrame("FRAME", vehicleName, _G.REPorterFrameOverlay, "REPorter_VehicleTemplate")
+				local vehicleName = "REPorterFrameCorePOIVehicle"..i
+				RE.BGVehicles[i] = CreateFrame("FRAME", vehicleName, _G.REPorterFrameCorePOI, "REPorterVehicleTemplate")
 				RE.BGVehicles[i].texture = _G[vehicleName.."Texture"]
 			end
 			if RE.CurrentMap == "IsleofConquest" then
@@ -945,7 +1012,7 @@ function RE:OnUpdate(elapsed)
 				RE.BGVehicles[i].texture:SetTexture(WorldMap_GetVehicleTexture(vehicleType, isPossessed))
 				RE.BGVehicles[i].texture:SetRotation(orientation)
 				RE.BGVehicles[i].name = unitName
-				RE.BGVehicles[i]:SetPoint("CENTER", "REPorterFrameOverlay", "TOPLEFT", vehicleX, vehicleY)
+				RE.BGVehicles[i]:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", vehicleX, vehicleY)
 				RE.BGVehicles[i]:SetFrameLevel(playerBlipFrameLevel - 1)
 				RE.BGVehicles[i]:Show()
 				index = i
@@ -960,11 +1027,11 @@ function RE:OnUpdate(elapsed)
 		end
 
 		for i=1, RE.POINumber do
-			_G["REPorterFramePOI"..i]:Hide()
-			_G["REPorterFramePOI"..i.."Timer"]:Hide()
+			_G["REPorterFrameCorePOI"..i]:Hide()
+			_G["REPorterFrameCorePOI"..i.."Timer"]:Hide()
 		end
 		for i=1, GetNumMapLandmarks() do
-			local battlefieldPOIName = "REPorterFramePOI"..i
+			local battlefieldPOIName = "REPorterFrameCorePOI"..i
 			local battlefieldPOI = _G[battlefieldPOIName]
 			local _, name, description, textureIndex, x, y, _, showInBattleMap, _, _, poiID, _, atlasID = GetMapLandmarkInfo(i)
 			local colorOverride = false
@@ -1022,13 +1089,13 @@ function RE:OnUpdate(elapsed)
 					end
 				elseif RE.CurrentMap == "TempleofKotmogu" then
 					if poiID == 2774 then
-						name = name.." - "..L["Blue"]
+						name = name.." - "..BLUE_GEM
 						colorOverride = {0, 0, 1}
 					elseif poiID == 2775 then
 						name = name.." - "..L["Purple"]
 						colorOverride = {0.5, 0, 0.5}
 					elseif poiID == 2776 then
-						name = name.." - "..L["Red"]
+						name = name.." - "..RED_GEM
 						colorOverride = {1, 0, 0}
 					elseif poiID == 2777 then
 						name = name.." - "..L["Green"]
@@ -1082,13 +1149,13 @@ function RE:OnUpdate(elapsed)
 					RE.POINodes[name]["status"] = description
 					RE.POINodes[name]["x"] = x
 					RE.POINodes[name]["y"] = y
-					if RE.DoIEvenCareAboutNodes and RE.POINodes[name]["texture"] and RE.POINodes[name]["texture"] ~= textureIndex then
+					if RE.CareAboutNodes and RE.POINodes[name]["texture"] and RE.POINodes[name]["texture"] ~= textureIndex then
 						RE:NodeChange(textureIndex, name)
 					end
 					RE.POINodes[name]["texture"] = textureIndex
 				end
 				battlefieldPOI.name = name
-				battlefieldPOI:SetPoint("CENTER", "REPorterFrame", "TOPLEFT", x, y)
+				battlefieldPOI:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", x, y)
 				battlefieldPOI:SetWidth(RE.POIIconSize)
 				battlefieldPOI:SetHeight(RE.POIIconSize)
 				if textureIndex == -1 then
@@ -1119,14 +1186,14 @@ function RE:OnUpdate(elapsed)
 					end
 					_G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize)
 					_G[battlefieldPOIName.."TextureBGofBG"]:Hide()
-					if RE.DoIEvenCareAboutGates and RE.POINodes[name]["health"] and RE.POINodes[name]["health"] ~= 0 and textureIndex ~= 76 and textureIndex ~= 79 and textureIndex ~= 82 and textureIndex ~= 104 and textureIndex ~= 107 and textureIndex ~= 110 then
+					if RE.CareAboutGates and RE.POINodes[name]["health"] and RE.POINodes[name]["health"] ~= 0 and textureIndex ~= 76 and textureIndex ~= 79 and textureIndex ~= 82 and textureIndex ~= 104 and textureIndex ~= 107 and textureIndex ~= 110 then
 						_G[battlefieldPOIName.."TextureBGTop1"]:Hide()
 						_G[battlefieldPOIName.."TextureBGTop2"]:Show()
 						_G[battlefieldPOIName.."TextureBGTop2"]:SetWidth((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"]) * RE.POIIconSize)
 						if RE.GateSyncRequested then
-							_G[battlefieldPOIName.."Timer_Caption"]:SetText("|cFFFF141D"..RE:Round((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"])*100, 0).."%|r")
+							_G[battlefieldPOIName.."TimerCaption"]:SetText("|cFFFF141D"..RE:Round((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"])*100, 0).."%|r")
 						else
-							_G[battlefieldPOIName.."Timer_Caption"]:SetText(RE:Round((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"])*100, 0).."%")
+							_G[battlefieldPOIName.."TimerCaption"]:SetText(RE:Round((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"])*100, 0).."%")
 						end
 						_G[battlefieldPOIName.."Timer"]:Show()
 					else
@@ -1154,7 +1221,7 @@ function RE:OnUpdate(elapsed)
 						_G[battlefieldPOIName.."TextureBGTop2"]:Hide()
 					end
 					_G[battlefieldPOIName.."Timer"]:Show()
-					_G[battlefieldPOIName.."Timer_Caption"]:SetText(RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[name]["timer"]), 0)))
+					_G[battlefieldPOIName.."TimerCaption"]:SetText(RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[name]["timer"]), 0)))
 				end
 				battlefieldPOI:Show()
 			end
@@ -1171,75 +1238,75 @@ function RE:OnUpdate(elapsed)
 					local neededTextures = textureCount + (numTexturesWide * numTexturesTall)
 					if neededTextures > RE.BGOverlayNum then
 						for j=RE.BGOverlayNum + 1, neededTextures do
-							_G.REPorterFrame:CreateTexture("REPorterFrameMapOverlay"..j, "ARTWORK")
+							_G.REPorterFrameCore:CreateTexture("REPorterFrameCoreMapOverlay"..j, "ARTWORK")
 						end
 						RE.BGOverlayNum = neededTextures
 					end
 					local texturePixelWidth, textureFileWidth, texturePixelHeight, textureFileHeight
 					for j=1, numTexturesTall do
-						if ( j < numTexturesTall ) then
+						if j < numTexturesTall then
 							texturePixelHeight = 256
 							textureFileHeight = 256
 						else
 							texturePixelHeight = mod(textureHeight, 256)
-							if ( texturePixelHeight == 0 ) then
+							if texturePixelHeight == 0 then
 								texturePixelHeight = 256
 							end
 							textureFileHeight = 16
-							while(textureFileHeight < texturePixelHeight) do
+							while textureFileHeight < texturePixelHeight do
 								textureFileHeight = textureFileHeight * 2
 							end
 						end
 						for k=1, numTexturesWide do
 							textureCount = textureCount + 1
-							local texture = _G["REPorterFrameMapOverlay"..textureCount]
-							if ( k < numTexturesWide ) then
+							local texture = _G["REPorterFrameCoreMapOverlay"..textureCount]
+							if k < numTexturesWide then
 								texturePixelWidth = 256
 								textureFileWidth = 256
 							else
 								texturePixelWidth = mod(textureWidth, 256)
-								if ( texturePixelWidth == 0 ) then
+								if texturePixelWidth == 0 then
 									texturePixelWidth = 256
 								end
 								textureFileWidth = 16
-								while(textureFileWidth < texturePixelWidth) do
+								while textureFileWidth < texturePixelWidth do
 									textureFileWidth = textureFileWidth * 2
 								end
 							end
 							texture:SetWidth(texturePixelWidth * scale)
 							texture:SetHeight(texturePixelHeight * scale)
 							texture:SetTexCoord(0, texturePixelWidth / textureFileWidth, 0, texturePixelHeight / textureFileHeight)
-							texture:SetPoint("TOPLEFT", "REPorterFrame", "TOPLEFT", (offsetX + (256 * (k - 1))) * scale, -((offsetY + (256 * (j - 1))) * scale))
+							texture:SetPoint("TOPLEFT", "REPorterFrameCore", "TOPLEFT", (offsetX + (256 * (k - 1))) * scale, -((offsetY + (256 * (j - 1))) * scale))
 							texture:SetTexture(textureName..(((j - 1) * numTexturesWide) + k))
-							texture:SetAlpha(RE.Settings.opacity)
+							texture:SetAlpha(RE.Settings.Opacity)
 							texture:Show()
 						end
 					end
 				end
 			end
 			for i=textureCount + 1, RE.BGOverlayNum do
-				_G["REPorterFrameMapOverlay"..i]:Hide()
+				_G["REPorterFrameCoreMapOverlay"..i]:Hide()
 			end
 		end
 
 		if TIMER:TimeLeft(RE.EstimatorTimer) > 0 then
 			if RE.IsWinning == FACTION_ALLIANCE then
-				_G.REPorterFrameEstimator_Text:SetText("|cFF00A9FF"..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)).."|r")
+				_G.REPorterFrameEstimatorText:SetText("|cFF00A9FF"..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)).."|r")
 			elseif RE.IsWinning == FACTION_HORDE then
-				_G.REPorterFrameEstimator_Text:SetText("|cFFFF141D"..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)).."|r")
+				_G.REPorterFrameEstimatorText:SetText("|cFFFF141D"..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)).."|r")
 			else
-				_G.REPorterFrameEstimator_Text:SetText("")
+				_G.REPorterFrameEstimatorText:SetText("")
 			end
 		elseif RE.CurrentMap == "STVDiamondMineBG" then
-			_G.REPorterFrameEstimator_Text:SetText(RE.SMEstimatorText)
+			_G.REPorterFrameEstimatorText:SetText(RE.SMEstimatorText)
 		elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
-			_G.REPorterFrameEstimator_Text:SetText(RE.IoCGateEstimatorText)
+			_G.REPorterFrameEstimatorText:SetText(RE.IoCGateEstimatorText)
 		else
-			_G.REPorterFrameEstimator_Text:SetText("")
+			_G.REPorterFrameEstimatorText:SetText("")
 		end
-		RE.updateTimer = RE.MapUpdateRate
+		RE.UpdateTimer = RE.MapUpdateRate
 	else
-		RE.updateTimer = RE.updateTimer - elapsed
+		RE.UpdateTimer = RE.UpdateTimer - elapsed
 	end
 end
 
@@ -1283,12 +1350,11 @@ function RE:UnitOnEnterVehicle(self)
 			end
 		end
 	end
-	local tableNum, tableInternal = RE:TableCount(vehicleGroup)
-	for i=1, tableNum do
-		if vehicleGroup[tableInternal[i]] == 1 then
-			tooltipText = tooltipText..prefix..tableInternal[i]
+	for k, _ in pairs(vehicleGroup) do
+		if vehicleGroup[k] == 1 then
+			tooltipText = tooltipText..prefix..k
 		else
-			tooltipText = tooltipText..prefix.."|cFFFFFFFF"..vehicleGroup[tableInternal[i]].."x|r "..tableInternal[i]
+			tooltipText = tooltipText..prefix.."|cFFFFFFFF"..vehicleGroup[k].."x|r "..k
 		end
 		prefix = "\n"
 	end
@@ -1348,95 +1414,61 @@ end
 
 -- *** Core functions
 function RE:Create(isSecond)
-	_G.REPorterFrameUnitPosition:SetScript("OnUpdate", nil)
+	_G.REPorterFrameCore:SetScript("OnUpdate", nil)
 	local mapFileName = RE:GetMapInfo()
 	if mapFileName and RE.MapSettings[mapFileName] then
 		RE.CurrentMap = mapFileName
 		RE.IsBrawl = IsInBrawl()
 		RE.POINodes = {}
-		_G.REPorterFrameExternal:ClearAllPoints()
-		_G.REPorterFrameExternal:SetScale(RE.Settings[mapFileName]["scale"])
-		_G.REPorterFrameExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings[mapFileName]["x"], RE.Settings[mapFileName]["y"])
-		_G.REPorterFrameTimerOverlay:Hide()
-		_G.REPorterFrameExternal:SetHeight(RE.MapSettings[mapFileName]["HE"])
-		_G.REPorterFrameExternalOverlay:SetHeight(RE.MapSettings[mapFileName]["HE"])
-		_G.REPorterFrameExternalUnitPosition:SetHeight(RE.MapSettings[mapFileName]["HE"])
-		_G.REPorterFrameBorder:SetHeight(RE.MapSettings[mapFileName]["HE"] + 5)
-		_G.REPorterFrameExternal:SetWidth(RE.MapSettings[mapFileName]["WI"])
-		_G.REPorterFrameExternalOverlay:SetWidth(RE.MapSettings[mapFileName]["WI"])
-		_G.REPorterFrameExternalUnitPosition:SetWidth(RE.MapSettings[mapFileName]["WI"])
-		_G.REPorterFrameBorder:SetWidth(RE.MapSettings[mapFileName]["WI"] + 5)
-		_G.REPorterFrameExternal:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"])
-		_G.REPorterFrameExternal:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"])
-		_G.REPorterFrameExternalOverlay:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"])
-		_G.REPorterFrameExternalOverlay:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"])
-		_G.REPorterFrameExternalOverlay:SetPoint("TOPLEFT", _G.REPorterFrameExternal, "TOPLEFT")
-		_G.REPorterFrameExternalUnitPosition:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"])
-		_G.REPorterFrameExternalUnitPosition:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"])
-		_G.REPorterFrameExternalUnitPosition:SetPoint("TOPLEFT", _G.REPorterFrameExternal, "TOPLEFT")
-		_G.REPorterFrameUnitPosition:SetMouseOverUnitExcluded("player", true)
-		_G.REPorterFrameUnitPosition.UpdateUnitTooltips = function(self, tooltipFrame) RE:UnitOnEnterPlayer(self, tooltipFrame) end
-		_G.REPorterFrameUnitPosition:SetFrameLevel(4)
-		_G.REPorterFrameTab:Show()
-		local texName
-		local numDetailTiles = GetNumberOfDetailTiles()
-		for i=1, numDetailTiles do
-			if mapFileName == "STVDiamondMineBG" then
-				texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName.."1_"..i
-			elseif RE.IsBrawl and mapFileName == "ArathiBasin" then
-				texName = "Interface\\WorldMap\\ArathiBasinWinter\\ArathiBasinWinter"..i
-			else
-				texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i
-			end
-			_G["REPorterFrame"..i]:SetTexture(texName)
-		end
-		if mapFileName == "IsleofConquest" then
+		if RE.CurrentMap == "IsleofConquest" then
 			RE.IoCGateEstimator = {}
 			RE.IoCGateEstimator[FACTION_ALLIANCE] = 600000
 			RE.IoCGateEstimator[FACTION_HORDE] = 600000
 			RE.IoCGateEstimatorText = ""
 		end
-		if mapFileName == "STVDiamondMineBG" then
+		if RE.CurrentMap == "STVDiamondMineBG" then
 			RE.SMEstimatorText = ""
 			RE.SMEstimatorReport = ""
 		end
-		if mapFileName == "AlteracValley" then
+		if RE.CurrentMap == "AlteracValley" then
 			RE.DefaultTimer = 240
-		elseif mapFileName == "GoldRush" then
+		elseif RE.CurrentMap == "GoldRush" then
 			RE.DefaultTimer = 61
 		else
 			RE.DefaultTimer = 60
 		end
-		if mapFileName == "AlteracValley" or mapFileName == "GilneasBattleground2" or mapFileName == "IsleofConquest" or mapFileName == "ArathiBasin" or mapFileName == "GoldRush" or (IsRatedBattleground() and mapFileName == "NetherstormArena") then
-			RE.DoIEvenCareAboutNodes = true
+		if RE.CurrentMap == "AlteracValley" or RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "IsleofConquest" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or (IsRatedBattleground() and RE.CurrentMap == "NetherstormArena") then
+			RE.CareAboutNodes = true
 		else
-			RE.DoIEvenCareAboutNodes = false
+			RE.CareAboutNodes = false
 		end
-		if mapFileName == "GilneasBattleground2" or mapFileName == "NetherstormArena" or mapFileName == "ArathiBasin" or mapFileName == "GoldRush" or mapFileName == "STVDiamondMineBG" or mapFileName == "TempleofKotmogu" then
-			RE.DoIEvenCareAboutPoints = true
-			_G.REPorterFrameExternal:RegisterEvent("UPDATE_WORLD_STATES")
+		if RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "NetherstormArena" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" or RE.CurrentMap == "TempleofKotmogu" then
+			RE.CareAboutPoints = true
+			_G.REPorterFrame:RegisterEvent("UPDATE_WORLD_STATES")
 		else
-			RE.DoIEvenCareAboutPoints = false
+			RE.CareAboutPoints = false
 		end
-		if mapFileName == "StrandoftheAncients" or mapFileName == "IsleofConquest" then
-			RE.DoIEvenCareAboutGates = true
-			_G.REPorterFrameExternal:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+		if RE.CurrentMap == "StrandoftheAncients" or RE.CurrentMap == "IsleofConquest" then
+			RE.CareAboutGates = true
+			_G.REPorterFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 		else
-			RE.DoIEvenCareAboutGates = false
+			RE.CareAboutGates = false
 		end
-		if mapFileName == "WarsongGulch" or mapFileName == "TwinPeaks" then
-			RE.DoIEvenCareAboutFlags = true
-			_G.REPorterFrameExternal:RegisterEvent("BATTLEGROUND_POINTS_UPDATE")
+		if RE.CurrentMap == "WarsongGulch" or RE.CurrentMap == "TwinPeaks" then
+			RE.CareAboutFlags = true
+			_G.REPorterFrame:RegisterEvent("BATTLEGROUND_POINTS_UPDATE")
 		else
-			RE.DoIEvenCareAboutFlags = false
+			RE.CareAboutFlags = false
 		end
-		if mapFileName == "StrandoftheAncients" then
-			_G.REPorterFrameExternal:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
+		if RE.CurrentMap == "StrandoftheAncients" then
+			_G.REPorterFrame:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
 		end
 		if not isSecond then
+			RE:LoadMapSettings()
+			RE:SetupReportBar()
 			TIMER:ScheduleTimer(RE.TimerJoinCheck, 5)
 		end
-		_G.REPorterFrameUnitPosition:SetScript("OnUpdate", RE.OnUpdate)
+		_G.REPorterFrameCore:SetScript("OnUpdate", RE.OnUpdate)
 	end
 end
 
@@ -1569,8 +1601,8 @@ function RE:POIStatus(POIName)
 	if RE.POINodes[POIName]then
 		if TIMER:TimeLeft(RE.POINodes[POIName]["timer"]) == 0 then
 			if RE.POINodes[POIName]["health"] and not RE.GateSyncRequested then
-				local gateHealth = RE:Round((RE.POINodes[POIName]["health"]/RE.POINodes[POIName]["maxHealth"])*100, 0)
-				return " - ".._G.HEALTH..": "..gateHealth.."%"
+				local gateHealth = RE:Round((RE.POINodes[POIName]["health"] / RE.POINodes[POIName]["maxHealth"]) * 100, 0)
+				return " - "..HEALTH..": "..gateHealth.."%"
 			end
 			return ""
 		else
@@ -1605,12 +1637,11 @@ function RE:POIOwner(POIName, isReport)
 end
 
 function RE:SmallButton(number, otherNode)
-	local _, instanceType = IsInInstance()
-	if instanceType == "pvp" then
+	if select(2, IsInInstance()) == "pvp" then
 		local name = ""
 		if otherNode then
 			name = RE.ClickedPOI
-		elseif RE.CurrentMap == "TempleofKotmogu" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" or RE.CurrentMap == "HillsbradFoothillsBG" then
+		elseif RE.ZonesWithoutSubZones[RE.CurrentMap] then
 			name = ""
 		else
 			name = GetSubZoneText()
@@ -1622,7 +1653,7 @@ function RE:SmallButton(number, otherNode)
 			else
 				message = strupper(L["Incoming"]).." 5+"
 			end
-			SendChatMessage(message..RE:POIOwner(name)..RE:POIStatus(name)..RE.ReportPrefix, "INSTANCE_CHAT")
+			SendChatMessage(message..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
 		else
 			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."])
 		end
@@ -1632,21 +1663,20 @@ function RE:SmallButton(number, otherNode)
 end
 
 function RE:BigButton(isHelp, otherNode)
-	local _, instanceType = IsInInstance()
-	if instanceType == "pvp" then
+	if select(2, IsInInstance()) == "pvp" then
 		local name = ""
 		if otherNode then
 			name = RE.ClickedPOI
-		elseif RE.CurrentMap == "TempleofKotmogu" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" or RE.CurrentMap == "HillsbradFoothillsBG" then
+		elseif RE.ZonesWithoutSubZones[RE.CurrentMap] then
 			name = ""
 		else
 			name = GetSubZoneText()
 		end
 		if name and name ~= "" then
 			if isHelp then
-				SendChatMessage(strupper(_G.HELP_LABEL)..RE:POIOwner(name)..RE:POIStatus(name)..RE.ReportPrefix, "INSTANCE_CHAT")
+				SendChatMessage(strupper(HELP_LABEL)..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
 			else
-				SendChatMessage(strupper(L["Clear"])..RE:POIOwner(name)..RE:POIStatus(name)..RE.ReportPrefix, "INSTANCE_CHAT")
+				SendChatMessage(strupper(L["Clear"])..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
 			end
 		else
 			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."])
@@ -1658,121 +1688,167 @@ end
 
 function RE:ReportEstimator()
 	if TIMER:TimeLeft(RE.EstimatorTimer) > 0 then
-		SendChatMessage(RE.IsWinning.." "..L["victory"]..": "..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0))..RE.ReportPrefix, "INSTANCE_CHAT")
+		SendChatMessage(RE.IsWinning.." "..L["victory"]..": "..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)), "INSTANCE_CHAT")
 	elseif RE.CurrentMap == "STVDiamondMineBG" and RE.SMEstimatorReport ~= "" then
 		SendChatMessage(RE.SMEstimatorReport, "INSTANCE_CHAT")
 	elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
-		SendChatMessage(FACTION_ALLIANCE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."% - "..FACTION_HORDE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%"..RE.ReportPrefix, "INSTANCE_CHAT")
+		SendChatMessage(FACTION_ALLIANCE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE] / 600000) * 100, 0).."% - "..FACTION_HORDE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_HORDE] / 600000) * 100, 0).."%", "INSTANCE_CHAT")
 	end
 end
 
 function RE:ReportDropDownClick(reportType)
 	if reportType ~= "" then
-		SendChatMessage(strupper(reportType)..RE:POIOwner(RE.ClickedPOI)..RE:POIStatus(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT")
+		SendChatMessage(strupper(reportType)..RE:POIOwner(RE.ClickedPOI)..RE:POIStatus(RE.ClickedPOI), "INSTANCE_CHAT")
 	else
-		SendChatMessage(RE:POIOwner(RE.ClickedPOI, true)..RE:POIStatus(RE.ClickedPOI)..RE.ReportPrefix, "INSTANCE_CHAT")
+		SendChatMessage(RE:POIOwner(RE.ClickedPOI, true)..RE:POIStatus(RE.ClickedPOI), "INSTANCE_CHAT")
 	end
 end
 --
 
 -- *** Config functions
 function RE:UpdateConfig()
-	local x, y = 0, 0
-	_G.REPorterFrameExternal:SetAlpha(RE.Settings["opacity"])
-	if RE.Settings[RE.CurrentMap] then
-		_G.REPorterFrameExternal:SetScale(RE.Settings[RE.CurrentMap]["scale"])
-	end
-	if RE.Settings.nameAdvert then
-		RE.ReportPrefix = " - [REPorter]"
-	else
-		RE.ReportPrefix = ""
-	end
-	_G.REPorterFrameTab:ClearAllPoints()
-	if IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins") then
-		if RE.Settings.barHandle > 3 then
-			x, y = -2, 0
-		else
-			x, y = 2, 0
-		end
-	else
-		if RE.Settings.barHandle > 3 then
-			x, y = 2, 0
-		else
-			x, y = -2, 0
-		end
-	end
-	_G.REPorterFrameTab:SetPoint(RE.ReportBarAnchor[RE.Settings.barHandle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[RE.Settings.barHandle][2], x, y)
-	local _, instanceType = IsInInstance()
-	if instanceType == "pvp" then
-		_G.MinimapCluster:SetShown(not RE.Settings.hideMinimap)
+	_G.REPorterFrame:SetAlpha(RE.Settings.Opacity)
+	_G.REPorterBar:SetAlpha(0.25)
+	_G.REPorterFrameBorderResize:SetShown(not RE.Settings.Locked)
+	RE:SetupReportBar()
+	if select(2, IsInInstance()) == "pvp" then
+		_G.MinimapCluster:SetShown(not RE.Settings.HideMinimap)
 	end
 end
 
 function RE:UpdateScaleConfig(_, val)
-	if RE.Settings[RE.CurrentMap] then
+	if RE.Settings.Map[RE.CurrentMap] then
 		if val then
-			RE.Settings[RE.CurrentMap]["scale"] = val
-			RE:UpdateConfig()
-		else
-			return RE.Settings[RE.CurrentMap]["scale"]
+			local scale = RE:Round(val, 2)
+			_G.REPorterFrameCore:SetScale(scale)
+			RE.Settings.Map[RE.CurrentMap].ms = scale
+			_G.REPorterFrameCore:ClearAllPoints()
+			_G.REPorterFrameCore:SetPoint("CENTER", _G.REPorterFrameCoreAnchor, "CENTER")
 		end
+		return RE:Round(_G.REPorterFrameCore:GetScale(), 2)
 	else
 		return 1.0
 	end
 end
 
-function RE:PrepareConfig()
-	if not _G.REPorterSettings or not _G.REPorterSettings["configVersion"] then
-		_G.REPorterSettings = RE.DefaultConfig
+function RE:SetupReportBar()
+	local previousButton = "B1"
+	local handle = RE.Settings.BarHandle
+
+	if _G.REPorterBar:IsShown() then
+		RE.Settings.BarX, RE.Settings.BarY = _G.REPorterBar:GetCenter()
 	end
-	RE.Settings = _G.REPorterSettings
-	for key, value in pairs(RE.DefaultConfig) do
-		if RE.Settings[key] == nil then
-			RE.Settings[key] = value
+
+	_G.REPorterBar:ClearAllPoints()
+	if handle < 15 then
+		_G.REPorterBar:SetAlpha(0.25)
+		_G.REPorterBarB1:SetPoint("TOPLEFT", "REPorterBar", "TOPLEFT", 10, -10)
+		if handle < 7 or handle == 13 then
+			if handle == 13 then
+				_G.REPorterBar:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings.BarX, RE.Settings.BarY)
+			elseif handle > 3 then
+				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], 1, 0)
+			else
+				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], -1, 0)
+			end
+			_G.REPorterBar:SetHeight(220)
+			_G.REPorterBar:SetWidth(45)
+			for _, i in pairs({"B2", "B3", "B4", "B5", "B6", "B7", "B8"}) do
+				_G["REPorterBar"..i]:ClearAllPoints()
+				_G["REPorterBar"..i]:SetPoint("TOP", "REPorterBar"..previousButton, "BOTTOM")
+				previousButton = i
+			end
+		else
+			if handle == 14 then
+				_G.REPorterBar:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings.BarX, RE.Settings.BarY)
+			elseif handle > 9 then
+				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], 0, -1)
+			else
+				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], 0, 1)
+			end
+			_G.REPorterBar:SetHeight(45)
+			_G.REPorterBar:SetWidth(220)
+			for _, i in pairs({"B2", "B3", "B4", "B5", "B6", "B7", "B8"}) do
+				_G["REPorterBar"..i]:ClearAllPoints()
+				_G["REPorterBar"..i]:SetPoint("LEFT", "REPorterBar"..previousButton, "RIGHT")
+				previousButton = i
+			end
+		end
+		_G.REPorterBar:Show()
+	else
+		_G.REPorterBar:Hide()
+	end
+end
+
+function RE:LoadMapSettings()
+	if RE.CurrentMap ~= "" then
+		local wx, wy = RE.Settings.Map[RE.CurrentMap].wx, RE.Settings.Map[RE.CurrentMap].wy
+		local ww = RE.Settings.Map[RE.CurrentMap].ww
+		local wh = RE.Settings.Map[RE.CurrentMap].wh
+		local mx, my = RE.Settings.Map[RE.CurrentMap].mx, RE.Settings.Map[RE.CurrentMap].my
+		local ms = RE.Settings.Map[RE.CurrentMap].ms
+
+		_G.REPorterFrame:ClearAllPoints()
+		_G.REPorterFrameCore:ClearAllPoints()
+		_G.REPorterFrameCoreAnchor:ClearAllPoints()
+		_G.REPorterFrame:SetWidth(ww)
+		_G.REPorterFrame:SetHeight(wh)
+		_G.REPorterFrame:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", wx, wy)
+		_G.REPorterFrameCore:SetScale(ms)
+		_G.REPorterFrameCore:SetPoint("CENTER", _G.REPorterFrameCoreAnchor, "CENTER")
+		_G.REPorterFrameCoreAnchor:SetPoint("CENTER", _G.REPorterFrameClip, "CENTER", mx, my)
+		_G.REPorterFrame:SetAlpha(RE.Settings.Opacity)
+
+		local texName
+		local numDetailTiles = GetNumberOfDetailTiles()
+		for i=1, numDetailTiles do
+			if RE.CurrentMap == "STVDiamondMineBG" then
+				texName = "Interface\\WorldMap\\"..RE.CurrentMap.."\\"..RE.CurrentMap.."1_"..i
+			elseif RE.IsBrawl and RE.CurrentMap == "ArathiBasin" then
+				texName = "Interface\\WorldMap\\ArathiBasinWinter\\ArathiBasinWinter"..i
+			else
+				texName = "Interface\\WorldMap\\"..RE.CurrentMap.."\\"..RE.CurrentMap..i
+			end
+			_G["REPorterFrameCoreMap"..i]:SetTexture(texName)
 		end
 	end
-	_G.LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", RE.AceConfig)
-	_G.LibStub("AceConfigDialog-3.0"):AddToBlizOptions("REPorter", "REPorter")
-	RE:UpdateConfig()
+end
+
+function RE:SaveMapSettings()
+	if RE.CurrentMap ~= "" then
+		local wx, wy = _G.REPorterFrame:GetCenter()
+		local ww = _G.REPorterFrame:GetWidth()
+		local wh = _G.REPorterFrame:GetHeight()
+		local x1, y1 = _G.REPorterFrameClip:GetCenter()
+		local x2, y2 = _G.REPorterFrameCoreAnchor:GetCenter()
+		local mx, my = x2-x1, y2-y1
+		local ms = RE:Round(_G.REPorterFrameCore:GetScale(), 2)
+
+		RE.Settings.Map[RE.CurrentMap] = {["wx"] = RE:Round(wx, 0), ["wy"] = RE:Round(wy, 0), ["ww"] = RE:Round(ww, 0), ["wh"] = RE:Round(wh, 0), ["mx"] = RE:Round(mx, 0), ["my"] = RE:Round(my, 0), ["ms"] = RE:Round(ms, 2)}
+	end
 end
 
 function RE:ShowDummyMap(mapFileName)
-	RE.ScaleDisabled = false
-	RE.CurrentMap = mapFileName
-	_G.REPorterFrameExternal:ClearAllPoints()
-	_G.REPorterFrameExternal:SetScale(RE.Settings[mapFileName]["scale"])
-	_G.REPorterFrameExternal:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings[mapFileName]["x"], RE.Settings[mapFileName]["y"])
-	_G.REPorterFrameExternal:SetHeight(RE.MapSettings[mapFileName]["HE"])
-	_G.REPorterFrameExternal:SetWidth(RE.MapSettings[mapFileName]["WI"])
-	_G.REPorterFrameExternal:SetHorizontalScroll(RE.MapSettings[mapFileName]["HO"])
-	_G.REPorterFrameExternal:SetVerticalScroll(RE.MapSettings[mapFileName]["VE"])
-	_G.REPorterFrameBorder:SetHeight(RE.MapSettings[mapFileName]["HE"] + 5)
-	_G.REPorterFrameBorder:SetWidth(RE.MapSettings[mapFileName]["WI"] + 5)
-	local texName
-	local numDetailTiles = GetNumberOfDetailTiles()
-	for i=1, numDetailTiles do
-		if mapFileName == "STVDiamondMineBG" then
-			texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName.."1_"..i
-		else
-			texName = "Interface\\WorldMap\\"..mapFileName.."\\"..mapFileName..i
-		end
-		_G["REPorterFrame"..i]:SetTexture(texName)
+	if _G.REPorterFrame:IsShown() and RE.CurrentMap ~= "" then
+		RE:SaveMapSettings()
 	end
-	_G.REPorterFrameExternal:Show()
-	_G.REPorterFrameTab:Show()
+
+	RE.CurrentMap = mapFileName
+	RE:LoadMapSettings()
+	RE:SetupReportBar()
+	_G.REPorterFrame:Show()
+	_G.REPorterBar:Show()
 	_G.InterfaceOptionsFrame:SetFrameStrata("LOW")
-	_G.REPorterFrameExternal:SetFrameStrata("MEDIUM")
 end
 
 function RE:HideDummyMap()
-	if select(2, IsInInstance()) ~= "pvp" then
-		RE.ScaleDisabled = true
+	if _G.REPorterFrame:IsShown() and select(2, IsInInstance()) ~= "pvp" then
+		RE:SaveMapSettings()
 		RE.CurrentMap = ""
 		RE.LastMap = 0
-		_G.REPorterFrameExternal:Hide()
-		_G.REPorterFrameTab:Hide()
+		_G.REPorterFrame:Hide()
+		_G.REPorterBar:Hide()
 		_G.InterfaceOptionsFrame:SetFrameStrata("HIGH")
-		_G.REPorterFrameExternal:SetFrameStrata("LOW")
 	end
 end
 --

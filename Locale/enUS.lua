@@ -9,39 +9,47 @@ L["On my way"] = true
 L["Report status"] = true
 
 L["Lock map"] = true
-L["When checked map is locked in place."] = true
-L["Add \"[REPorter]\" to end of each report"] = true
-L["When checked shameless advert is added to each battleground report."] = true
+L["When checked map and report bar is locked in place."] = true
+L["When the lock is disabled map can be moved by dragging.\nMap frame can be resized by using holder at the bottom right corner.\nHold SHIFT to move map inside the frame.\nScroll wheel control map zoom."] = true
 L["Hide minimap on battlegrounds"] = true
-L["When checked minimap will be hidden when player is on battleground."] = true
+L["When checked minimap will be hidden when a player is on the battleground."] = true
 L["Report bar location"] = true
-L["Anchor point of bar with quick report buttons."] = true
+L["Anchor point of a bar with quick report buttons."] = true
 L["Map scale"] = true
 L["This option control map size."] = true
 L["Map alpha"] = true
 L["This option control map transparency."] = true
-L["Map position and scale is saved separately for each battleground."] = true
-L["Bottom right"] = true
-L["Right"] = true
-L["Top right"] = true
-L["Bottom left"] = true
-L["Left"] = true
-L["Top left"] = true
+L["Map position is saved separately for each battleground."] = true
 L["Always display raid markers"] = true
 L["When checked player pins will be always replaced with raid markers."] = true
 
-L["East"] = true
-L["Front"] = true
+L["Right bottom"] = true
+L["Right"] = true
+L["Right top"] = true
+L["Left bottom"] = true
+L["Left"] = true
+L["Left top"] = true
+L["Top left"] = true
+L["Top"] = true
+L["Top right"] = true
+L["Bottom left"] = true
+L["Bottom"] = true
+L["Bottom right"] = true
+L["Standalone - Horizontal"] = true
+L["Standalone - Vertical"] = true
+L["Hidden"]  = true
+
 L["West"] = true
+L["Front"] = true
+L["East"] = true
 L["gate"] = true
 
-L["Red"] = true
 L["Green"] = true
-L["Blue"] = true
 L["Purple"] = true
+
+L["carts"] = true
+L["victory"] = true
 
 L["New version released!"] = true
 L["This location don't have name. Action canceled."] = true
 L["This addon work only on battlegrounds."] = true
-L["carts"] = true
-L["victory"] = true
