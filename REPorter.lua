@@ -377,36 +377,6 @@ function RE:FramesOverlap(frameA, frameB)
 	and (frameB:GetBottom() * sB) < (frameA:GetTop() * sA)
 end
 
-function RE:ClearTextures()
-	TIMER:CancelTimer(RE.EstimatorTimer)
-	for i=1, RE.POINumber do
-		_G["REPorterFrameCorePOI"..i]:Hide()
-		_G["REPorterFrameCorePOI"..i.."Timer"]:Hide()
-		_G["REPorterFrameCorePOI"..i.."Texture"]:SetTexture("Interface\\Minimap\\POIIcons")
-		_G["REPorterFrameCorePOI"..i.."Texture"]:SetTexCoord(0, 1, 0, 1)
-		for k, _ in pairs(RE.POINodes) do
-			TIMER:CancelTimer(RE.POINodes[k]["timer"])
-		end
-	end
-	for i=1, 4 do
-		local flagFrame = _G["REPorterFrameCorePOIFlag"..i]
-		flagFrame:Hide()
-	end
-	if RE.numVehicles then
-		for i=1, RE.numVehicles do
-			RE.BGVehicles[i]:Hide()
-		end
-	end
-	local numDetailTiles = GetNumberOfDetailTiles()
-	for i=1, numDetailTiles do
-		_G["REPorterFrameCoreMap"..i]:SetTexture(nil)
-	end
-	for i=1, RE.BGOverlayNum do
-		_G["REPorterFrameCoreMapOverlay"..i]:SetTexture(nil)
-	end
-	RE.POINodes = {}
-end
-
 function RE:CreatePOI(index)
 	local frameMain = CreateFrame("Frame", "REPorterFrameCorePOI"..index, _G.REPorterFrameCorePOI)
 	frameMain:SetFrameLevel(10)
@@ -538,42 +508,6 @@ function RE:OnLoad(self)
 	self:RegisterEvent("CHAT_MSG_ADDON")
 	self:RegisterEvent("MODIFIER_STATE_CHANGED")
 	self:RegisterEvent("GROUP_ROSTER_UPDATE")
-end
-
-function RE:OnShow(_)
-	if RE.CurrentMap ~= RE:GetMapInfo() then
-		SetMapToCurrentZone()
-		_G.REPorterFrameEstimator:Show()
-		if RE.Settings.HideMinimap then
-			_G.MinimapCluster:Hide()
-		end
-	end
-end
-
-function RE:OnHide(_)
-	if RE.CurrentMap ~= RE:GetMapInfo() then
-		_G.REPorterFrameCore:SetScript("OnUpdate", nil)
-		RE:SaveMapSettings()
-		RE:ClearTextures()
-		RE.CurrentMap = ""
-		RE.IsWinning = ""
-		RE.IsBrawl = false
-		RE.CareAboutNodes = false
-		RE.CareAboutPoints = false
-		RE.CareAboutGates = false
-		RE.CareAboutFlags = false
-		RE.TimerOverride = false
-		_G.REPorterFrame:UnregisterEvent("UPDATE_WORLD_STATES")
-		_G.REPorterFrame:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-		_G.REPorterFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
-		_G.REPorterFrame:UnregisterEvent("BATTLEGROUND_POINTS_UPDATE")
-		_G.REPorterFrameEstimator:Hide()
-		_G.REPorterFrameEstimatorText:SetText("")
-		_G.L_CloseDropDownMenus()
-		if not _G.MinimapCluster:IsShown() and RE.Settings.HideMinimap then
-			_G.MinimapCluster:Show()
-		end
-	end
 end
 
 function RE:OnEnterBar(_)
@@ -876,21 +810,22 @@ function RE:OnEvent(_, event, ...)
 			RE:UpdateIoCEstimator()
 		end
 	elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
+		if RE.CurrentMap ~= "" then
+			RE:SaveMapSettings()
+		end
 		_G.REPorterFrame:Hide()
 		_G.REPorterBar:Hide()
-		if select(2, IsInInstance()) == "pvp" then
-			RE.PlayedFromStart = true
-			RE.GateSyncRequested = false
-			RE:Create(false)
-			_G.REPorterFrame:Show()
-			_G.REPorterBar:Show()
-			SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "INSTANCE_CHAT")
-			if IsInGuild() then
-				SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "GUILD")
+		_G.REPorterFrameEstimator:Hide()
+		if select(2, IsInInstance()) == "pvp" and RE.CurrentMap == "" then
+			SetMapToCurrentZone()
+			local mapFileName = RE:GetMapInfo()
+			if mapFileName and RE.MapSettings[mapFileName] then
+				RE.CurrentMap = mapFileName
+				RE:Startup()
 			end
-		elseif RE.CurrentMap ~= "" then
+		elseif select(2, IsInInstance()) ~= "pvp" and RE.CurrentMap ~= "" then
 			RE.CurrentMap = ""
-			RE:OnHide()
+			RE:Shutdown()
 		end
 	elseif event == "MODIFIER_STATE_CHANGED" and _G.REPorterFrame:IsShown() then
 		if IsShiftKeyDown() and IsAltKeyDown() then
@@ -1003,10 +938,10 @@ function RE:OnUpdate(elapsed)
 			end
 		end
 
-		RE.numVehicles = GetNumBattlefieldVehicles()
+		RE.NumVehicles = GetNumBattlefieldVehicles()
 		local totalVehicles = #RE.BGVehicles
 		local index = 0
-		for i=1, RE.numVehicles do
+		for i=1, RE.NumVehicles do
 			if i > totalVehicles then
 				local vehicleName = "REPorterFrameCorePOIVehicle"..i
 				RE.BGVehicles[i] = CreateFrame("FRAME", vehicleName, _G.REPorterFrameCorePOI, "REPorterVehicleTemplate")
@@ -1434,65 +1369,124 @@ end
 ---
 
 -- *** Core functions
+function RE:Startup()
+	RE.PlayedFromStart = true
+	RE.GateSyncRequested = false
+	RE:Create(false)
+	_G.REPorterFrame:Show()
+	_G.REPorterBar:Show()
+	_G.REPorterFrameEstimator:Show()
+	if RE.Settings.HideMinimap then
+		_G.MinimapCluster:Hide()
+	end
+	SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "INSTANCE_CHAT")
+	if IsInGuild() then
+		SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "GUILD")
+	end
+end
+
+function RE:Shutdown()
+	_G.REPorterFrameCore:SetScript("OnUpdate", nil)
+	TIMER:CancelTimer(RE.EstimatorTimer)
+	RE.POINodes = {}
+	RE.IsWinning = ""
+	RE.IsBrawl = false
+	RE.CareAboutNodes = false
+	RE.CareAboutPoints = false
+	RE.CareAboutGates = false
+	RE.CareAboutFlags = false
+	RE.TimerOverride = false
+	_G.REPorterFrame:UnregisterEvent("UPDATE_WORLD_STATES")
+	_G.REPorterFrame:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	_G.REPorterFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
+	_G.REPorterFrame:UnregisterEvent("BATTLEGROUND_POINTS_UPDATE")
+	_G.REPorterFrameEstimatorText:SetText("")
+	_G.L_CloseDropDownMenus()
+	if not _G.MinimapCluster:IsShown() and RE.Settings.HideMinimap then
+		_G.MinimapCluster:Show()
+	end
+	for i=1, RE.POINumber do
+		_G["REPorterFrameCorePOI"..i]:Hide()
+		_G["REPorterFrameCorePOI"..i.."Timer"]:Hide()
+		_G["REPorterFrameCorePOI"..i.."Texture"]:SetTexture("Interface\\Minimap\\POIIcons")
+		_G["REPorterFrameCorePOI"..i.."Texture"]:SetTexCoord(0, 1, 0, 1)
+		for k, _ in pairs(RE.POINodes) do
+			TIMER:CancelTimer(RE.POINodes[k]["timer"])
+		end
+	end
+	for i=1, 4 do
+		local flagFrame = _G["REPorterFrameCorePOIFlag"..i]
+		flagFrame:Hide()
+	end
+	if RE.NumVehicles then
+		for i=1, RE.NumVehicles do
+			RE.BGVehicles[i]:Hide()
+		end
+	end
+	local numDetailTiles = GetNumberOfDetailTiles()
+	for i=1, numDetailTiles do
+		_G["REPorterFrameCoreMap"..i]:SetTexture(nil)
+	end
+	for i=1, RE.BGOverlayNum do
+		_G["REPorterFrameCoreMapOverlay"..i]:SetTexture(nil)
+	end
+end
+
 function RE:Create(isSecond)
 	_G.REPorterFrameCore:SetScript("OnUpdate", nil)
-	local mapFileName = RE:GetMapInfo()
-	if mapFileName and RE.MapSettings[mapFileName] then
-		RE.CurrentMap = mapFileName
-		RE.IsBrawl = IsInBrawl()
-		RE.POINodes = {}
-		if RE.CurrentMap == "IsleofConquest" then
-			RE.IoCGateEstimator = {}
-			RE.IoCGateEstimator[FACTION_ALLIANCE] = 600000
-			RE.IoCGateEstimator[FACTION_HORDE] = 600000
-			RE.IoCGateEstimatorText = ""
-		end
-		if RE.CurrentMap == "STVDiamondMineBG" then
-			RE.SMEstimatorText = ""
-			RE.SMEstimatorReport = ""
-		end
-		if RE.CurrentMap == "AlteracValley" then
-			RE.DefaultTimer = 240
-		elseif RE.CurrentMap == "GoldRush" then
-			RE.DefaultTimer = 61
-		elseif RE.CurrentMap == "AzeriteBG" then
-			RE.DefaultTimer = 30
-		else
-			RE.DefaultTimer = 60
-		end
-		if RE.CurrentMap == "AlteracValley" or RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "IsleofConquest" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "AzeriteBG" or (IsRatedBattleground() and RE.CurrentMap == "NetherstormArena") then
-			RE.CareAboutNodes = true
-		else
-			RE.CareAboutNodes = false
-		end
-		if RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "NetherstormArena" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" or RE.CurrentMap == "TempleofKotmogu" then
-			RE.CareAboutPoints = true
-			_G.REPorterFrame:RegisterEvent("UPDATE_WORLD_STATES")
-		else
-			RE.CareAboutPoints = false
-		end
-		if RE.CurrentMap == "StrandoftheAncients" or RE.CurrentMap == "IsleofConquest" then
-			RE.CareAboutGates = true
-			_G.REPorterFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-		else
-			RE.CareAboutGates = false
-		end
-		if RE.CurrentMap == "WarsongGulch" or RE.CurrentMap == "TwinPeaks" then
-			RE.CareAboutFlags = true
-			_G.REPorterFrame:RegisterEvent("BATTLEGROUND_POINTS_UPDATE")
-		else
-			RE.CareAboutFlags = false
-		end
-		if RE.CurrentMap == "StrandoftheAncients" then
-			_G.REPorterFrame:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
-		end
-		if not isSecond then
-			RE:LoadMapSettings()
-			RE:SetupReportBar()
-			TIMER:ScheduleTimer(RE.TimerJoinCheck, 5)
-		end
-		_G.REPorterFrameCore:SetScript("OnUpdate", RE.OnUpdate)
+	RE.IsBrawl = IsInBrawl()
+	RE.POINodes = {}
+	if RE.CurrentMap == "IsleofConquest" then
+		RE.IoCGateEstimator = {}
+		RE.IoCGateEstimator[FACTION_ALLIANCE] = 600000
+		RE.IoCGateEstimator[FACTION_HORDE] = 600000
+		RE.IoCGateEstimatorText = ""
 	end
+	if RE.CurrentMap == "STVDiamondMineBG" then
+		RE.SMEstimatorText = ""
+		RE.SMEstimatorReport = ""
+	end
+	if RE.CurrentMap == "AlteracValley" then
+		RE.DefaultTimer = 240
+	elseif RE.CurrentMap == "GoldRush" then
+		RE.DefaultTimer = 61
+	elseif RE.CurrentMap == "AzeriteBG" then
+		RE.DefaultTimer = 30
+	else
+		RE.DefaultTimer = 60
+	end
+	if RE.CurrentMap == "AlteracValley" or RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "IsleofConquest" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "AzeriteBG" or (IsRatedBattleground() and RE.CurrentMap == "NetherstormArena") then
+		RE.CareAboutNodes = true
+	else
+		RE.CareAboutNodes = false
+	end
+	if RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "NetherstormArena" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" or RE.CurrentMap == "TempleofKotmogu" then
+		RE.CareAboutPoints = true
+		_G.REPorterFrame:RegisterEvent("UPDATE_WORLD_STATES")
+	else
+		RE.CareAboutPoints = false
+	end
+	if RE.CurrentMap == "StrandoftheAncients" or RE.CurrentMap == "IsleofConquest" then
+		RE.CareAboutGates = true
+		_G.REPorterFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	else
+		RE.CareAboutGates = false
+	end
+	if RE.CurrentMap == "WarsongGulch" or RE.CurrentMap == "TwinPeaks" then
+		RE.CareAboutFlags = true
+		_G.REPorterFrame:RegisterEvent("BATTLEGROUND_POINTS_UPDATE")
+	else
+		RE.CareAboutFlags = false
+	end
+	if RE.CurrentMap == "StrandoftheAncients" then
+		_G.REPorterFrame:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
+	end
+	if not isSecond then
+		RE:LoadMapSettings()
+		RE:SetupReportBar()
+		TIMER:ScheduleTimer(RE.TimerJoinCheck, 5)
+	end
+	_G.REPorterFrameCore:SetScript("OnUpdate", RE.OnUpdate)
 end
 
 function RE:NodeChange(newTexture, nodeName)

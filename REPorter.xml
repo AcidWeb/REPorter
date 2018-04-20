@@ -49,8 +49,6 @@
 		</Anchors>
 		<Scripts>
 			<OnLoad>REPorter:OnLoad(self)</OnLoad>
-			<OnShow>REPorter:OnShow(self)</OnShow>
-			<OnHide>REPorter:OnHide(self)</OnHide>
 			<OnEvent>REPorter:OnEvent(self, event, ...)</OnEvent>
 		</Scripts>
 		<Frames>
