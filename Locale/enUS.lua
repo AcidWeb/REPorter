@@ -47,6 +47,19 @@ L["gate"] = true
 L["Green"] = true
 L["Purple"] = true
 
+L["Overlook"] = true
+L["Crash Site"] = true
+L["Tide Pools"] = true
+L["Ruins"] = true
+L["Waterfall"] = true
+L["Ridge"] = true
+L["Bonfire"] = true
+L["Shipwreck"] = true
+L["Tar Pits"] = true
+L["Temple"] = true
+L["Plunge"] = true
+L["Tower"] = true
+
 L["carts"] = true
 L["victory"] = true
 

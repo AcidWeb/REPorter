@@ -89,35 +89,6 @@ RE.BlinkPOIUp = true
 RE.FoundNewVersion = false
 RE.AddonVersionCheck = 200
 
-RE.MapSettings = {
-	["ArathiBasin"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["WarsongGulch"] = {["StartTimer"] = 120},
-	["AlteracValley"] = {["StartTimer"] = 120},
-	["NetherstormArena"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
-	["StrandoftheAncients"] = {["StartTimer"] = 120},
-	["IsleofConquest"] = {["StartTimer"] = 120},
-	["GilneasBattleground2"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["TwinPeaks"] = {["StartTimer"] = 120},
-	["TempleofKotmogu"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["STVDiamondMineBG"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["GoldRush"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["HillsbradFoothillsBG"] = {["VE"] = 80, ["StartTimer"] = 120},
-	["AzeriteBG"] = {["StartTimer"] = 120}
-}
-RE.ZonesWithoutSubZones = {
-	["GoldRush"] = true,
-	["STVDiamondMineBG"] = true,
-	["TempleofKotmogu"] = true,
-	["HillsbradFoothillsBG"] = true
-}
-RE.EstimatorSettings = {
-	["ArathiBasin"] = { [0] = 0, [1] = 10/12, [2] = 10/9, [3] = 10/6, [4] = 10/3, [5] = 30},
-	["NetherstormArena"] = { [0] = 0, [1] = 1, [2] = 2, [3] = 5, [4] = 10},
-	["GilneasBattleground2"] = { [0] = 0, [1] = 10/9, [2] = 10/3, [3] = 30},
-	["GoldRush"] = { [0] = 0, [1] = 1.6, [2] = 3.2, [3] = 6.4},
-	["TempleofKotmogu"] = {["CenterP"] = 1, ["InnerP"] = 0.8, ["OuterP"] = 0.6},
-	["STVDiamondMineBG"] = 150
-}
 RE.MapNames = {
 	[GetMapNameByID(401)] = "AlteracValley",
 	[GetMapNameByID(461)] = "ArathiBasin",
@@ -133,6 +104,49 @@ RE.MapNames = {
 	[GetMapNameByID(1010)] = "HillsbradFoothillsBG",
 	[GetMapNameByID(1186)] = "AzeriteBG"
 }
+RE.MapSettings = {
+	["ArathiBasin"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
+	["WarsongGulch"] = {["StartTimer"] = 120},
+	["AlteracValley"] = {["StartTimer"] = 120},
+	["NetherstormArena"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
+	["StrandoftheAncients"] = {["StartTimer"] = 120},
+	["IsleofConquest"] = {["StartTimer"] = 120},
+	["GilneasBattleground2"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
+	["TwinPeaks"] = {["StartTimer"] = 120},
+	["TempleofKotmogu"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
+	["STVDiamondMineBG"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
+	["GoldRush"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
+	["HillsbradFoothillsBG"] = {["VE"] = 80, ["StartTimer"] = 120},
+	["AzeriteBG"] = {["StartTimer"] = 120}
+}
+RE.EstimatorSettings = {
+	["ArathiBasin"] = { [0] = 0, [1] = 10/12, [2] = 10/9, [3] = 10/6, [4] = 10/3, [5] = 30},
+	["NetherstormArena"] = { [0] = 0, [1] = 1, [2] = 2, [3] = 5, [4] = 10},
+	["GilneasBattleground2"] = { [0] = 0, [1] = 10/9, [2] = 10/3, [3] = 30},
+	["GoldRush"] = { [0] = 0, [1] = 1.6, [2] = 3.2, [3] = 6.4},
+	["TempleofKotmogu"] = {["CenterP"] = 1, ["InnerP"] = 0.8, ["OuterP"] = 0.6},
+	["STVDiamondMineBG"] = 150
+}
+RE.ZonesWithoutSubZones = {
+	["GoldRush"] = true,
+	["STVDiamondMineBG"] = true,
+	["TempleofKotmogu"] = true,
+	["HillsbradFoothillsBG"] = true
+}
+RE.AzeriteNodes = {
+	[0.391] = {[0.750] = L["Overlook"]},
+	[0.286] = {[0.769] = L["Crash Site"]},
+	[0.599] = {[0.358] = L["Tide Pools"], [0.553] = L["Shipwreck"]},
+	[0.252] = {[0.423] = L["Ruins"]},
+	[0.290] = {[0.556] = L["Waterfall"]},
+	[0.450] = {[0.577] = L["Ridge"]},
+	[0.527] = {[0.401] = L["Bonfire"]},
+	[0.471] = {[0.283] = L["Tar Pits"]},
+	[0.572] = {[0.263] = L["Temple"]},
+	[0.386] = {[0.433] = L["Plunge"]},
+	[0.349] = {[0.252] = L["Tower"]}
+}
+
 RE.POIDropDown = {
 	{ text = L["Incoming"], hasArrow = true, notCheckable = true,
 	menuList = {
@@ -154,6 +168,7 @@ RE.POIDropDown = {
 	{ text = L["On my way"], notCheckable = true, func = function() RE:ReportDropDownClick(L["On my way"]) end },
 	{ text = L["Report status"], notCheckable = true, func = function() RE:ReportDropDownClick("") end }
 }
+
 RE.DefaultConfig = {
 	BarHandle = 11,
 	BarX = 250,
@@ -1036,9 +1051,17 @@ function RE:OnUpdate(elapsed)
 			local _, name, description, textureIndex, x, y, _, showInBattleMap, _, _, poiID, _, atlasID = GetMapLandmarkInfo(i)
 			local colorOverride = false
 			if RE.CurrentMap == "AzeriteBG" and atlasID and not showInBattleMap then
+				local xZ, yZ = RE:Round(x, 3), RE:Round(y, 3)
+				if RE.AzeriteNodes[xZ] and RE.AzeriteNodes[xZ][yZ] then
+					name = RE.AzeriteNodes[xZ][yZ]
+				end
+				if atlasID == "AzeriteReady" then
+					textureIndex = 1002
+				elseif atlasID == "AzeriteSpawning" then
+					textureIndex = 1001
+				end
 				showInBattleMap = true
 				description = ""
-				textureIndex = -1
 			end
 			if name and showInBattleMap and textureIndex ~= nil and textureIndex ~= 0 then
 				x, y = RE:GetRealCoords(x, y)
@@ -1142,6 +1165,8 @@ function RE:OnUpdate(elapsed)
 								end
 							end
 						end
+					elseif RE.CurrentMap == "AzeriteBG" and RE.PlayedFromStart then
+						RE:NodeChange(textureIndex, name)
 					end
 				else
 					RE.POINodes[name]["id"] = i
@@ -1158,7 +1183,7 @@ function RE:OnUpdate(elapsed)
 				battlefieldPOI:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", x, y)
 				battlefieldPOI:SetWidth(RE.POIIconSize)
 				battlefieldPOI:SetHeight(RE.POIIconSize)
-				if textureIndex == -1 then
+				if textureIndex > 1000 then
 					_G[battlefieldPOIName.."Texture"]:SetAtlas(atlasID)
 				else
 					_G[battlefieldPOIName.."Texture"]:SetTexCoord(x1, x2, y1, y2)
@@ -1175,11 +1200,7 @@ function RE:OnUpdate(elapsed)
 						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,0.3)
 					else
 						if RE.CurrentMap == "AzeriteBG" then
-							if atlasID == "AzeriteReady" then
-								_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,1,0,0.3)
-							elseif atlasID == "AzeriteSpawning" then
-								_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,0.3)
-							end
+							_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,1,0,0.3)
 						else
 							_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,0,0.3)
 						end
@@ -1206,7 +1227,7 @@ function RE:OnUpdate(elapsed)
 					_G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize - ((timeLeft / RE.DefaultTimer) * RE.POIIconSize))
 					_G[battlefieldPOIName.."TextureBGofBG"]:Show()
 					_G[battlefieldPOIName.."TextureBGofBG"]:SetWidth((timeLeft / RE.DefaultTimer) * RE.POIIconSize)
-					if RE.POINodes[name]["isCapturing"] == FACTION_HORDE then
+					if RE.POINodes[name]["isCapturing"] == FACTION_HORDE or RE.CurrentMap == "AzeriteBG" then
 						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,RE.BlinkPOIValue)
 					elseif RE.POINodes[name]["isCapturing"] == FACTION_ALLIANCE then
 						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,RE.BlinkPOIValue)
@@ -1434,10 +1455,12 @@ function RE:Create(isSecond)
 			RE.DefaultTimer = 240
 		elseif RE.CurrentMap == "GoldRush" then
 			RE.DefaultTimer = 61
+		elseif RE.CurrentMap == "AzeriteBG" then
+			RE.DefaultTimer = 30
 		else
 			RE.DefaultTimer = 60
 		end
-		if RE.CurrentMap == "AlteracValley" or RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "IsleofConquest" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or (IsRatedBattleground() and RE.CurrentMap == "NetherstormArena") then
+		if RE.CurrentMap == "AlteracValley" or RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "IsleofConquest" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "AzeriteBG" or (IsRatedBattleground() and RE.CurrentMap == "NetherstormArena") then
 			RE.CareAboutNodes = true
 		else
 			RE.CareAboutNodes = false
@@ -1593,6 +1616,11 @@ function RE:NodeChange(newTexture, nodeName)
 		elseif newTexture == 19 then -- Mine Horde
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+		end
+	elseif RE.CurrentMap == "AzeriteBG" then
+		if newTexture == 1001 then
+			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName]["isCapturing"] = ""
 		end
 	end
 end
