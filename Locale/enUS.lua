@@ -10,7 +10,7 @@ L["Report status"] = true
 
 L["Lock map"] = true
 L["When checked map and report bar is locked in place."] = true
-L["When the lock is disabled map can be moved by dragging.\nMap frame can be resized by using holder at the bottom right corner.\nHold SHIFT to move map inside the frame.\nScroll wheel control map zoom."] = true
+L["When the lock is disabled map can be moved by dragging.\nDragging + SHIFT will move map inside the frame.\nMap frame can be resized by using holder at the bottom right corner.\nScroll wheel control map zoom."] = true
 L["Hide minimap on battlegrounds"] = true
 L["When checked minimap will be hidden when a player is on the battleground."] = true
 L["Report bar location"] = true

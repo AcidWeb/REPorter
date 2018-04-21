@@ -17,8 +17,6 @@ local IsAltKeyDown = _G.IsAltKeyDown
 local IsControlKeyDown = _G.IsControlKeyDown
 local IsInBrawl = _G.C_PvP.IsInBrawl
 local GetMapNameByID = _G.GetMapNameByID
-local GetScreenWidth = _G.GetScreenWidth
-local GetScreenHeight = _G.GetScreenHeight
 local GetNumberOfDetailTiles = _G.GetNumberOfDetailTiles
 local GetMapLandmarkInfo = _G.C_WorldMap.GetMapLandmarkInfo
 local GetBattlefieldInstanceRunTime = _G.GetBattlefieldInstanceRunTime
@@ -88,6 +86,7 @@ RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
 RE.AddonVersionCheck = 200
+RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapNames = {
 	[GetMapNameByID(401)] = "AlteracValley",
@@ -171,26 +170,26 @@ RE.POIDropDown = {
 
 RE.DefaultConfig = {
 	BarHandle = 11,
-	BarX = 250,
-	BarY = 250,
+	BarX = RE.ScreenHeight,
+	BarY = RE.ScreenWidth,
 	Locked = false,
-	Opacity = 0.80,
+	Opacity = 0.75,
 	HideMinimap = false,
 	DisplayMarks = false,
 	Map = {
-		["ArathiBasin"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
-		["WarsongGulch"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
-		["AlteracValley"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
-		["NetherstormArena"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
-		["StrandoftheAncients"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
-		["IsleofConquest"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
-		["GilneasBattleground2"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
-		["TwinPeaks"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
-		["TempleofKotmogu"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
-		["STVDiamondMineBG"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
-		["GoldRush"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
-		["HillsbradFoothillsBG"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1},
-		["AzeriteBG"] = {["wx"] = 250, ["wy"] = 250, ["ww"] = 250, ["wh"] = 250, ["mx"] = 0, ["my"] = 0, ["ms"] = 1}
+		["ArathiBasin"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 325, ["wh"] = 325, ["mx"] = 16, ["my"] = -77, ["ms"] = 1},
+		["WarsongGulch"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 280, ["wh"] = 460, ["mx"] = -5, ["my"] = -38, ["ms"] = 1},
+		["AlteracValley"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 185, ["wh"] = 450, ["mx"] = 32, ["my"] = -36, ["ms"] = 1},
+		["NetherstormArena"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 360, ["mx"] = 23, ["my"] = -41, ["ms"] = 1},
+		["StrandoftheAncients"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 285, ["wh"] = 370, ["mx"] = 26, ["my"] = -15, ["ms"] = 1},
+		["IsleofConquest"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 290, ["wh"] = 375, ["mx"] = 13, ["my"] = -23, ["ms"] = 1},
+		["GilneasBattleground2"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 340, ["wh"] = 370, ["mx"] = 6, ["my"] = -28, ["ms"] = 1},
+		["TwinPeaks"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 245, ["wh"] = 460, ["mx"] = 1, ["my"] = -33, ["ms"] = 1},
+		["TempleofKotmogu"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 390, ["wh"] = 250, ["mx"] = 19, ["my"] = -21, ["ms"] = 1},
+		["STVDiamondMineBG"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 460, ["wh"] = 350, ["mx"] = 7, ["my"] = -43, ["ms"] = 1},
+		["GoldRush"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 520, ["wh"] = 385, ["mx"] = -10, ["my"] = -45, ["ms"] = 1},
+		["HillsbradFoothillsBG"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 370, ["mx"] = -2, ["my"] = -22, ["ms"] = 1},
+		["AzeriteBG"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 360, ["wh"] = 385, ["mx"] = 66, ["my"] = -63, ["ms"] = 1}
 	}
 }
 RE.ReportBarAnchor = {
@@ -221,7 +220,7 @@ RE.AceConfig = {
 		},
 		Description = {
 			type = "description",
-			name = L["When the lock is disabled map can be moved by dragging.\nMap frame can be resized by using holder at the bottom right corner.\nHold SHIFT to move map inside the frame.\nScroll wheel control map zoom."],
+			name = L["When the lock is disabled map can be moved by dragging.\nDragging + SHIFT will move map inside the frame.\nMap frame can be resized by using holder at the bottom right corner.\nScroll wheel control map zoom."],
 			order = 2,
 		},
 		HideMinimap = {
