@@ -432,6 +432,43 @@ function RE:UpdateIoCEstimator()
 	end
 end
 
+function RE:PointParse(custom, sufix)
+	local PointsNeeded, BaseNum
+	if custom then
+		local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings[RE.CurrentMap]["WorldStateNum"] + sufix)
+		if text ~= nil then
+			local score = {strsplit("/", text)}
+			if score[1] then
+				score[1] = gsub(score[1], "：", " ")
+				score = {strsplit(" ", score[1])}
+				PointsNeeded = RE.MapSettings[RE.CurrentMap]["PointsToWin"] - tonumber(score[#score])
+			end
+		end
+	else
+		local WorldStateId = RE.MapSettings[RE.CurrentMap]["WorldStateNum"]
+		-- Rated EotS hack
+		if IsRatedBattleground() and RE.CurrentMap == "NetherstormArena" then
+			WorldStateId = 1
+		end
+		local _, _, _, text = GetWorldStateUIInfo(WorldStateId + sufix)
+		if text ~= nil then
+			local score = {strsplit("/", text)}
+			if score[2] then
+				score[1] = gsub(score[1], "：", " ")
+				local data = {strsplit(" ", score[1])}
+				PointsNeeded = tonumber(data[#data])
+				for i=1, #data do
+					if tonumber(data[i]) ~= nil then
+						BaseNum = tonumber(data[i])
+						break
+					end
+				end
+			end
+		end
+	end
+	return PointsNeeded, BaseNum
+end
+
 function RE:EstimatorFill(ATimeToWin, HTimeToWin, RefreshTimer, APointNum, HPointNum)
 	local APointNum = APointNum or 0
 	local HPointNum = HPointNum or 0
@@ -637,47 +674,27 @@ function RE:OnEvent(_, event, ...)
 	elseif event == "UPDATE_WORLD_STATES" and RE.MapSettings[RE.CurrentMap] and select(2, IsInInstance()) == "pvp" then
 		if RE.CurrentMap == "TempleofKotmogu" then
 			local AlliancePointsNeeded, AlliancePointsPerSec, AllianceTimeToWin, HordePointsNeeded, HordePointsPerSec, HordeTimeToWin = nil, 0, 0, nil, 0, 0
-			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["TempleofKotmogu"]["WorldStateNum"])
-			if text ~= nil then
-				local score = {strsplit("/", text)}
-				if score[1] then
-					score[1] = gsub(score[1], "：", " ")
-					score = {strsplit(" ", score[1])}
-					AlliancePointsNeeded = RE.MapSettings["TempleofKotmogu"]["PointsToWin"] - tonumber(score[#score])
-				end
-			end
-			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["TempleofKotmogu"]["WorldStateNum"]+1)
-			if text ~= nil then
-				local score = {strsplit("/", text)}
-				if score[1] then
-					score[1] = gsub(score[1], "：", " ")
-					score = {strsplit(" ", score[1])}
-					HordePointsNeeded = RE.MapSettings["TempleofKotmogu"]["PointsToWin"] - tonumber(score[#score])
-				end
-			end
+			AlliancePointsNeeded = RE:PointParse(true, 0)
+			HordePointsNeeded = RE:PointParse(true, 1)
 			if AlliancePointsNeeded and HordePointsNeeded then
 				local numFlags = GetNumBattlefieldFlagPositions()
 				for i=1, 4 do
 					if i <= numFlags then
 						local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i)
 						if flagX > 0 and flagY > 0 then
+							local location
 							flagX, flagY = RE:GetRealCoords(flagX, flagY)
-							if flagToken == "AllianceFlag" then
-								if flagX < 420 and flagX > 350 and flagY < -255 and flagY > -305 then
-									AlliancePointsPerSec = AlliancePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"]["CenterP"]
-								elseif flagX < 470 and flagX > 300 and flagY < -210 and flagY > -350 then
-									AlliancePointsPerSec = AlliancePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"]["InnerP"]
-								else
-									AlliancePointsPerSec = AlliancePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"]["OuterP"]
-								end
+							if flagX < 420 and flagX > 350 and flagY < -255 and flagY > -305 then
+								location = "CenterP"
+							elseif flagX < 470 and flagX > 300 and flagY < -210 and flagY > -350 then
+								location = "InnerP"
 							else
-								if flagX < 420 and flagX > 350 and flagY < -255 and flagY > -305 then
-									HordePointsPerSec = HordePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"]["CenterP"]
-								elseif flagX < 470 and flagX > 300 and flagY < -210 and flagY > -350 then
-									HordePointsPerSec = HordePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"]["InnerP"]
-								else
-									HordePointsPerSec = HordePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"]["OuterP"]
-								end
+								location = "OuterP"
+							end
+							if flagToken == "AllianceFlag" then
+								AlliancePointsPerSec = AlliancePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"][location]
+							else
+								HordePointsPerSec = HordePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"][location]
 							end
 						end
 					end
@@ -696,24 +713,8 @@ function RE:OnEvent(_, event, ...)
 			end
 		elseif RE.CurrentMap == "STVDiamondMineBG" then
 			local AlliancePointsNeeded, AllianceCartsNeeded, HordePointsNeeded, HordeCartsNeeded = nil, 10, nil, 10
-			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["STVDiamondMineBG"]["WorldStateNum"])
-			if text ~= nil then
-				local score = {strsplit("/", text)}
-				if score[1] then
-					score[1] = gsub(score[1], "：", " ")
-					score = {strsplit(" ", score[1])}
-					AlliancePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["PointsToWin"] - tonumber(score[#score])
-				end
-			end
-			local _, _, _, text = GetWorldStateUIInfo(RE.MapSettings["STVDiamondMineBG"]["WorldStateNum"]+1)
-			if text ~= nil then
-				local score = {strsplit("/", text)}
-				if score[1] then
-					score[1] = gsub(score[1], "：", " ")
-					score = {strsplit(" ", score[1])}
-					HordePointsNeeded = RE.MapSettings["STVDiamondMineBG"]["PointsToWin"] - tonumber(score[#score])
-				end
-			end
+			AlliancePointsNeeded = RE:PointParse(true, 0)
+			HordePointsNeeded = RE:PointParse(true, 1)
 			if AlliancePointsNeeded and HordePointsNeeded then
 				AllianceCartsNeeded = AlliancePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"]
 				HordeCartsNeeded = HordePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"]
@@ -721,42 +722,9 @@ function RE:OnEvent(_, event, ...)
 				RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(AllianceCartsNeeded, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HordeCartsNeeded, 1).." "..L["carts"]
 			end
 		else
-			local WorldStateId = RE.MapSettings[RE.CurrentMap]["WorldStateNum"]
-			-- Rated EotS hack
-			if IsRatedBattleground() and RE.CurrentMap == "NetherstormArena" then
-				WorldStateId = 1
-			end
 			local AllianceBaseNum, AlliancePointNum, HordeBaseNum, HordePointNum, AllianceTimeToWin, HordeTimeToWin = 0, nil, 0, nil, 0, 0
-			local _, _, _, text = GetWorldStateUIInfo(WorldStateId)
-			if text ~= nil then
-				local score = {strsplit("/", text)}
-				if score[2] then
-					score[1] = gsub(score[1], "：", " ")
-					local data = {strsplit(" ", score[1])}
-					AlliancePointNum = tonumber(data[#data])
-					for i=1, #data do
-						if tonumber(data[i]) ~= nil then
-							AllianceBaseNum = tonumber(data[i])
-							break
-						end
-					end
-				end
-			end
-			_, _, _, text = GetWorldStateUIInfo(WorldStateId+1)
-			if text ~= nil then
-				local score = {strsplit("/", text)}
-				if score[2] then
-					score[1] = gsub(score[1], "：", " ")
-					local data = {strsplit(" ", score[1])}
-					HordePointNum = tonumber(data[#data])
-					for i=1, #data do
-						if tonumber(data[i]) ~= nil then
-							HordeBaseNum = tonumber(data[i])
-							break
-						end
-					end
-				end
-			end
+			AlliancePointNum, AllianceBaseNum = RE:PointParse(false, 0)
+			HordePointNum, HordeBaseNum = RE:PointParse(false, 1)
 			if AlliancePointNum and HordePointNum and AllianceBaseNum and HordeBaseNum then
 				if RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum] == 0 then
 					AllianceTimeToWin = 10000
