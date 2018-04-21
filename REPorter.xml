@@ -357,7 +357,7 @@
 		<Scripts>
 			<OnLoad>self:RegisterForDrag("LeftButton")</OnLoad>
 			<OnDragStart>if not REPorter.Settings.Locked then self:StartMoving() end</OnDragStart>
-			<OnDragStop>self:StopMovingOrSizing()</OnDragStop>
+			<OnDragStop>REPorter.Settings.BarX, REPorter.Settings.BarY = self:GetCenter(); self:StopMovingOrSizing()</OnDragStop>
 			<OnEnter>REPorter:OnEnterBar()</OnEnter>
 			<OnLeave>REPorter:OnLeaveBar()</OnLeave>
 		</Scripts>

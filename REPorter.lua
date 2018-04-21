@@ -265,7 +265,7 @@ RE.AceConfig = {
 				[14] = L["Standalone - Vertical"],
 				[15] = L["Hidden"]
 			},
-			set = function(_, val) RE.Settings.BarHandle = val; RE:UpdateConfig() end,
+			set = function(_, val) RE.Settings.BarHandle = val; RE.Settings.BarX, RE.Settings.BarY = _G.REPorterBar:GetCenter(); RE:UpdateConfig() end,
 			get = function(_) return RE.Settings.BarHandle end
 		},
 		MapSettings = {
@@ -855,14 +855,16 @@ end
 function RE:OnUpdate(elapsed)
 	if RE.UpdateTimer < 0 then
 		RE:BlinkPOI()
-		local subZoneName = GetSubZoneText()
-		if subZoneName and subZoneName ~= "" and not RE.ZonesWithoutSubZones[RE.CurrentMap] then
-			for _, i in pairs({"B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"}) do
-				_G["REPorterBar"..i]:Enable()
-			end
-		else
-			for _, i in pairs({"B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"}) do
-				_G["REPorterBar"..i]:Disable()
+		if not RE.ZonesWithoutSubZones[RE.CurrentMap] then
+			local subZoneName = GetSubZoneText()
+			if subZoneName and subZoneName ~= "" then
+				for _, i in pairs({"B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"}) do
+					_G["REPorterBar"..i]:Enable()
+				end
+			else
+				for _, i in pairs({"B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8"}) do
+					_G["REPorterBar"..i]:Disable()
+				end
 			end
 		end
 
@@ -1374,7 +1376,6 @@ function RE:Startup()
 	RE.GateSyncRequested = false
 	RE:Create(false)
 	_G.REPorterFrame:Show()
-	_G.REPorterBar:Show()
 	_G.REPorterFrameEstimator:Show()
 	if RE.Settings.HideMinimap then
 		_G.MinimapCluster:Hide()
@@ -1757,12 +1758,8 @@ function RE:SetupReportBar()
 	local previousButton = "B1"
 	local handle = RE.Settings.BarHandle
 
-	if _G.REPorterBar:IsShown() then
-		RE.Settings.BarX, RE.Settings.BarY = _G.REPorterBar:GetCenter()
-	end
-
 	_G.REPorterBar:ClearAllPoints()
-	if handle < 15 then
+	if handle < 15 and not RE.ZonesWithoutSubZones[RE.CurrentMap] then
 		_G.REPorterBar:SetAlpha(0.25)
 		_G.REPorterBarB1:SetPoint("TOPLEFT", "REPorterBar", "TOPLEFT", 10, -10)
 		if handle < 7 or handle == 13 then
@@ -1859,7 +1856,6 @@ function RE:ShowDummyMap(mapFileName)
 	RE:LoadMapSettings()
 	RE:SetupReportBar()
 	_G.REPorterFrame:Show()
-	_G.REPorterBar:Show()
 	_G.InterfaceOptionsFrame:SetFrameStrata("LOW")
 end
 
