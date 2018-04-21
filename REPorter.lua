@@ -593,6 +593,7 @@ function RE:OnEvent(_, event, ...)
 		_G.BINDING_NAME_REPORTERCLEAR = L["Clear"]
 		_G.REPorterBar:SetHitRectInsets(-5, -5, -5, -5)
 		_G.REPorterFrameClip:SetClipsChildren(true)
+		_G.REPorterFrameCoreUP.excludedMouseOverUnits = {}
 		_G.REPorterFrameCoreUP:SetMouseOverUnitExcluded("player", true)
 		_G.REPorterFrameCoreUP.UpdateUnitTooltips = function(self, tooltipFrame) RE:UnitOnEnterPlayer(self, tooltipFrame) end
 		_G.REPorterFrameCoreUP:SetFrameLevel(15)
@@ -872,7 +873,7 @@ function RE:OnUpdate(elapsed)
 			RE.NeedRefresh = false
 			_G.REPorterFrameCoreUP:ClearUnits()
 		end
-		_G.REPorterFrameCoreUP:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 50, 50, 1, 1, 1, 1, 7, true)
+		_G.REPorterFrameCoreUP:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 50, 50, 1, 1, 1, 1, 1, true)
 		if not (IsShiftKeyDown() and IsAltKeyDown()) then
 			for i = 1, MAX_RAID_MEMBERS do
 				local unit = "raid"..i
@@ -895,18 +896,18 @@ function RE:OnUpdate(elapsed)
 						RE.IsOverlay = true
 						if raidMarker ~= nil then
 							texture = "Interface\\Addons\\REPorter\\Textures\\RaidMarker"..raidMarker
-							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1)
+							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1, 0, false)
 						elseif UnitGroupRolesAssigned(unit) == "HEALER" then
 							texture = "Interface\\Addons\\REPorter\\Textures\\BlipHealer"
-							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 30, 30, r, g, b, 1)
+							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 30, 30, r, g, b, 1, 0, false)
 						end
 					else
 						RE.IsOverlay = false
 						if RE.Settings.DisplayMarks and raidMarker ~= nil then
 							texture = "Interface\\Addons\\REPorter\\Textures\\RaidMarker"..raidMarker
-							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1)
+							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1, 0, false)
 						else
-							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 25, 25, r, g, b, 1)
+							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 25, 25, r, g, b, 1, 0, false)
 						end
 					end
 				end
@@ -1375,6 +1376,7 @@ function RE:Startup()
 	RE.PlayedFromStart = true
 	RE.GateSyncRequested = false
 	RE:Create(false)
+	_G.REPorterFrameCoreUP:ResetCurrentMouseOverUnits()
 	_G.REPorterFrame:Show()
 	_G.REPorterFrameEstimator:Show()
 	if RE.Settings.HideMinimap then
@@ -1402,6 +1404,7 @@ function RE:Shutdown()
 	_G.REPorterFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
 	_G.REPorterFrame:UnregisterEvent("BATTLEGROUND_POINTS_UPDATE")
 	_G.REPorterFrameEstimatorText:SetText("")
+	_G.REPorterFrameCoreUP:ResetCurrentMouseOverUnits()
 	_G.L_CloseDropDownMenus()
 	if not _G.MinimapCluster:IsShown() and RE.Settings.HideMinimap then
 		_G.MinimapCluster:Show()

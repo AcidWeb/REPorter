@@ -256,6 +256,12 @@
 								<Anchors>
 									<Anchor point="TOPLEFT"/>
 								</Anchors>
+								<Scripts>
+									<OnLoad/>
+									<OnShow/>
+									<OnHide/>
+									<OnEvent/>
+								</Scripts>
 							</UnitPositionFrame>
 						</Frames>
 					</Frame>
