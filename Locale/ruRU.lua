@@ -1,7 +1,6 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("REPorter", "ruRU")
 if not L then return end
 
-L["Add \"[REPorter]\" to end of each report"] = "Добавлять \"[REPorter]\" в конец каждого отчёта."
 L["Clear"] = "Всё чисто"
 L["East"] = "Восток"
 L["Front"] = "Центр"

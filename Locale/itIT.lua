@@ -1,7 +1,6 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("REPorter", "itIT")
 if not L then return end
 
-L["Add \"[REPorter]\" to end of each report"] = "Aggiungi \"[REPorter]\" alla fine di ogni report"
 L["Clear"] = "Libero"
 L["East"] = "Est"
 L["Front"] = "Centrale"

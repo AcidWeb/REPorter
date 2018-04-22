@@ -1,7 +1,6 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("REPorter", "frFR")
 if not L then return end
 
-L["Add \"[REPorter]\" to end of each report"] = "Ajouter [REPorter] à la fin de chaque rapport"
 L["Anchor point of bar with quick report buttons."] = "Point d'ancrage de la barre avec les boutons de rapport rapide"
 L["Bottom left"] = "En bas a gauche"
 L["Bottom right"] = "En bas a droite"
@@ -34,4 +33,3 @@ L["victory"] = "victoire"
 L["West"] = "Ouest"
 L["When checked map is locked in place."] = "Quand la case est cochée la carte est verrouillée."
 L["When checked minimap will be hidden when player is on battleground."] = "Quand la case est cochée la mini-carte sera cachée quand le joueur est en champs de bataille."
-L["When checked shameless advert is added to each battleground report."] = "Quand la case est cochée une publicité est ajoutée aux rapports."

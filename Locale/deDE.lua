@@ -1,9 +1,7 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("REPorter", "deDE")
 if not L then return end
 
-L["Add \"[REPorter]\" to end of each report"] = "\"[REPorter]\" ans Ende jedes Berichts fügen"
 L["Anchor point of bar with quick report buttons."] = "Ankerpunkt der Leiste mit den Berichtsbuttons."
-L["Blue"] = "Blau"
 L["Bottom left"] = "Unten links"
 L["Bottom right"] = "Unten rechts"
 L["carts"] = "Wagen"
@@ -23,7 +21,6 @@ L["Map alpha"] = "Kartentransparenz"
 L["Map position and scale is saved separately for each battleground."] = "Die Kartenposition und -skalierung wird für jedes Schlachtfeld seperat gespeichert."
 L["Map scale"] = "Kartenskalierung"
 L["New version released!"] = "Neue Version veröffentlicht!"
-L["Red"] = "Rot"
 L["Report bar location"] = "Platz der Berichtsleiste"
 L["Report status"] = "Berichtsstatus"
 L["Right"] = "Rechts"
@@ -37,4 +34,3 @@ L["victory"] = "Sieg"
 L["West"] = "Westliches"
 L["When checked map is locked in place."] = "Wenn diese Option aktiviert ist, ist die Position der Karte unveränderbar."
 L["When checked minimap will be hidden when player is on battleground."] = "Wenn diese Option aktiviert ist, wird die Minikarte ausgeblendet, wenn du auf einem Schlachtfeld bist."
-L["When checked shameless advert is added to each battleground report."] = "Falls aktiviert, wird Werbung an jeden Schlachtfeldbericht schamlos hinzugefügt."

@@ -1,10 +1,8 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("REPorter", "zhTW")
 if not L then return end
 
-L["Add \"[REPorter]\" to end of each report"] = "在每個報告後添加\"[REPorter]\""
 L["Always display raid markers"] = "總是顯示團隊標記"
 L["Anchor point of bar with quick report buttons."] = "錨點及快捷報告按鈕"
-L["Blue"] = "藍色"
 L["Bottom left"] = "左下"
 L["Bottom right"] = "右下"
 L["carts"] = "礦車"
@@ -26,7 +24,6 @@ L["Map scale"] = "地圖縮放"
 L["New version released!"] = "已經釋出更新版本！"
 L["On my way"] = "正在趕來的路上"
 L["Purple"] = "紫色"
-L["Red"] = "紅色"
 L["Report bar location"] = "報告欄位置"
 L["Report status"] = "狀態報告"
 L["Right"] = "右"
@@ -41,4 +38,3 @@ L["West"] = "西面"
 L["When checked map is locked in place."] = "選定後地圖鎖定"
 L["When checked minimap will be hidden when player is on battleground."] = "選定後玩家位於戰場時小地圖隱藏"
 L["When checked player pins will be always replaced with raid markers."] = "勾選時，玩家位置標記會永遠使用團隊標記來取代。"
-L["When checked shameless advert is added to each battleground report."] = "選定後戰場報告自帶廣告推送"
