@@ -16,6 +16,7 @@ local IsShiftKeyDown = _G.IsShiftKeyDown
 local IsAltKeyDown = _G.IsAltKeyDown
 local IsControlKeyDown = _G.IsControlKeyDown
 local IsInBrawl = _G.C_PvP.IsInBrawl
+local IsAddOnLoaded = _G.IsAddOnLoaded
 local GetMapNameByID = _G.GetMapNameByID
 local GetNumberOfDetailTiles = _G.GetNumberOfDetailTiles
 local GetMapLandmarkInfo = _G.C_WorldMap.GetMapLandmarkInfo
@@ -87,6 +88,7 @@ RE.BlinkPOIUp = true
 RE.FoundNewVersion = false
 RE.AddonVersionCheck = 200
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
+RE.ElvUI = IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins")
 
 RE.MapNames = {
 	[GetMapNameByID(401)] = "AlteracValley",
@@ -1727,21 +1729,39 @@ end
 function RE:SetupReportBar()
 	local previousButton = "B1"
 	local handle = RE.Settings.BarHandle
+	local offset = 0
+
+	if RE.ElvUI then
+		if handle == 3 or handle == 6 or handle == 9 or handle == 12 then
+			offset = -2
+		elseif handle == 1 or handle == 4 or handle == 7 or handle == 10 then
+			offset = 2
+		end
+	end
 
 	_G.REPorterBar:ClearAllPoints()
 	if handle < 15 and not RE.ZonesWithoutSubZones[RE.CurrentMap] then
 		_G.REPorterBar:SetAlpha(0.25)
-		_G.REPorterBarB1:SetPoint("TOPLEFT", "REPorterBar", "TOPLEFT", 10, -10)
+		if RE.ElvUI then
+			_G.REPorterBarB1:SetPoint("TOPLEFT", "REPorterBar", "TOPLEFT", 5, -5)
+		else
+			_G.REPorterBarB1:SetPoint("TOPLEFT", "REPorterBar", "TOPLEFT", 10, -10)
+		end
 		if handle < 7 or handle == 13 then
 			if handle == 13 then
 				_G.REPorterBar:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings.BarX, RE.Settings.BarY)
 			elseif handle > 3 then
-				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], 1, 0)
+				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], 1, offset)
 			else
-				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], -1, 0)
+				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], -1, offset)
 			end
-			_G.REPorterBar:SetHeight(220)
-			_G.REPorterBar:SetWidth(45)
+			if RE.ElvUI then
+				_G.REPorterBar:SetHeight(210)
+				_G.REPorterBar:SetWidth(35)
+			else
+				_G.REPorterBar:SetHeight(220)
+				_G.REPorterBar:SetWidth(45)
+			end
 			for _, i in pairs({"B2", "B3", "B4", "B5", "B6", "B7", "B8"}) do
 				_G["REPorterBar"..i]:ClearAllPoints()
 				_G["REPorterBar"..i]:SetPoint("TOP", "REPorterBar"..previousButton, "BOTTOM")
@@ -1751,12 +1771,17 @@ function RE:SetupReportBar()
 			if handle == 14 then
 				_G.REPorterBar:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings.BarX, RE.Settings.BarY)
 			elseif handle > 9 then
-				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], 0, -1)
+				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], offset, -1)
 			else
-				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], 0, 1)
+				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], offset, 1)
 			end
-			_G.REPorterBar:SetHeight(45)
-			_G.REPorterBar:SetWidth(220)
+			if RE.ElvUI then
+				_G.REPorterBar:SetHeight(35)
+				_G.REPorterBar:SetWidth(210)
+			else
+				_G.REPorterBar:SetHeight(45)
+				_G.REPorterBar:SetWidth(220)
+			end
 			for _, i in pairs({"B2", "B3", "B4", "B5", "B6", "B7", "B8"}) do
 				_G["REPorterBar"..i]:ClearAllPoints()
 				_G["REPorterBar"..i]:SetPoint("LEFT", "REPorterBar"..previousButton, "RIGHT")
