@@ -5,7 +5,28 @@ local TOAST = LibStub("LibToast-1.0")
 local TIMER = LibStub("AceTimer-3.0")
 _G.REPorter = RE
 
---GLOBALS: FACTION_ALLIANCE, FACTION_HORDE, HELP_LABEL, ATTACK, HEALTH, BLUE_GEM, RED_GEM, MAX_RAID_MEMBERS
+-- UIDropDownMenu taint workaround by foxlit
+if (UIDROPDOWNMENU_VALUE_PATCH_VERSION or 0) < 2 then
+	UIDROPDOWNMENU_VALUE_PATCH_VERSION = 2
+	hooksecurefunc("UIDropDownMenu_InitializeHelper", function()
+		if UIDROPDOWNMENU_VALUE_PATCH_VERSION ~= 2 then
+			return
+		end
+		for i=1, UIDROPDOWNMENU_MAXLEVELS do
+			for j=1, UIDROPDOWNMENU_MAXBUTTONS do
+				local b = _G["DropDownList" .. i .. "Button" .. j]
+				if not (issecurevariable(b, "value") or b:IsShown()) then
+					b.value = nil
+					repeat
+						j, b["fx" .. j] = j+1
+					until issecurevariable(b, "value")
+				end
+			end
+		end
+	end)
+end
+
+--GLOBALS: FACTION_ALLIANCE, FACTION_HORDE, HELP_LABEL, ATTACK, HEALTH, BLUE_GEM, RED_GEM, MAX_RAID_MEMBERS, UIDROPDOWNMENU_VALUE_PATCH_VERSION, UIDROPDOWNMENU_MAXLEVELS, UIDROPDOWNMENU_MAXBUTTONS, issecurevariable
 local select, pairs, strsplit, gsub, tonumber, strfind, mod, print, ceil, strupper, next = _G.select, _G.pairs, _G.strsplit, _G.gsub, _G.tonumber, _G.strfind, _G.mod, _G.print, _G.ceil, _G.strupper, _G.next
 local mfloor = _G.math.floor
 local CreateFrame = _G.CreateFrame
@@ -151,12 +172,12 @@ RE.AzeriteNodes = {
 RE.POIDropDown = {
 	{ text = L["Incoming"], hasArrow = true, notCheckable = true,
 	menuList = {
-		{ text = "1", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(1, true); _G.L_CloseDropDownMenus() end },
-		{ text = "2", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(2, true); _G.L_CloseDropDownMenus() end },
-		{ text = "3", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(3, true); _G.L_CloseDropDownMenus() end },
-		{ text = "4", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(4, true); _G.L_CloseDropDownMenus() end },
-		{ text = "5", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(5, true); _G.L_CloseDropDownMenus() end },
-		{ text = "5+", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(6, true); _G.L_CloseDropDownMenus() end }
+		{ text = "1", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(1, true); _G.CloseDropDownMenus() end },
+		{ text = "2", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(2, true); _G.CloseDropDownMenus() end },
+		{ text = "3", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(3, true); _G.CloseDropDownMenus() end },
+		{ text = "4", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(4, true); _G.CloseDropDownMenus() end },
+		{ text = "5", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(5, true); _G.CloseDropDownMenus() end },
+		{ text = "5+", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(6, true); _G.CloseDropDownMenus() end }
 	} },
 	{ text = HELP_LABEL, notCheckable = true, func = function() RE:BigButton(true, true) end },
 	{ text = L["Clear"], notCheckable = true, func = function() RE:BigButton(false, true) end },
@@ -521,7 +542,7 @@ function RE:TimerBarHider()
 end
 
 function RE:TimerDropDownHider()
-	_G.L_CloseDropDownMenus()
+	_G.CloseDropDownMenus()
 end
 
 function RE:HideTooltip()
@@ -1334,9 +1355,9 @@ function RE:UnitOnEnterPOI(self)
 end
 
 function RE:OnClickPOI(self)
-	_G.L_CloseDropDownMenus()
+	_G.CloseDropDownMenus()
 	RE.ClickedPOI = RE.POINodes[self.name]["name"]
-	_G.L_EasyMenu(RE.POIDropDown, _G.REPorterReportDropDown, self, 0 , 0, "MENU")
+	_G.EasyMenu(RE.POIDropDown, _G.REPorterReportDropDown, self, 0 , 0, "MENU")
 end
 ---
 
@@ -1374,7 +1395,7 @@ function RE:Shutdown()
 	_G.REPorterFrame:UnregisterEvent("BATTLEGROUND_POINTS_UPDATE")
 	_G.REPorterFrameEstimatorText:SetText("")
 	_G.REPorterFrameCoreUP:ResetCurrentMouseOverUnits()
-	_G.L_CloseDropDownMenus()
+	_G.CloseDropDownMenus()
 	if not _G.MinimapCluster:IsShown() and RE.Settings.HideMinimap then
 		_G.MinimapCluster:Show()
 	end

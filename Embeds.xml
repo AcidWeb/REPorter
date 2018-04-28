@@ -8,6 +8,5 @@
   <Include file="Libs\AceConfigRegistry-3.0\AceConfigRegistry-3.0.xml"/>
   <Include file="Libs\AceConfigDialog-3.0\AceConfigDialog-3.0.xml"/>
   <Include file="Libs\AceLocale-3.0\AceLocale-3.0.xml"/>
-  <Include file="Libs\LibUIDropDownMenu\LibUIDropDownMenu.xml"/>
 
 </Ui>
