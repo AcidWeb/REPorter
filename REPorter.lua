@@ -30,6 +30,7 @@ end
 local select, pairs, strsplit, gsub, tonumber, strfind, mod, print, ceil, strupper, next = _G.select, _G.pairs, _G.strsplit, _G.gsub, _G.tonumber, _G.strfind, _G.mod, _G.print, _G.ceil, _G.strupper, _G.next
 local mfloor = _G.math.floor
 local CreateFrame = _G.CreateFrame
+local CreateFramePool = _G.CreateFramePool
 local IsInInstance = _G.IsInInstance
 local IsRatedBattleground = _G.IsRatedBattleground
 local IsInGuild = _G.IsInGuild
@@ -107,7 +108,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 200
+RE.AddonVersionCheck = 201
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 RE.ElvUI = IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins")
 
@@ -567,6 +568,7 @@ function RE:OnLoad(self)
 	self:RegisterEvent("CHAT_MSG_ADDON")
 	self:RegisterEvent("MODIFIER_STATE_CHANGED")
 	self:RegisterEvent("GROUP_ROSTER_UPDATE")
+	RE.FlagsPool = CreateFramePool("FRAME", _G.REPorterFrameCore, "REPorterMapTemplate")
 end
 
 function RE:OnEnterBar(_)
@@ -911,23 +913,16 @@ function RE:OnUpdate(elapsed)
 		_G.REPorterFrameCoreUP:UpdateTooltips(_G.GameTooltip)
 		local playerBlipFrameLevel = _G.REPorterFrameCoreUP:GetFrameLevel()
 
-		local numFlags = GetNumBattlefieldFlagPositions()
-		for i=1, 4 do
-			local flagFrame = _G["REPorterFrameCorePOIFlag"..i]
-			if i <= numFlags and (RE.CurrentMap ~= "GoldRush" or RE.IsBrawl) then
-				local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i)
-				if flagX == 0 and flagY == 0 then
-					flagFrame:Hide()
-				else
-					flagX, flagY = RE:GetRealCoords(flagX, flagY)
-					flagFrame.Texture:SetTexture("Interface\\WorldStateFrame\\"..flagToken)
-					flagFrame:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", flagX, flagY)
-					flagFrame:EnableMouse(false)
-					flagFrame:SetFrameLevel(playerBlipFrameLevel - 1)
-					flagFrame:Show()
-				end
-			else
-				flagFrame:Hide()
+		RE.FlagsPool:ReleaseAll()
+		for i = 1, GetNumBattlefieldFlagPositions() do
+			local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i)
+			if flagX ~= 0 or flagY ~= 0 then
+				local flagFrame = RE.FlagsPool:Acquire()
+				flagX, flagY = RE:GetRealCoords(flagX, flagY)
+				flagFrame.Texture:SetTexture("Interface\\WorldStateFrame\\"..flagToken)
+				flagFrame:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", flagX, flagY)
+				flagFrame:SetFrameLevel(playerBlipFrameLevel - 1)
+				flagFrame:Show()
 			end
 		end
 
@@ -1381,6 +1376,7 @@ end
 function RE:Shutdown()
 	_G.REPorterFrameCore:SetScript("OnUpdate", nil)
 	TIMER:CancelTimer(RE.EstimatorTimer)
+	RE.FlagsPool:ReleaseAll()
 	RE.POINodes = {}
 	RE.IsWinning = ""
 	RE.IsBrawl = false
@@ -1407,10 +1403,6 @@ function RE:Shutdown()
 		for k, _ in pairs(RE.POINodes) do
 			TIMER:CancelTimer(RE.POINodes[k]["timer"])
 		end
-	end
-	for i=1, 4 do
-		local flagFrame = _G["REPorterFrameCorePOIFlag"..i]
-		flagFrame:Hide()
 	end
 	if RE.NumVehicles then
 		for i=1, RE.NumVehicles do

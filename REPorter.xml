@@ -34,6 +34,12 @@
 		</Layers>
 	</Frame>
 
+	<Frame name="REPorterMapTemplate" inherits="WorldMapFlagTemplate" virtual="true">
+		<Size>
+			<AbsDimension x="35" y="35"/>
+		</Size>
+	</Frame>
+
 	<Frame name="REPorterReportDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="true"/>
 
 	<Frame name="REPorterFrame" hidden="true" resizable="true" movable="true" clampedToScreen="true" parent="UIParent">
@@ -220,28 +226,6 @@
 									<Anchor point="TOPLEFT"/>
 									<Anchor point="BOTTOMRIGHT"/>
 								</Anchors>
-								<Frames>
-									<Frame name="$parentFlag1" inherits="WorldMapFlagTemplate" id="1">
-										<Size>
-											<AbsDimension x="35" y="35"/>
-										</Size>
-									</Frame>
-									<Frame name="$parentFlag2" inherits="WorldMapFlagTemplate" id="2">
-										<Size>
-											<AbsDimension x="35" y="35"/>
-										</Size>
-									</Frame>
-									<Frame name="$parentFlag3" inherits="WorldMapFlagTemplate" id="3">
-										<Size>
-											<AbsDimension x="35" y="35"/>
-										</Size>
-									</Frame>
-									<Frame name="$parentFlag4" inherits="WorldMapFlagTemplate" id="4">
-										<Size>
-											<AbsDimension x="35" y="35"/>
-										</Size>
-									</Frame>
-								</Frames>
 							</Frame>
 							<Frame name="$parentPOITimers" hidden="true">
 								<Anchors>
