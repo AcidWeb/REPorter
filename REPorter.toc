@@ -4,6 +4,8 @@
 ## Version: 2.0.2
 ## Author: AcidWeb
 ## SavedVariablesPerCharacter: REPorterSettings
+## X-Curse-Project-ID: 39399
+## X-WoWI-ID: 21089
 
 Embeds.xml
 Locale\Locale.xml

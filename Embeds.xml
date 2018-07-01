@@ -5,6 +5,7 @@
   <Script file="Libs\LibToast-1.0\LibToast-1.0.lua"/>
   <Include file="Libs\AceTimer-3.0\AceTimer-3.0.xml"/>
   <Include file="Libs\AceGUI-3.0\AceGUI-3.0.xml"/>
+  <Include file="Libs\AceBucket-3.0\AceBucket-3.0.xml"/>
   <Include file="Libs\AceConfigRegistry-3.0\AceConfigRegistry-3.0.xml"/>
   <Include file="Libs\AceConfigDialog-3.0\AceConfigDialog-3.0.xml"/>
   <Include file="Libs\AceLocale-3.0\AceLocale-3.0.xml"/>
