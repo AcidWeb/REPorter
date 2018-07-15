@@ -3,6 +3,7 @@ local _, RE = ...
 local L = LibStub("AceLocale-3.0"):GetLocale("REPorter")
 local TOAST = LibStub("LibToast-1.0")
 local TIMER = LibStub("AceTimer-3.0")
+local BUCKET = LibStub("AceBucket-3.0")
 _G.REPorter = RE
 
 -- UIDropDownMenu taint workaround by foxlit
@@ -27,7 +28,7 @@ if (UIDROPDOWNMENU_VALUE_PATCH_VERSION or 0) < 2 then
 end
 
 --GLOBALS: FACTION_ALLIANCE, FACTION_HORDE, HELP_LABEL, ATTACK, HEALTH, BLUE_GEM, RED_GEM, MAX_RAID_MEMBERS, UIDROPDOWNMENU_VALUE_PATCH_VERSION, UIDROPDOWNMENU_MAXLEVELS, UIDROPDOWNMENU_MAXBUTTONS, issecurevariable
-local select, pairs, strsplit, gsub, tonumber, strfind, mod, print, ceil, strupper, next, strmatch = _G.select, _G.pairs, _G.strsplit, _G.gsub, _G.tonumber, _G.strfind, _G.mod, _G.print, _G.ceil, _G.strupper, _G.next, _G.strmatch
+local select, pairs, strsplit, tonumber, strfind, print, strupper, next, strmatch = _G.select, _G.pairs, _G.strsplit, _G.tonumber, _G.strfind, _G.print, _G.strupper, _G.next, _G.strmatch
 local mfloor = _G.math.floor
 local CreateFrame = _G.CreateFrame
 local CreateFramePool = _G.CreateFramePool
@@ -39,24 +40,27 @@ local IsAltKeyDown = _G.IsAltKeyDown
 local IsControlKeyDown = _G.IsControlKeyDown
 local IsInBrawl = _G.C_PvP.IsInBrawl
 local IsAddOnLoaded = _G.IsAddOnLoaded
-local GetMapNameByID = _G.GetMapNameByID
-local GetNumberOfDetailTiles = _G.GetNumberOfDetailTiles
-local GetMapLandmarkInfo = _G.C_WorldMap.GetMapLandmarkInfo
 local GetBattlefieldInstanceRunTime = _G.GetBattlefieldInstanceRunTime
-local GetMapInfo = _G.GetMapInfo
-local SetMapToCurrentZone = _G.SetMapToCurrentZone
-local GetWorldStateUIInfo = _G.GetWorldStateUIInfo
+local GetMapInfo = _G.C_Map.GetMapInfo
+local GetMapArtLayerTextures = _G.C_Map.GetMapArtLayerTextures
+local GetBestMapForUnit = _G.C_Map.GetBestMapForUnit
+local GetAreaPOIForMap = _G.C_AreaPoiInfo.GetAreaPOIForMap
+local GetAreaPOIInfo = _G.C_AreaPoiInfo.GetAreaPOIInfo
+local GetPOITextureCoords = _G.GetPOITextureCoords
+local GetVignettes = _G.C_VignetteInfo.GetVignettes
+local GetVignetteInfo = _G.C_VignetteInfo.GetVignetteInfo
+local GetVignettePosition = _G.C_VignetteInfo.GetVignettePosition
 local GetNumBattlefieldFlagPositions = _G.GetNumBattlefieldFlagPositions
 local GetBattlefieldFlagPosition = _G.GetBattlefieldFlagPosition
+local GetNumBattlefieldVehicles = _G.GetNumBattlefieldVehicles
+local GetBattlefieldVehicleInfo = _G.GetBattlefieldVehicleInfo
+local GetVehicleTexture = _G.VehicleUtil.GetVehicleTexture
 local GetSubZoneText = _G.GetSubZoneText
 local GetClassColor = _G.GetClassColor
 local GetRaidTargetIndex = _G.GetRaidTargetIndex
-local GetNumBattlefieldVehicles = _G.GetNumBattlefieldVehicles
-local GetBattlefieldVehicleInfo = _G.GetBattlefieldVehicleInfo
-local GetNumMapLandmarks = _G.GetNumMapLandmarks
-local GetNumMapOverlays = _G.GetNumMapOverlays
-local GetMapOverlayInfo = _G.GetMapOverlayInfo
-local GetPOITextureCoords = _G.GetPOITextureCoords
+local GetTopCenterWidgetSetID = _G.C_UIWidgetManager.GetTopCenterWidgetSetID
+local GetAllWidgetsBySetID = _G.C_UIWidgetManager.GetAllWidgetsBySetID
+local GetIconAndTextWidgetVisualizationInfo = _G.C_UIWidgetManager.GetIconAndTextWidgetVisualizationInfo
 local UnitName = _G.UnitName
 local UnitClass = _G.UnitClass
 local UnitExists = _G.UnitExists
@@ -67,21 +71,34 @@ local UnitHealthMax = _G.UnitHealthMax
 local UnitIsDeadOrGhost = _G.UnitIsDeadOrGhost
 local UnitGroupRolesAssigned = _G.UnitGroupRolesAssigned
 local SendChatMessage = _G.SendChatMessage
-local SendAddonMessage = _G.SendAddonMessage
-local SetMapTooltipPosition = _G.SetMapTooltipPosition
-local WorldMap_GetVehicleTexture = _G.WorldMap_GetVehicleTexture
-local RegisterAddonMessagePrefix = _G.RegisterAddonMessagePrefix
+local SendAddonMessage = _G.C_ChatInfo.SendAddonMessage
+local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo
+local RegisterAddonMessagePrefix = _G.C_ChatInfo.RegisterAddonMessagePrefix
+local ElvUI = _G.ElvUI
+
+local AV = 91
+local WG = 92
+local AB = 93
+local EOTS = 112
+local IOC = 169
+local TP = 206
+local BFG = 275
+local TOK = 417
+local SM = 423
+local DG = 519
+local TMVS = 623
+local ABW = 837
+local SS = 907
 
 RE.POIIconSize = 30
 RE.POINumber = 25
 RE.MapUpdateRate = 0.05
-RE.BGOverlayNum = 0
 RE.LastMap = 0
+RE.CurrentMap = -1
 RE.NeedRefresh = false
 RE.BGVehicles = {}
 RE.POINodes = {}
 RE.PinTextures = {}
-RE.CurrentMap = ""
 RE.ClickedPOI = ""
 
 RE.DefaultTimer = 60
@@ -108,53 +125,37 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 202
+RE.AddonVersionCheck = 210
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 RE.ElvUI = IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins")
 
-RE.MapNames = {
-	[GetMapNameByID(401)] = "AlteracValley",
-	[GetMapNameByID(461)] = "ArathiBasin",
-	[GetMapNameByID(935)] = "GoldRush",
-	[GetMapNameByID(482)] = "NetherstormArena",
-	[GetMapNameByID(540)] = "IsleofConquest",
-	[GetMapNameByID(860)] = "STVDiamondMineBG",
-	[GetMapNameByID(512)] = "StrandoftheAncients",
-	[GetMapNameByID(856)] = "TempleofKotmogu",
-	[GetMapNameByID(736)] = "GilneasBattleground2",
-	[GetMapNameByID(626)] = "TwinPeaks",
-	[GetMapNameByID(443)] = "WarsongGulch",
-	[GetMapNameByID(1010)] = "HillsbradFoothillsBG",
-	[GetMapNameByID(1186)] = "AzeriteBG"
-}
 RE.MapSettings = {
-	["ArathiBasin"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["WarsongGulch"] = {["StartTimer"] = 120},
-	["AlteracValley"] = {["StartTimer"] = 120},
-	["NetherstormArena"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 2, ["StartTimer"] = 120},
-	["StrandoftheAncients"] = {["StartTimer"] = 120},
-	["IsleofConquest"] = {["StartTimer"] = 120},
-	["GilneasBattleground2"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["TwinPeaks"] = {["StartTimer"] = 120},
-	["TempleofKotmogu"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["STVDiamondMineBG"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["GoldRush"] = {["PointsToWin"] = 1500, ["WorldStateNum"] = 1, ["StartTimer"] = 120},
-	["HillsbradFoothillsBG"] = {["VE"] = 80, ["StartTimer"] = 120},
-	["AzeriteBG"] = {["StartTimer"] = 120}
+	[AB] = {["PointsToWin"] = 1500, ["StartTimer"] = 120},
+	[WG] = {["StartTimer"] = 120},
+	[AV] = {["StartTimer"] = 120},
+	[EOTS] = {["PointsToWin"] = 1500, ["StartTimer"] = 120},
+	[IOC] = {["StartTimer"] = 120},
+	[BFG] = {["PointsToWin"] = 1500, ["StartTimer"] = 120},
+	[TP] = {["StartTimer"] = 120},
+	[TOK] = {["PointsToWin"] = 1500, ["StartTimer"] = 120},
+	[SM] = {["PointsToWin"] = 1500, ["StartTimer"] = 120},
+	[DG] = {["PointsToWin"] = 1500, ["StartTimer"] = 120},
+	[TMVS] = {["StartTimer"] = 120},
+	[SS] = {["StartTimer"] = 120}
 }
 RE.EstimatorSettings = {
-	["ArathiBasin"] = { [0] = 0, [1] = 10/12, [2] = 10/9, [3] = 10/6, [4] = 10/3, [5] = 30},
-	["NetherstormArena"] = { [0] = 0, [1] = 1, [2] = 2, [3] = 5, [4] = 10},
-	["GilneasBattleground2"] = { [0] = 0, [1] = 10/9, [2] = 10/3, [3] = 30},
-	["GoldRush"] = { [0] = 0, [1] = 1.6, [2] = 3.2, [3] = 6.4},
-	["TempleofKotmogu"] = {["CenterP"] = 1, ["InnerP"] = 0.8, ["OuterP"] = 0.6},
-	["STVDiamondMineBG"] = 150
+	[AB] = { [0] = 0, [1] = 10/12, [2] = 10/9, [3] = 10/6, [4] = 10/3, [5] = 30},
+	[EOTS] = { [0] = 0, [1] = 1, [2] = 2, [3] = 5, [4] = 10},
+	[BFG] = { [0] = 0, [1] = 10/9, [2] = 10/3, [3] = 30},
+	[DG] = { [0] = 0, [1] = 1.6, [2] = 3.2, [3] = 6.4},
+	[TOK] = {["CenterP"] = 1, ["InnerP"] = 0.8, ["OuterP"] = 0.6},
+	[SM] = 150
 }
 RE.ZonesWithoutSubZones = {
-	["GoldRush"] = true,
-	["STVDiamondMineBG"] = true,
-	["TempleofKotmogu"] = true,
-	["HillsbradFoothillsBG"] = true
+	[DG] = true,
+	[SM] = true,
+	[TOK] = true,
+	[TMVS] = true
 }
 RE.AzeriteNodes = {
 	[0.391] = {[0.750] = L["Overlook"]},
@@ -201,19 +202,18 @@ RE.DefaultConfig = {
 	HideMinimap = false,
 	DisplayMarks = false,
 	Map = {
-		["ArathiBasin"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 325, ["wh"] = 325, ["mx"] = 16, ["my"] = -77, ["ms"] = 1},
-		["WarsongGulch"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 280, ["wh"] = 460, ["mx"] = -5, ["my"] = -38, ["ms"] = 1},
-		["AlteracValley"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 185, ["wh"] = 450, ["mx"] = 32, ["my"] = -36, ["ms"] = 1},
-		["NetherstormArena"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 360, ["mx"] = 23, ["my"] = -41, ["ms"] = 1},
-		["StrandoftheAncients"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 285, ["wh"] = 370, ["mx"] = 26, ["my"] = -15, ["ms"] = 1},
-		["IsleofConquest"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 290, ["wh"] = 375, ["mx"] = 13, ["my"] = -23, ["ms"] = 1},
-		["GilneasBattleground2"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 340, ["wh"] = 370, ["mx"] = 6, ["my"] = -28, ["ms"] = 1},
-		["TwinPeaks"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 245, ["wh"] = 460, ["mx"] = 1, ["my"] = -33, ["ms"] = 1},
-		["TempleofKotmogu"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 390, ["wh"] = 250, ["mx"] = 19, ["my"] = -21, ["ms"] = 1},
-		["STVDiamondMineBG"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 460, ["wh"] = 350, ["mx"] = 7, ["my"] = -43, ["ms"] = 1},
-		["GoldRush"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 520, ["wh"] = 385, ["mx"] = -10, ["my"] = -45, ["ms"] = 1},
-		["HillsbradFoothillsBG"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 370, ["mx"] = -2, ["my"] = -22, ["ms"] = 1},
-		["AzeriteBG"] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 360, ["wh"] = 385, ["mx"] = 66, ["my"] = -63, ["ms"] = 1}
+		[AB] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 325, ["wh"] = 325, ["mx"] = 16, ["my"] = -77, ["ms"] = 1},
+		[WG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 280, ["wh"] = 460, ["mx"] = -5, ["my"] = -38, ["ms"] = 1},
+		[AV] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 185, ["wh"] = 450, ["mx"] = 32, ["my"] = -36, ["ms"] = 1},
+		[EOTS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 360, ["mx"] = 23, ["my"] = -41, ["ms"] = 1},
+		[IOC] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 290, ["wh"] = 375, ["mx"] = 13, ["my"] = -23, ["ms"] = 1},
+		[BFG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 340, ["wh"] = 370, ["mx"] = 6, ["my"] = -28, ["ms"] = 1},
+		[TP] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 245, ["wh"] = 460, ["mx"] = 1, ["my"] = -33, ["ms"] = 1},
+		[SM] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 390, ["wh"] = 250, ["mx"] = 19, ["my"] = -21, ["ms"] = 1},
+		[TOK] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 460, ["wh"] = 350, ["mx"] = 7, ["my"] = -43, ["ms"] = 1},
+		[DG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 520, ["wh"] = 385, ["mx"] = -10, ["my"] = -45, ["ms"] = 1},
+		[TMVS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 370, ["mx"] = -2, ["my"] = -22, ["ms"] = 1},
+		[SS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 360, ["wh"] = 385, ["mx"] = 66, ["my"] = -63, ["ms"] = 1}
 	}
 }
 RE.ReportBarAnchor = {
@@ -299,21 +299,20 @@ RE.AceConfig = {
 			order = 6,
 			disabled = function(_) if select(2, IsInInstance()) == "pvp" then return true else return false end end,
 			values = {
-				[401] = GetMapNameByID(401),
-				[461] = GetMapNameByID(461),
-				[935] = GetMapNameByID(935),
-				[482] = GetMapNameByID(482),
-				[540] = GetMapNameByID(540),
-				[860] = GetMapNameByID(860),
-				[512] = GetMapNameByID(512),
-				[856] = GetMapNameByID(856),
-				[736] = GetMapNameByID(736),
-				[626] = GetMapNameByID(626),
-				[443] = GetMapNameByID(443),
-				[1010] = GetMapNameByID(1010),
-				[1186] = GetMapNameByID(1186)
+				[AB] = GetMapInfo(AB).name,
+				[WG] = GetMapInfo(WG).name,
+				[AV] = GetMapInfo(AV).name,
+				[EOTS] = GetMapInfo(EOTS).name,
+				[IOC] = GetMapInfo(IOC).name,
+				[BFG] = GetMapInfo(BFG).name,
+				[TP] = GetMapInfo(TP).name,
+				[SM] = GetMapInfo(SM).name,
+				[TOK] = GetMapInfo(TOK).name,
+				[DG] = GetMapInfo(DG).name,
+				[TMVS] = GetMapInfo(TMVS).name,
+				[SS] = GetMapInfo(SS).name,
 			},
-			set = function(_, val) RE.LastMap = val; RE:ShowDummyMap(RE.MapNames[GetMapNameByID(val)]) end,
+			set = function(_, val) RE.LastMap = val; RE:ShowDummyMap(val) end,
 			get = function(_) return RE.LastMap end
 		},
 		Scale = {
@@ -343,6 +342,13 @@ RE.AceConfig = {
 		},
 	}
 }
+
+local function ElvUISwag(sender)
+  if sender == "Livarax-BurningLegion" then
+    return [[|TInterface\PvPRankBadges\PvPRank09:0|t ]]
+  end
+  return nil
+end
 
 -- *** Pre-hook section
 RE.TimerOverride = false
@@ -439,12 +445,6 @@ function RE:CreatePOI(index)
 	frame:SetPoint("CENTER", frameMain, "CENTER")
 end
 
-function RE:SOTAStartCheck()
-	local startCheck = {GetMapLandmarkInfo(7)}
-	local sideCheck = {GetMapLandmarkInfo(10)}
-	return (startCheck[4] == 46 or startCheck[4] == 48), sideCheck[4] == 102
-end
-
 function RE:UpdateIoCEstimator()
 	if RE.IoCGateEstimator[FACTION_HORDE] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
 		RE.IoCGateEstimatorText = "|cFF00A9FF"..RE:Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%|r"
@@ -455,20 +455,15 @@ function RE:UpdateIoCEstimator()
 	end
 end
 
-function RE:PointParse(custom, sufix)
+function RE:PointParse(custom, id)
 	local PointsNeeded, BaseNum = 0, 0
-	local WorldStateId = RE.MapSettings[RE.CurrentMap]["WorldStateNum"]
 	if custom then
-		local _, _, _, text = GetWorldStateUIInfo(WorldStateId + sufix)
+		local text = GetIconAndTextWidgetVisualizationInfo(GetAllWidgetsBySetID(GetTopCenterWidgetSetID())[id].widgetID).text
 		if text ~= nil then
 			PointsNeeded = RE.MapSettings[RE.CurrentMap]["PointsToWin"] - tonumber(strmatch(text, "(%d+)/%d+"))
 		end
 	else
-		-- Rated EotS hack
-		if IsRatedBattleground() and RE.CurrentMap == "NetherstormArena" then
-			WorldStateId = 1
-		end
-		local _, _, _, text = GetWorldStateUIInfo(WorldStateId + sufix)
+		local text = GetIconAndTextWidgetVisualizationInfo(GetAllWidgetsBySetID(GetTopCenterWidgetSetID())[id].widgetID).text
 		if text ~= nil then
 			BaseNum = tonumber(strmatch(text, "(%d+)"))
 			PointsNeeded = RE.MapSettings[RE.CurrentMap]["PointsToWin"] - tonumber(strmatch(text, "(%d+)/%d+"))
@@ -512,9 +507,9 @@ end
 
 function RE:TimerJoinCheck()
 	local BGTime = GetBattlefieldInstanceRunTime()/1000
-	if RE.CurrentMap ~= "" and BGTime > RE.MapSettings[RE.CurrentMap]["StartTimer"] then
+	if RE.CurrentMap ~= -1 and BGTime > RE.MapSettings[RE.CurrentMap]["StartTimer"] then
 		RE.PlayedFromStart = false
-		if RE.CurrentMap == "StrandoftheAncients" or RE.CurrentMap == "IsleofConquest" then
+		if RE.CurrentMap == IOC then
 			RE.GateSyncRequested = true
 			SendAddonMessage("REPorter", "GateSyncRequest;", "INSTANCE_CHAT")
 		end
@@ -532,15 +527,6 @@ end
 function RE:HideTooltip()
 	_G.GameTooltip:Hide()
 end
-
-function RE:GetMapInfo()
-	local map = GetMapInfo()
-	if map == "ArathiBasinWinter" then
-		return "ArathiBasin"
-	else
-		return map
-	end
-end
 --
 
 -- *** Event functions
@@ -551,7 +537,7 @@ function RE:OnLoad(self)
 	self:RegisterEvent("CHAT_MSG_ADDON")
 	self:RegisterEvent("MODIFIER_STATE_CHANGED")
 	self:RegisterEvent("GROUP_ROSTER_UPDATE")
-	RE.FlagsPool = CreateFramePool("FRAME", _G.REPorterFrameCore, "REPorterMapTemplate")
+	RE.FlagsPool = CreateFramePool("FRAME", _G.REPorterFrameCore, "REPorterFlagTemplate")
 end
 
 function RE:OnEnterBar(_)
@@ -608,7 +594,7 @@ function RE:OnMouseWheel(delta)
 	end
 end
 
-function RE:OnEvent(_, event, ...)
+function RE:OnEvent(self, event, ...)
 	if event == "ADDON_LOADED" and ... == "REPorter" then
 		RE.UpdateTimer = 0
 		if not _G.REPorterSettings then
@@ -651,6 +637,12 @@ function RE:OnEvent(_, event, ...)
 			toast:SetFormattedText(...)
 			toast:SetIconTexture([[Interface\Challenges\ChallengeMode_Medal_Bronze]])
 		end)
+
+		if ElvUI then
+			ElvUI[1]:GetModule("Chat"):AddPluginIcons(ElvUISwag)
+		end
+
+		self:UnregisterEvent("ADDON_LOADED")
 	elseif event == "CHAT_MSG_ADDON" and ... == "REPorter" then
 		local _, REMessage = ...
 		local REMessageEx = {strsplit(";", REMessage)}
@@ -678,122 +670,59 @@ function RE:OnEvent(_, event, ...)
 				end
 			end
 		end
-	elseif event == "UPDATE_WORLD_STATES" and RE.MapSettings[RE.CurrentMap] and select(2, IsInInstance()) == "pvp" then
-		if RE.CurrentMap == "TempleofKotmogu" then
-			local AlliancePointsPerSec, AllianceTimeToWin, HordePointsPerSec, HordeTimeToWin = 0, 0, 0, 0
-			local AlliancePointsNeeded = RE:PointParse(true, 0)
-			local HordePointsNeeded = RE:PointParse(true, 1)
-			for i=1, 4 do
-				if i <= GetNumBattlefieldFlagPositions() then
-					local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i)
-					if flagX > 0 or flagY > 0 then
-						local location
-						flagX, flagY = RE:GetRealCoords(flagX, flagY)
-						if flagX < 420 and flagX > 350 and flagY < -255 and flagY > -305 then
-							location = "CenterP"
-						elseif flagX < 470 and flagX > 300 and flagY < -210 and flagY > -350 then
-							location = "InnerP"
-						else
-							location = "OuterP"
-						end
-						if flagToken == "AllianceFlag" then
-							AlliancePointsPerSec = AlliancePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"][location]
-						else
-							HordePointsPerSec = HordePointsPerSec + RE.EstimatorSettings["TempleofKotmogu"][location]
-						end
-					end
-				end
-				if AlliancePointsPerSec > 0 then
-					AllianceTimeToWin = AlliancePointsNeeded / AlliancePointsPerSec
-				else
-					AllianceTimeToWin = 10000
-				end
-				if HordePointsPerSec > 0 then
-					HordeTimeToWin = HordePointsNeeded / HordePointsPerSec
-				else
-					HordeTimeToWin = 10000
-				end
-				RE:EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 2)
+	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" and next(RE.POINodes) ~= nil then
+		local _, event, _, _, _, _, _, guid, _, _, _, _, _, _, damage = CombatLogGetCurrentEventInfo()
+		if event ~= "SPELL_BUILDING_DAMAGE" then return end
+		local gateID = {strsplit("-", guid)}
+		--TODO check GUID
+		if gateID[6] == "195496" then -- Horde East
+			RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] - damage
+			if RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
+				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"]
 			end
-		elseif RE.CurrentMap == "STVDiamondMineBG" then
-			local AllianceCartsNeeded, HordeCartsNeeded = 10, 10
-			local AlliancePointsNeeded = RE:PointParse(true, 0)
-			local HordePointsNeeded = RE:PointParse(true, 1)
-			AllianceCartsNeeded = AlliancePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"]
-			HordeCartsNeeded = HordePointsNeeded / RE.EstimatorSettings["STVDiamondMineBG"]
-			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(AllianceCartsNeeded, 1).."|r\n|cFFFF141D"..RE:Round(HordeCartsNeeded, 1).."|r"
-			RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(AllianceCartsNeeded, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HordeCartsNeeded, 1).." "..L["carts"]
-		else
-			local AllianceTimeToWin, HordeTimeToWin = 0, 0
-			local AlliancePointsNeeded, AllianceBaseNum = RE:PointParse(false, 0)
-			local HordePointsNeeded, HordeBaseNum = RE:PointParse(false, 1)
-			if RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum] == 0 then
-				AllianceTimeToWin = 10000
-			else
-				AllianceTimeToWin = AlliancePointsNeeded / RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum]
+		elseif gateID[6] == "195494" then -- Horde Central
+			RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] - damage
+			if RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
+				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"]
 			end
-			if RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum] == 0 then
-				HordeTimeToWin = 10000
-			else
-				HordeTimeToWin = HordePointsNeeded / RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum]
+		elseif gateID[6] == "195495" then -- Horde West
+			RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] - damage
+			if RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
+				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"]
 			end
-			RE:EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 5)
+		elseif gateID[6] == "195700" then -- Alliance East
+			RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] - damage
+			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"]
+			end
+		elseif gateID[6] == "195698" then -- Alliance Center
+			RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] - damage
+			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"]
+			end
+		elseif gateID[6] == "195699" then -- Alliance West
+			RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] - damage
+			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"]
+			end
 		end
-	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" and select(2, ...) == "SPELL_BUILDING_DAMAGE" and next(RE.POINodes) ~= nil then
-		local guid, gateName, _, _, _, _, _, damage = select(8, ...)
-		if RE.CurrentMap ~= "IsleofConquest" then
-			RE.POINodes[gateName]["health"] = RE.POINodes[gateName]["health"] - damage
-		else
-			local gateID = {strsplit("-", guid)}
-			if gateID[6] == "195496" then -- Horde East
-				RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] - damage
-				if RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
-					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"]
-				end
-			elseif gateID[6] == "195494" then -- Horde Central
-				RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] - damage
-				if RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
-					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"]
-				end
-			elseif gateID[6] == "195495" then -- Horde West
-				RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] - damage
-				if RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
-					RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"]
-				end
-			elseif gateID[6] == "195700" then -- Alliance East
-				RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] - damage
-				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"]
-				end
-			elseif gateID[6] == "195698" then -- Alliance Center
-				RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] - damage
-				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"]
-				end
-			elseif gateID[6] == "195699" then -- Alliance West
-				RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] - damage
-				if RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-					RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"]
-				end
-			end
-			RE:UpdateIoCEstimator()
-		end
+		RE:UpdateIoCEstimator()
 	elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
-		if RE.CurrentMap ~= "" then
+		if RE.CurrentMap ~= -1 then
 			RE:SaveMapSettings()
 		end
 		_G.REPorterFrame:Hide()
 		_G.REPorterBar:Hide()
 		_G.REPorterFrameEstimator:Hide()
-		if select(2, IsInInstance()) == "pvp" and RE.CurrentMap == "" then
-			SetMapToCurrentZone()
-			local mapFileName = RE:GetMapInfo()
-			if mapFileName and RE.MapSettings[mapFileName] then
-				RE.CurrentMap = mapFileName
+		if select(2, IsInInstance()) == "pvp" and RE.CurrentMap == -1 then
+			local mapID = GetBestMapForUnit("player")
+			if mapID == ABW then mapID = AB end
+			if mapID and RE.MapSettings[mapID] then
+				RE.CurrentMap = mapID
 				RE:Startup()
 			end
-		elseif select(2, IsInInstance()) ~= "pvp" and RE.CurrentMap ~= "" then
-			RE.CurrentMap = ""
+		elseif select(2, IsInInstance()) ~= "pvp" and RE.CurrentMap ~= -1 then
+			RE.CurrentMap = -1
 			RE:Shutdown()
 		end
 	elseif event == "MODIFIER_STATE_CHANGED" and _G.REPorterFrame:IsShown() then
@@ -812,12 +741,73 @@ function RE:OnEvent(_, event, ...)
 		end
 	elseif event == "GROUP_ROSTER_UPDATE" and _G.REPorterFrame:IsShown() then
 		RE.NeedRefresh = true
-	elseif event == "BATTLEGROUND_POINTS_UPDATE" then
-		RE:CreateTimer(12)
-	elseif event == "CHAT_MSG_BG_SYSTEM_NEUTRAL" then
-		-- SotA hack
-		RE.NeedRefresh = true
-		RE:Create(true)
+	end
+end
+
+function RE:OnPointsUpdate()
+	if RE.MapSettings[RE.CurrentMap] and select(2, IsInInstance()) == "pvp" then
+		if RE.CurrentMap == TOK then
+			local AlliancePointsPerSec, AllianceTimeToWin, HordePointsPerSec, HordeTimeToWin = 0, 0, 0, 0
+			local AlliancePointsNeeded = RE:PointParse(true, 2)
+			local HordePointsNeeded = RE:PointParse(true, 3)
+			for i=1, 4 do
+				if i <= GetNumBattlefieldFlagPositions() then
+					local flagX, flagY, flagTexture = GetBattlefieldFlagPosition(i)
+					if flagX then
+						local location
+						flagX, flagY = RE:GetRealCoords(flagX, flagY)
+						if flagX < 420 and flagX > 350 and flagY < -255 and flagY > -305 then
+							location = "CenterP"
+						elseif flagX < 470 and flagX > 300 and flagY < -210 and flagY > -350 then
+							location = "InnerP"
+						else
+							location = "OuterP"
+						end
+						if flagTexture == 137200 then
+							AlliancePointsPerSec = AlliancePointsPerSec + RE.EstimatorSettings[TOK][location]
+						else
+							HordePointsPerSec = HordePointsPerSec + RE.EstimatorSettings[TOK][location]
+						end
+					end
+				end
+				if AlliancePointsPerSec > 0 then
+					AllianceTimeToWin = AlliancePointsNeeded / AlliancePointsPerSec
+				else
+					AllianceTimeToWin = 10000
+				end
+				if HordePointsPerSec > 0 then
+					HordeTimeToWin = HordePointsNeeded / HordePointsPerSec
+				else
+					HordeTimeToWin = 10000
+				end
+				RE:EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 2)
+			end
+		elseif RE.CurrentMap == SM then
+			local AllianceCartsNeeded, HordeCartsNeeded = 10, 10
+			local AlliancePointsNeeded = RE:PointParse(true, 2)
+			local HordePointsNeeded = RE:PointParse(true, 3)
+			AllianceCartsNeeded = AlliancePointsNeeded / RE.EstimatorSettings[SM]
+			HordeCartsNeeded = HordePointsNeeded / RE.EstimatorSettings[SM]
+			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(AllianceCartsNeeded, 1).."|r\n|cFFFF141D"..RE:Round(HordeCartsNeeded, 1).."|r"
+			RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(AllianceCartsNeeded, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HordeCartsNeeded, 1).." "..L["carts"]
+		elseif RE.CareAboutFlags then
+			RE:CreateTimer(13)
+		else
+			local AllianceTimeToWin, HordeTimeToWin = 0, 0
+			local AlliancePointsNeeded, AllianceBaseNum = RE:PointParse(false, 2)
+			local HordePointsNeeded, HordeBaseNum = RE:PointParse(false, 3)
+			if RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum] == 0 then
+				AllianceTimeToWin = 10000
+			else
+				AllianceTimeToWin = AlliancePointsNeeded / RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum]
+			end
+			if RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum] == 0 then
+				HordeTimeToWin = 10000
+			else
+				HordeTimeToWin = HordePointsNeeded / RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum]
+			end
+			RE:EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 5)
+		end
 	end
 end
 
@@ -841,7 +831,7 @@ function RE:OnUpdate(elapsed)
 			RE.NeedRefresh = false
 			_G.REPorterFrameCoreUP:ClearUnits()
 		end
-		_G.REPorterFrameCoreUP:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 50, 50, 1, 1, 1, 1, 1, true)
+		_G.REPorterFrameCoreUP:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 40, 40, 1, 1, 1, 1, 1, true)
 		if not (IsShiftKeyDown() and IsAltKeyDown()) then
 			for i = 1, MAX_RAID_MEMBERS do
 				local unit = "raid"..i
@@ -891,11 +881,11 @@ function RE:OnUpdate(elapsed)
 
 		RE.FlagsPool:ReleaseAll()
 		for i = 1, GetNumBattlefieldFlagPositions() do
-			local flagX, flagY, flagToken = GetBattlefieldFlagPosition(i)
-			if flagX ~= 0 or flagY ~= 0 then
+			local flagX, flagY, flagTexture = GetBattlefieldFlagPosition(i)
+			if flagX then
 				local flagFrame = RE.FlagsPool:Acquire()
 				flagX, flagY = RE:GetRealCoords(flagX, flagY)
-				flagFrame.Texture:SetTexture("Interface\\WorldStateFrame\\"..flagToken)
+				flagFrame.Texture:SetTexture(flagTexture)
 				flagFrame:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", flagX, flagY)
 				flagFrame:SetFrameLevel(playerBlipFrameLevel - 1)
 				flagFrame:Show()
@@ -911,7 +901,7 @@ function RE:OnUpdate(elapsed)
 				RE.BGVehicles[i] = CreateFrame("FRAME", vehicleName, _G.REPorterFrameCorePOI, "REPorterVehicleTemplate")
 				RE.BGVehicles[i].texture = _G[vehicleName.."Texture"]
 			end
-			if RE.CurrentMap == "IsleofConquest" then
+			if RE.CurrentMap == IOC then
 				RE.BGVehicles[i]:EnableMouse(true)
 				RE.BGVehicles[i]:SetScript("OnEnter", function(self) RE:UnitOnEnterVehicle(self) end)
 				RE.BGVehicles[i]:SetScript("OnLeave", RE.HideTooltip)
@@ -920,10 +910,10 @@ function RE:OnUpdate(elapsed)
 				RE.BGVehicles[i]:SetScript("OnEnter", nil)
 				RE.BGVehicles[i]:SetScript("OnLeave", nil)
 			end
-			local vehicleX, vehicleY, unitName, isPossessed, vehicleType, orientation, isPlayer = GetBattlefieldVehicleInfo(i)
-			if vehicleX and not isPlayer and vehicleType ~= "Idle" then
+			local vehicleX, vehicleY, unitName, isPossessed, vehicleType, orientation, isPlayer, isAlive = GetBattlefieldVehicleInfo(i, RE.CurrentMap)
+			if vehicleX and isAlive and not isPlayer then
 				vehicleX, vehicleY = RE:GetRealCoords(vehicleX, vehicleY)
-				RE.BGVehicles[i].texture:SetTexture(WorldMap_GetVehicleTexture(vehicleType, isPossessed))
+				RE.BGVehicles[i].texture:SetTexture(GetVehicleTexture(vehicleType, isPossessed))
 				RE.BGVehicles[i].texture:SetRotation(orientation)
 				RE.BGVehicles[i].name = unitName
 				RE.BGVehicles[i]:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", vehicleX, vehicleY)
@@ -944,51 +934,62 @@ function RE:OnUpdate(elapsed)
 			_G["REPorterFrameCorePOI"..i]:Hide()
 			_G["REPorterFrameCorePOI"..i.."Timer"]:Hide()
 		end
-		for i=1, GetNumMapLandmarks() do
+		local poiList
+		if RE.CurrentMap == SS then
+			poiList = GetVignettes()
+		else
+			poiList = GetAreaPOIForMap(RE.CurrentMap)
+		end
+		for i=1, #poiList do
 			local battlefieldPOIName = "REPorterFrameCorePOI"..i
 			local battlefieldPOI = _G[battlefieldPOIName]
-			local _, name, description, textureIndex, x, y, _, showInBattleMap, _, _, poiID, _, atlasID = GetMapLandmarkInfo(i)
 			local colorOverride = false
-			if RE.CurrentMap == "AzeriteBG" and atlasID and not showInBattleMap then
-				local xZ, yZ = RE:Round(x, 3), RE:Round(y, 3)
+			local poiInfo
+			if RE.CurrentMap == SS then
+				local vignetteInfo = GetVignetteInfo(poiList[i])
+				local vignettePosition = GetVignettePosition(poiList[i], RE.CurrentMap)
+				local xZ, yZ = RE:Round(vignettePosition.x, 3), RE:Round(vignettePosition.y, 3)
+				poiInfo = {["areaPoiID"] = vignetteInfo.vignetteID, ["name"] = vignetteInfo.name, ["description"] = "", ["position"] = {["x"] = vignettePosition.x, ["y"] = vignettePosition.y}, ["textureIndex"] = 0, ["atlasID"] = vignetteInfo.atlasName}
 				if RE.AzeriteNodes[xZ] and RE.AzeriteNodes[xZ][yZ] then
-					name = RE.AzeriteNodes[xZ][yZ]
+					poiInfo.name = RE.AzeriteNodes[xZ][yZ]
 				end
-				if atlasID == "AzeriteReady" then
-					textureIndex = 1002
-				elseif atlasID == "AzeriteSpawning" then
-					textureIndex = 1001
+				if vignetteInfo.atlasName == "AzeriteReady" then
+					poiInfo.textureIndex = 1002
+				elseif vignetteInfo.atlasName == "AzeriteSpawning" then
+					poiInfo.textureIndex = 1001
 				end
-				showInBattleMap = true
-				description = ""
+			else
+				poiInfo = GetAreaPOIInfo(RE.CurrentMap, poiList[i])
 			end
-			if name and showInBattleMap and textureIndex ~= nil and textureIndex ~= 0 then
-				x, y = RE:GetRealCoords(x, y)
-				local x1, x2, y1, y2 = GetPOITextureCoords(textureIndex)
-				if RE.CurrentMap == "IsleofConquest" then
+			if poiInfo.name and poiInfo.textureIndex ~= nil and poiInfo.textureIndex ~= 0 then
+				local x, y = RE:GetRealCoords(poiInfo.position.x, poiInfo.position.y)
+				local x1, x2, y1, y2 = GetPOITextureCoords(poiInfo.textureIndex)
+				if RE.CurrentMap == IOC then
+					--TODO nodes id and placement
 					if i == 9 then
-						RE.IoCAllianceGateName = name
-						name = name.." - "..L["East"]
-						x = x + 15
+						RE.IoCAllianceGateName = poiInfo.name
+						poiInfo.name = poiInfo.name.." - "..L["East"]
+						--x = x + 15
 					elseif i == 10 then
-						name = name.." - "..L["West"]
-						x = x - 13
+						poiInfo.name = poiInfo.name.." - "..L["West"]
+						--x = x - 13
 					elseif i == 11 then
-						name = name.." - "..L["Front"]
-						y = y + 15
+						poiInfo.name = poiInfo.name.." - "..L["Front"]
+						--y = y + 15
 					elseif i == 6 then
-						RE.IoCHordeGateName = name
-						name = name.." - "..L["Front"]
-						y = y - 15
+						RE.IoCHordeGateName = poiInfo.name
+						poiInfo.name = poiInfo.name.." - "..L["Front"]
+						--y = y - 15
 					elseif i == 7 then
-						name = name.." - "..L["East"]
-						x = x + 10
+						poiInfo.name = poiInfo.name.." - "..L["East"]
+						--x = x + 10
 					elseif i == 8 then
-						name = name.." - "..L["West"]
-						x = x - 10
-						y = y - 1
+						poiInfo.name = poiInfo.name.." - "..L["West"]
+						--x = x - 10
+						--y = y - 1
 					end
-				elseif RE.CurrentMap == "AlteracValley" then
+				elseif RE.CurrentMap == AV then
+					--[[TODO nodes placement
 					if x > 343 and x < 346 then
 						x = 350
 						y = -108
@@ -1009,81 +1010,51 @@ function RE:OnUpdate(elapsed)
 					elseif y < -460 then
 						y = -472
 					end
-				elseif RE.CurrentMap == "TempleofKotmogu" then
-					if poiID == 2774 then
-						name = name.." - "..BLUE_GEM
+					]]
+				elseif RE.CurrentMap == TOK then
+					if poiInfo.areaPoiID == 2774 then
+						poiInfo.name = poiInfo.name.." - "..BLUE_GEM
 						colorOverride = {0, 0, 1}
-					elseif poiID == 2775 then
-						name = name.." - "..L["Purple"]
+					elseif poiInfo.areaPoiID == 2775 then
+						poiInfo.name = poiInfo.name.." - "..L["Purple"]
 						colorOverride = {0.5, 0, 0.5}
-					elseif poiID == 2776 then
-						name = name.." - "..RED_GEM
+					elseif poiInfo.areaPoiID == 2776 then
+						poiInfo.name = poiInfo.name.." - "..RED_GEM
 						colorOverride = {1, 0, 0}
-					elseif poiID == 2777 then
-						name = name.." - "..L["Green"]
+					elseif poiInfo.areaPoiID == 2777 then
+						poiInfo.name = poiInfo.name.." - "..L["Green"]
 						colorOverride = {0, 1, 0}
 					end
 				end
-				if RE.POINodes[name] == nil then
-					RE.POINodes[name] = {["id"] = i, ["name"] = name, ["status"] = description, ["x"] = x, ["y"] = y, ["texture"] = textureIndex}
-					if RE.CurrentMap == "IsleofConquest" then
+				if RE.POINodes[poiInfo.name] == nil then
+					RE.POINodes[poiInfo.name] = {["id"] = i, ["poiID"] = poiInfo.areaPoiID, ["name"] = poiInfo.name, ["status"] = poiInfo.description, ["x"] = x, ["y"] = y, ["texture"] = poiInfo.textureIndex}
+					if RE.CurrentMap == IOC then
+						--TODO gate IDs
 						if i == 6 or i == 7 or i == 8 or i == 9 or i == 10 or i == 11 then
-							RE.POINodes[name]["health"] = 600000
-							RE.POINodes[name]["maxHealth"] = 600000
+							RE.POINodes[poiInfo.name]["health"] = 600000
+							RE.POINodes[poiInfo.name]["maxHealth"] = 600000
 						end
-					elseif RE.CurrentMap == "StrandoftheAncients" then
-						local isStarted, isAlliance = RE:SOTAStartCheck()
-						if isStarted then
-							if isAlliance then
-								if i == 3 or i == 4 then
-									RE.POINodes[name]["health"] = 11000
-									RE.POINodes[name]["maxHealth"] = 11000
-								elseif i == 1 or i == 2 then
-									RE.POINodes[name]["health"] = 13000
-									RE.POINodes[name]["maxHealth"] = 13000
-								elseif i == 10 then
-									RE.POINodes[name]["health"] = 14000
-									RE.POINodes[name]["maxHealth"] = 14000
-								elseif i == 11 then
-									RE.POINodes[name]["health"] = 10000
-									RE.POINodes[name]["maxHealth"] = 10000
-								end
-							else
-								if i == 3 or i == 4 then
-									RE.POINodes[name]["health"] = 11000
-									RE.POINodes[name]["maxHealth"] = 11000
-								elseif i == 1 or i == 2 then
-									RE.POINodes[name]["health"] = 13000
-									RE.POINodes[name]["maxHealth"] = 13000
-								elseif i == 11 then
-									RE.POINodes[name]["health"] = 14000
-									RE.POINodes[name]["maxHealth"] = 14000
-								elseif i == 12 then
-									RE.POINodes[name]["health"] = 10000
-									RE.POINodes[name]["maxHealth"] = 10000
-								end
-							end
-						end
-					elseif RE.CurrentMap == "AzeriteBG" and RE.PlayedFromStart then
-						RE:NodeChange(textureIndex, name)
+					elseif RE.CurrentMap == SS and RE.PlayedFromStart then
+						RE:NodeChange(poiInfo.textureIndex, poiInfo.name)
 					end
 				else
-					RE.POINodes[name]["id"] = i
-					RE.POINodes[name]["name"] = name
-					RE.POINodes[name]["status"] = description
-					RE.POINodes[name]["x"] = x
-					RE.POINodes[name]["y"] = y
-					if RE.CareAboutNodes and RE.POINodes[name]["texture"] and RE.POINodes[name]["texture"] ~= textureIndex then
-						RE:NodeChange(textureIndex, name)
+					RE.POINodes[poiInfo.name]["id"] = i
+					RE.POINodes[poiInfo.name]["poiID"] = poiInfo.areaPoiID
+					RE.POINodes[poiInfo.name]["name"] = poiInfo.name
+					RE.POINodes[poiInfo.name]["status"] = poiInfo.description
+					RE.POINodes[poiInfo.name]["x"] = x
+					RE.POINodes[poiInfo.name]["y"] = y
+					if RE.CareAboutNodes and RE.POINodes[poiInfo.name]["texture"] and RE.POINodes[poiInfo.name]["texture"] ~= poiInfo.textureIndex then
+						RE:NodeChange(poiInfo.textureIndex, poiInfo.name)
 					end
-					RE.POINodes[name]["texture"] = textureIndex
+					RE.POINodes[poiInfo.name]["texture"] = poiInfo.textureIndex
 				end
-				battlefieldPOI.name = name
+				battlefieldPOI.name = poiInfo.name
 				battlefieldPOI:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", x, y)
 				battlefieldPOI:SetWidth(RE.POIIconSize)
 				battlefieldPOI:SetHeight(RE.POIIconSize)
-				if textureIndex > 1000 then
-					_G[battlefieldPOIName.."Texture"]:SetAtlas(atlasID)
+				if poiInfo.textureIndex > 1000 then
+					_G[battlefieldPOIName.."Texture"]:SetAtlas(poiInfo.atlasID)
 				else
 					_G[battlefieldPOIName.."Texture"]:SetTexCoord(x1, x2, y1, y2)
 				end
@@ -1092,13 +1063,13 @@ function RE:OnUpdate(elapsed)
 				else
 					_G[battlefieldPOIName.."Texture"]:SetVertexColor(1, 1, 1, 1)
 				end
-				if TIMER:TimeLeft(RE.POINodes[name]["timer"]) == 0 then
-					if strfind(description, FACTION_HORDE) then
+				if TIMER:TimeLeft(RE.POINodes[poiInfo.name]["timer"]) == 0 then
+					if strfind(poiInfo.description, FACTION_HORDE) then
 						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,0.3)
-					elseif strfind(description, FACTION_ALLIANCE) then
+					elseif strfind(poiInfo.description, FACTION_ALLIANCE) then
 						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,0.3)
 					else
-						if RE.CurrentMap == "AzeriteBG" then
+						if RE.CurrentMap == SS then
 							_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,1,0,0.3)
 						else
 							_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,0,0.3)
@@ -1106,14 +1077,14 @@ function RE:OnUpdate(elapsed)
 					end
 					_G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize)
 					_G[battlefieldPOIName.."TextureBGofBG"]:Hide()
-					if RE.CareAboutGates and RE.POINodes[name]["health"] and RE.POINodes[name]["health"] ~= 0 and textureIndex ~= 76 and textureIndex ~= 79 and textureIndex ~= 82 and textureIndex ~= 104 and textureIndex ~= 107 and textureIndex ~= 110 then
+					if RE.CareAboutGates and RE.POINodes[poiInfo.name]["health"] and RE.POINodes[poiInfo.name]["health"] ~= 0 and poiInfo.textureIndex ~= 76 and poiInfo.textureIndex ~= 79 and poiInfo.textureIndex ~= 82 and poiInfo.textureIndex ~= 104 and poiInfo.textureIndex ~= 107 and poiInfo.textureIndex ~= 110 then
 						_G[battlefieldPOIName.."TextureBGTop1"]:Hide()
 						_G[battlefieldPOIName.."TextureBGTop2"]:Show()
-						_G[battlefieldPOIName.."TextureBGTop2"]:SetWidth((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"]) * RE.POIIconSize)
+						_G[battlefieldPOIName.."TextureBGTop2"]:SetWidth((RE.POINodes[poiInfo.name]["health"]/RE.POINodes[poiInfo.name]["maxHealth"]) * RE.POIIconSize)
 						if RE.GateSyncRequested then
-							_G[battlefieldPOIName.."TimerCaption"]:SetText("|cFFFF141D"..RE:Round((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"])*100, 0).."%|r")
+							_G[battlefieldPOIName.."TimerCaption"]:SetText("|cFFFF141D"..RE:Round((RE.POINodes[poiInfo.name]["health"]/RE.POINodes[poiInfo.name]["maxHealth"])*100, 0).."%|r")
 						else
-							_G[battlefieldPOIName.."TimerCaption"]:SetText(RE:Round((RE.POINodes[name]["health"]/RE.POINodes[name]["maxHealth"])*100, 0).."%")
+							_G[battlefieldPOIName.."TimerCaption"]:SetText(RE:Round((RE.POINodes[poiInfo.name]["health"]/RE.POINodes[poiInfo.name]["maxHealth"])*100, 0).."%")
 						end
 						_G[battlefieldPOIName.."Timer"]:Show()
 					else
@@ -1122,13 +1093,13 @@ function RE:OnUpdate(elapsed)
 						_G[battlefieldPOIName.."Timer"]:Hide()
 					end
 				else
-					local timeLeft = TIMER:TimeLeft(RE.POINodes[name]["timer"])
+					local timeLeft = TIMER:TimeLeft(RE.POINodes[poiInfo.name]["timer"])
 					_G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize - ((timeLeft / RE.DefaultTimer) * RE.POIIconSize))
 					_G[battlefieldPOIName.."TextureBGofBG"]:Show()
 					_G[battlefieldPOIName.."TextureBGofBG"]:SetWidth((timeLeft / RE.DefaultTimer) * RE.POIIconSize)
-					if RE.POINodes[name]["isCapturing"] == FACTION_HORDE or RE.CurrentMap == "AzeriteBG" then
+					if RE.POINodes[poiInfo.name]["isCapturing"] == FACTION_HORDE or RE.CurrentMap == SS then
 						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,RE.BlinkPOIValue)
-					elseif RE.POINodes[name]["isCapturing"] == FACTION_ALLIANCE then
+					elseif RE.POINodes[poiInfo.name]["isCapturing"] == FACTION_ALLIANCE then
 						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,RE.BlinkPOIValue)
 					end
 					if timeLeft <= 10 then
@@ -1141,71 +1112,9 @@ function RE:OnUpdate(elapsed)
 						_G[battlefieldPOIName.."TextureBGTop2"]:Hide()
 					end
 					_G[battlefieldPOIName.."Timer"]:Show()
-					_G[battlefieldPOIName.."TimerCaption"]:SetText(RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[name]["timer"]), 0)))
+					_G[battlefieldPOIName.."TimerCaption"]:SetText(RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[poiInfo.name]["timer"]), 0)))
 				end
 				battlefieldPOI:Show()
-			end
-		end
-
-		if RE.CurrentMap == "STVDiamondMineBG" then
-			local textureCount = 0
-			local scale = 0.78
-			for i=1, GetNumMapOverlays() do
-				local textureName, textureWidth, textureHeight, offsetX, offsetY = GetMapOverlayInfo(i)
-				if textureName ~= "" or textureWidth == 0 or textureHeight == 0 then
-					local numTexturesWide = ceil(textureWidth / 256)
-					local numTexturesTall = ceil(textureHeight / 256)
-					local neededTextures = textureCount + (numTexturesWide * numTexturesTall)
-					if neededTextures > RE.BGOverlayNum then
-						for j=RE.BGOverlayNum + 1, neededTextures do
-							_G.REPorterFrameCore:CreateTexture("REPorterFrameCoreMapOverlay"..j, "ARTWORK")
-						end
-						RE.BGOverlayNum = neededTextures
-					end
-					local texturePixelWidth, textureFileWidth, texturePixelHeight, textureFileHeight
-					for j=1, numTexturesTall do
-						if j < numTexturesTall then
-							texturePixelHeight = 256
-							textureFileHeight = 256
-						else
-							texturePixelHeight = mod(textureHeight, 256)
-							if texturePixelHeight == 0 then
-								texturePixelHeight = 256
-							end
-							textureFileHeight = 16
-							while textureFileHeight < texturePixelHeight do
-								textureFileHeight = textureFileHeight * 2
-							end
-						end
-						for k=1, numTexturesWide do
-							textureCount = textureCount + 1
-							local texture = _G["REPorterFrameCoreMapOverlay"..textureCount]
-							if k < numTexturesWide then
-								texturePixelWidth = 256
-								textureFileWidth = 256
-							else
-								texturePixelWidth = mod(textureWidth, 256)
-								if texturePixelWidth == 0 then
-									texturePixelWidth = 256
-								end
-								textureFileWidth = 16
-								while textureFileWidth < texturePixelWidth do
-									textureFileWidth = textureFileWidth * 2
-								end
-							end
-							texture:SetWidth(texturePixelWidth * scale)
-							texture:SetHeight(texturePixelHeight * scale)
-							texture:SetTexCoord(0, texturePixelWidth / textureFileWidth, 0, texturePixelHeight / textureFileHeight)
-							texture:SetPoint("TOPLEFT", "REPorterFrameCore", "TOPLEFT", (offsetX + (256 * (k - 1))) * scale, -((offsetY + (256 * (j - 1))) * scale))
-							texture:SetTexture(textureName..(((j - 1) * numTexturesWide) + k))
-							texture:SetAlpha(RE.Settings.Opacity)
-							texture:Show()
-						end
-					end
-				end
-			end
-			for i=textureCount + 1, RE.BGOverlayNum do
-				_G["REPorterFrameCoreMapOverlay"..i]:Hide()
 			end
 		end
 
@@ -1217,9 +1126,9 @@ function RE:OnUpdate(elapsed)
 			else
 				_G.REPorterFrameEstimatorText:SetText("")
 			end
-		elseif RE.CurrentMap == "STVDiamondMineBG" then
+		elseif RE.CurrentMap == SM then
 			_G.REPorterFrameEstimatorText:SetText(RE.SMEstimatorText)
-		elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
+		elseif RE.CurrentMap == IOC and not RE.GateSyncRequested then
 			_G.REPorterFrameEstimatorText:SetText(RE.IoCGateEstimatorText)
 		else
 			_G.REPorterFrameEstimatorText:SetText("")
@@ -1245,7 +1154,7 @@ function RE:UnitOnEnterPlayer(self, tooltipFrame)
 	end
 
 	if tooltipText ~= "" then
-		SetMapTooltipPosition(tooltipFrame, self, true)
+		tooltipFrame:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
 		tooltipFrame:SetText(tooltipText)
 	elseif tooltipFrame:GetOwner() == self then
 		tooltipFrame:ClearLines()
@@ -1280,7 +1189,7 @@ function RE:UnitOnEnterVehicle(self)
 	end
 
 	if tooltipText ~= "" then
-		SetMapTooltipPosition(_G.GameTooltip, self, true)
+		_G.GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
 		_G.GameTooltip:SetText(tooltipText)
 		_G.GameTooltip:Show()
 	elseif _G.GameTooltip:GetOwner() == self then
@@ -1307,16 +1216,17 @@ function RE:UnitOnEnterPOI(self)
 				status = "\n["..RE:Round((RE.POINodes[battlefieldPOI.name]["health"]/RE.POINodes[battlefieldPOI.name]["maxHealth"])*100, 0).."%]"
 			end
 		end
+		-- TODO poiID
 		if TIMER:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]) == 0 then
-			tooltipText = tooltipText..prefix..battlefieldPOI.name.."|cFFFFFFFF"..status.."|r"
+			tooltipText = tooltipText..prefix..battlefieldPOI.name.." "..RE.POINodes[battlefieldPOI.name].poiID.."|cFFFFFFFF"..status.."|r"
 		else
-			tooltipText = tooltipText..prefix..battlefieldPOI.name.."|cFFFFFFFF ["..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]), 0)).."]"..status.."|r"
+			tooltipText = tooltipText..prefix..battlefieldPOI.name.." "..RE.POINodes[battlefieldPOI.name].poiID.."|cFFFFFFFF ["..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]), 0)).."]"..status.."|r"
 		end
 		prefix = "\n"
 	end
 
 	if tooltipText ~= "" then
-		SetMapTooltipPosition(_G.GameTooltip, self, true)
+		_G.GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
 		_G.GameTooltip:SetText(tooltipText)
 		_G.GameTooltip:Show()
 	elseif _G.GameTooltip:GetOwner() == self then
@@ -1336,7 +1246,7 @@ end
 function RE:Startup()
 	RE.PlayedFromStart = true
 	RE.GateSyncRequested = false
-	RE:Create(false)
+	RE:Create()
 	_G.REPorterFrameCoreUP:ResetCurrentMouseOverUnits()
 	_G.REPorterFrame:Show()
 	_G.REPorterFrameEstimator:Show()
@@ -1361,13 +1271,11 @@ function RE:Shutdown()
 	RE.CareAboutGates = false
 	RE.CareAboutFlags = false
 	RE.TimerOverride = false
-	_G.REPorterFrame:UnregisterEvent("UPDATE_WORLD_STATES")
 	_G.REPorterFrame:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-	_G.REPorterFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
-	_G.REPorterFrame:UnregisterEvent("BATTLEGROUND_POINTS_UPDATE")
 	_G.REPorterFrameEstimatorText:SetText("")
 	_G.REPorterFrameCoreUP:ResetCurrentMouseOverUnits()
 	_G.CloseDropDownMenus()
+	BUCKET:UnregisterBucket(RE.PointBucket)
 	if not _G.MinimapCluster:IsShown() and RE.Settings.HideMinimap then
 		_G.MinimapCluster:Show()
 	end
@@ -1385,75 +1293,66 @@ function RE:Shutdown()
 			RE.BGVehicles[i]:Hide()
 		end
 	end
-	local numDetailTiles = GetNumberOfDetailTiles()
-	for i=1, numDetailTiles do
+	for i=1, 12 do
 		_G["REPorterFrameCoreMap"..i]:SetTexture(nil)
-	end
-	for i=1, RE.BGOverlayNum do
-		_G["REPorterFrameCoreMapOverlay"..i]:SetTexture(nil)
 	end
 end
 
-function RE:Create(isSecond)
+function RE:Create()
 	_G.REPorterFrameCore:SetScript("OnUpdate", nil)
 	RE.IsBrawl = IsInBrawl()
 	RE.POINodes = {}
-	if RE.CurrentMap == "IsleofConquest" then
+	if RE.CurrentMap == IOC then
 		RE.IoCGateEstimator = {}
 		RE.IoCGateEstimator[FACTION_ALLIANCE] = 600000
 		RE.IoCGateEstimator[FACTION_HORDE] = 600000
 		RE.IoCGateEstimatorText = ""
 	end
-	if RE.CurrentMap == "STVDiamondMineBG" then
+	if RE.CurrentMap == SM then
 		RE.SMEstimatorText = ""
 		RE.SMEstimatorReport = ""
 	end
-	if RE.CurrentMap == "AlteracValley" then
+	if RE.CurrentMap == AV then
 		RE.DefaultTimer = 240
-	elseif RE.CurrentMap == "GoldRush" then
+	elseif RE.CurrentMap == DG then
 		RE.DefaultTimer = 61
-	elseif RE.CurrentMap == "AzeriteBG" then
+	elseif RE.CurrentMap == SS then
 		RE.DefaultTimer = 30
 	else
 		RE.DefaultTimer = 60
 	end
-	if RE.CurrentMap == "AlteracValley" or RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "IsleofConquest" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "AzeriteBG" or (IsRatedBattleground() and RE.CurrentMap == "NetherstormArena") then
+	if RE.CurrentMap == AV or RE.CurrentMap == BFG or RE.CurrentMap == IOC or RE.CurrentMap == AB or RE.CurrentMap == DG or RE.CurrentMap == SS or (IsRatedBattleground() and RE.CurrentMap == EOTS) then
 		RE.CareAboutNodes = true
 	else
 		RE.CareAboutNodes = false
 	end
-	if RE.CurrentMap == "GilneasBattleground2" or RE.CurrentMap == "NetherstormArena" or RE.CurrentMap == "ArathiBasin" or RE.CurrentMap == "GoldRush" or RE.CurrentMap == "STVDiamondMineBG" or RE.CurrentMap == "TempleofKotmogu" then
+	if RE.CurrentMap == BFG or RE.CurrentMap == EOTS or RE.CurrentMap == AB or RE.CurrentMap == DG or RE.CurrentMap == SM or RE.CurrentMap == TOK then
 		RE.CareAboutPoints = true
-		_G.REPorterFrame:RegisterEvent("UPDATE_WORLD_STATES")
+		RE.PointBucket = BUCKET:RegisterBucketEvent({"BATTLEGROUND_POINTS_UPDATE", "UPDATE_UI_WIDGET"}, 2, RE.OnPointsUpdate)
 	else
 		RE.CareAboutPoints = false
 	end
-	if RE.CurrentMap == "StrandoftheAncients" or RE.CurrentMap == "IsleofConquest" then
+	if RE.CurrentMap == IOC then
 		RE.CareAboutGates = true
 		_G.REPorterFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	else
 		RE.CareAboutGates = false
 	end
-	if RE.CurrentMap == "WarsongGulch" or RE.CurrentMap == "TwinPeaks" then
+	if RE.CurrentMap == WG or RE.CurrentMap == TP then
 		RE.CareAboutFlags = true
-		_G.REPorterFrame:RegisterEvent("BATTLEGROUND_POINTS_UPDATE")
+		RE.PointBucket = BUCKET:RegisterBucketEvent({"BATTLEGROUND_POINTS_UPDATE", "UPDATE_UI_WIDGET"}, 2, RE.OnPointsUpdate)
 	else
 		RE.CareAboutFlags = false
 	end
-	if RE.CurrentMap == "StrandoftheAncients" then
-		_G.REPorterFrame:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
-	end
-	if not isSecond then
-		RE:LoadMapSettings()
-		RE:SetupReportBar()
-		TIMER:ScheduleTimer(RE.TimerJoinCheck, 5)
-	end
+	RE:LoadMapSettings()
+	RE:SetupReportBar()
+	TIMER:ScheduleTimer(RE.TimerJoinCheck, 5)
 	_G.REPorterFrameCore:SetScript("OnUpdate", RE.OnUpdate)
 end
 
 function RE:NodeChange(newTexture, nodeName)
 	TIMER:CancelTimer(RE.POINodes[nodeName]["timer"])
-	if RE.CurrentMap == "AlteracValley" then
+	if RE.CurrentMap == AV then
 		if newTexture == 9 then -- Tower Ally
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
@@ -1467,7 +1366,7 @@ function RE:NodeChange(newTexture, nodeName)
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		end
-	elseif RE.CurrentMap == "NetherstormArena" then
+	elseif RE.CurrentMap == EOTS then
 		if newTexture == 9 then -- Tower Ally
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
@@ -1475,7 +1374,7 @@ function RE:NodeChange(newTexture, nodeName)
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		end
-	elseif RE.CurrentMap == "GilneasBattleground2" then
+	elseif RE.CurrentMap == BFG then
 		if newTexture == 9 then -- Lighthouse Ally
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
@@ -1495,7 +1394,7 @@ function RE:NodeChange(newTexture, nodeName)
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		end
-	elseif RE.CurrentMap == "IsleofConquest" then
+	elseif RE.CurrentMap == IOC then
 		if newTexture == 9 then -- Keep Ally
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
@@ -1533,7 +1432,7 @@ function RE:NodeChange(newTexture, nodeName)
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		end
-	elseif RE.CurrentMap == "ArathiBasin" then
+	elseif RE.CurrentMap == AB then
 		if newTexture == 32 then -- Farm Ally
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
@@ -1565,7 +1464,7 @@ function RE:NodeChange(newTexture, nodeName)
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		end
-	elseif RE.CurrentMap == "GoldRush" then
+	elseif RE.CurrentMap == DG then
 		if newTexture == 17 then -- Mine Ally
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
@@ -1573,7 +1472,7 @@ function RE:NodeChange(newTexture, nodeName)
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
 		end
-	elseif RE.CurrentMap == "AzeriteBG" then
+	elseif RE.CurrentMap == SS then
 		if newTexture == 1001 then
 			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 			RE.POINodes[nodeName]["isCapturing"] = ""
@@ -1673,9 +1572,9 @@ end
 function RE:ReportEstimator()
 	if TIMER:TimeLeft(RE.EstimatorTimer) > 0 then
 		SendChatMessage(RE.IsWinning.." "..L["victory"]..": "..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)), "INSTANCE_CHAT")
-	elseif RE.CurrentMap == "STVDiamondMineBG" and RE.SMEstimatorReport ~= "" then
+	elseif RE.CurrentMap == SM and RE.SMEstimatorReport ~= "" then
 		SendChatMessage(RE.SMEstimatorReport, "INSTANCE_CHAT")
-	elseif RE.CurrentMap == "IsleofConquest" and not RE.GateSyncRequested then
+	elseif RE.CurrentMap == IOC and not RE.GateSyncRequested then
 		SendChatMessage(FACTION_ALLIANCE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE] / 600000) * 100, 0).."% - "..FACTION_HORDE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_HORDE] / 600000) * 100, 0).."%", "INSTANCE_CHAT")
 	end
 end
@@ -1784,7 +1683,7 @@ function RE:SetupReportBar()
 end
 
 function RE:LoadMapSettings()
-	if RE.CurrentMap ~= "" then
+	if RE.CurrentMap ~= -1 then
 		local wx, wy = RE.Settings.Map[RE.CurrentMap].wx, RE.Settings.Map[RE.CurrentMap].wy
 		local ww = RE.Settings.Map[RE.CurrentMap].ww
 		local wh = RE.Settings.Map[RE.CurrentMap].wh
@@ -1802,23 +1701,15 @@ function RE:LoadMapSettings()
 		_G.REPorterFrameCoreAnchor:SetPoint("CENTER", _G.REPorterFrameClip, "CENTER", mx, my)
 		_G.REPorterFrame:SetAlpha(RE.Settings.Opacity)
 
-		local texName
-		local numDetailTiles = GetNumberOfDetailTiles()
-		for i=1, numDetailTiles do
-			if RE.CurrentMap == "STVDiamondMineBG" then
-				texName = "Interface\\WorldMap\\"..RE.CurrentMap.."\\"..RE.CurrentMap.."1_"..i
-			elseif RE.IsBrawl and RE.CurrentMap == "ArathiBasin" then
-				texName = "Interface\\WorldMap\\ArathiBasinWinter\\ArathiBasinWinter"..i
-			else
-				texName = "Interface\\WorldMap\\"..RE.CurrentMap.."\\"..RE.CurrentMap..i
-			end
-			_G["REPorterFrameCoreMap"..i]:SetTexture(texName)
+		local textures = GetMapArtLayerTextures(RE.CurrentMap, 1)
+		for i=1, #textures do
+			_G["REPorterFrameCoreMap"..i]:SetTexture(textures[i])
 		end
 	end
 end
 
 function RE:SaveMapSettings()
-	if RE.CurrentMap ~= "" then
+	if RE.CurrentMap ~= -1 then
 		local wx, wy = _G.REPorterFrame:GetCenter()
 		local ww = _G.REPorterFrame:GetWidth()
 		local wh = _G.REPorterFrame:GetHeight()
@@ -1831,12 +1722,12 @@ function RE:SaveMapSettings()
 	end
 end
 
-function RE:ShowDummyMap(mapFileName)
-	if _G.REPorterFrame:IsShown() and RE.CurrentMap ~= "" then
+function RE:ShowDummyMap(mapID)
+	if _G.REPorterFrame:IsShown() and RE.CurrentMap ~= -1 then
 		RE:SaveMapSettings()
 	end
 
-	RE.CurrentMap = mapFileName
+	RE.CurrentMap = mapID
 	RE:LoadMapSettings()
 	RE:SetupReportBar()
 	_G.REPorterFrame:Show()
@@ -1846,7 +1737,7 @@ end
 function RE:HideDummyMap()
 	if _G.REPorterFrame:IsShown() and select(2, IsInInstance()) ~= "pvp" then
 		RE:SaveMapSettings()
-		RE.CurrentMap = ""
+		RE.CurrentMap = -1
 		RE.LastMap = 0
 		_G.REPorterFrame:Hide()
 		_G.REPorterBar:Hide()

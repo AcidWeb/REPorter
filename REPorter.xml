@@ -22,7 +22,7 @@
 
 	<Frame name="REPorterVehicleTemplate" hidden="true" virtual="true">
 		<Size>
-			<AbsDimension x="65" y="65"/>
+			<AbsDimension x="45" y="45"/>
 		</Size>
 		<Anchors>
 			<Anchor point="CENTER"/>
@@ -34,10 +34,15 @@
 		</Layers>
 	</Frame>
 
-	<Frame name="REPorterMapTemplate" inherits="WorldMapFlagTemplate" virtual="true">
+	<Frame name="REPorterFlagTemplate" hidden="true" virtual="true">
 		<Size>
-			<AbsDimension x="35" y="35"/>
+			<AbsDimension x="32" y="32"/>
 		</Size>
+		<Layers>
+			<Layer level="ARTWORK">
+				<Texture parentKey="Texture" setAllPoints="true"/>
+			</Layer>
+		</Layers>
 	</Frame>
 
 	<Frame name="REPorterReportDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="true"/>
@@ -346,21 +351,21 @@
 		</Frames>
 		<Scripts>
 			<OnLoad>self:RegisterForDrag("LeftButton")</OnLoad>
-			<OnDragStart>if not REPorter.Settings.Locked then self:StartMoving() end</OnDragStart>
+			<OnDragStart>if not REPorter.Settings.Locked and (REPorter.Settings.BarHandle == 13 or REPorter.Settings.BarHandle == 14) then self:StartMoving() end</OnDragStart>
 			<OnDragStop>REPorter.Settings.BarX, REPorter.Settings.BarY = self:GetCenter(); self:StopMovingOrSizing()</OnDragStop>
 			<OnEnter>REPorter:OnEnterBar()</OnEnter>
 			<OnLeave>REPorter:OnLeaveBar()</OnLeave>
 		</Scripts>
 	</Frame>
 
-	<Frame name="REPorterFrameEstimator" parent="WorldStateAlwaysUpFrame" hidden="true">
+	<Frame name="REPorterFrameEstimator" parent="UIWidgetTopCenterContainerFrame" hidden="true">
 		<Size>
 			<AbsDimension x="100" y="50"/>
 		</Size>
 		<Anchors>
 			<Anchor point="RIGHT" relativePoint="LEFT">
 				<Offset>
-					<AbsDimension x="-15" y="-5"/>
+					<AbsDimension x="-60" y="0"/>
 				</Offset>
 			</Anchor>
 		</Anchors>
