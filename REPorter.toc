@@ -1,4 +1,4 @@
-## Interface: 70300
+## Interface: 80000
 ## Title: |cFF74D06CRE|rPorter
 ## Notes: Provide battleground map.
 ## Version: 2.1.0
