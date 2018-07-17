@@ -266,9 +266,9 @@
 				</Anchors>
 				<Scripts>
 					<OnLoad>self:RegisterForDrag("LeftButton")</OnLoad>
-					<OnDragStart>if not REPorter.Settings.Locked then REPorter:OnDragStart(self) end</OnDragStart>
+					<OnDragStart>if not REPorter.Settings.profile.Locked then REPorter:OnDragStart(self) end</OnDragStart>
 					<OnDragStop>REPorterFrameCoreAnchor:StopMovingOrSizing(); REPorterFrame:StopMovingOrSizing(); REPorter:OnDragStop(self)</OnDragStop>
-					<OnMouseWheel>if not REPorter.Settings.Locked then REPorter:OnMouseWheel(delta) end</OnMouseWheel>
+					<OnMouseWheel>if not REPorter.Settings.profile.Locked then REPorter:OnMouseWheel(delta) end</OnMouseWheel>
 					<OnLeave>REPorter:OnLeave(self)</OnLeave>
 				</Scripts>
 			</Frame>
@@ -351,8 +351,8 @@
 		</Frames>
 		<Scripts>
 			<OnLoad>self:RegisterForDrag("LeftButton")</OnLoad>
-			<OnDragStart>if not REPorter.Settings.Locked and (REPorter.Settings.BarHandle == 13 or REPorter.Settings.BarHandle == 14) then self:StartMoving() end</OnDragStart>
-			<OnDragStop>REPorter.Settings.BarX, REPorter.Settings.BarY = self:GetCenter(); self:StopMovingOrSizing()</OnDragStop>
+			<OnDragStart>if not REPorter.Settings.profile.Locked and (REPorter.Settings.profile.BarHandle == 13 or REPorter.Settings.profile.BarHandle == 14) then self:StartMoving() end</OnDragStart>
+			<OnDragStop>REPorter.Settings.profile.BarX, REPorter.Settings.profile.BarY = self:GetCenter(); self:StopMovingOrSizing()</OnDragStop>
 			<OnEnter>REPorter:OnEnterBar()</OnEnter>
 			<OnLeave>REPorter:OnLeaveBar()</OnLeave>
 		</Scripts>

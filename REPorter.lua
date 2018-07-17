@@ -43,7 +43,7 @@ if (UIDROPDOWNMENU_OPEN_PATCH_VERSION or 0) < 1 then
 	end)
 end
 
---GLOBALS: FACTION_ALLIANCE, FACTION_HORDE, HELP_LABEL, ATTACK, HEALTH, BLUE_GEM, RED_GEM, MAX_RAID_MEMBERS, UIDROPDOWNMENU_VALUE_PATCH_VERSION, UIDROPDOWNMENU_MAXLEVELS, UIDROPDOWNMENU_MAXBUTTONS, UIDROPDOWNMENU_OPEN_PATCH_VERSION, UIDROPDOWNMENU_OPEN_MENU, issecurevariable
+--GLOBALS: FACTION_ALLIANCE, FACTION_HORDE, HELP_LABEL, ATTACK, HEALTH, BLUE_GEM, RED_GEM, OPTIONS, MAX_RAID_MEMBERS, UIDROPDOWNMENU_VALUE_PATCH_VERSION, UIDROPDOWNMENU_MAXLEVELS, UIDROPDOWNMENU_MAXBUTTONS, UIDROPDOWNMENU_OPEN_PATCH_VERSION, UIDROPDOWNMENU_OPEN_MENU, issecurevariable
 local select, pairs, strsplit, tonumber, strfind, print, strupper, next, strmatch = _G.select, _G.pairs, _G.strsplit, _G.tonumber, _G.strfind, _G.print, _G.strupper, _G.next, _G.strmatch
 local mfloor = _G.math.floor
 local CreateFrame = _G.CreateFrame
@@ -210,26 +210,28 @@ RE.POIDropDown = {
 }
 
 RE.DefaultConfig = {
-	BarHandle = 11,
-	BarX = RE.ScreenHeight,
-	BarY = RE.ScreenWidth,
-	Locked = false,
-	Opacity = 0.75,
-	HideMinimap = false,
-	DisplayMarks = false,
-	Map = {
-		[AB] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 325, ["wh"] = 325, ["mx"] = 16, ["my"] = -77, ["ms"] = 1},
-		[WG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 280, ["wh"] = 460, ["mx"] = -5, ["my"] = -38, ["ms"] = 1},
-		[AV] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 185, ["wh"] = 450, ["mx"] = 32, ["my"] = -36, ["ms"] = 1},
-		[EOTS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 360, ["mx"] = 23, ["my"] = -41, ["ms"] = 1},
-		[IOC] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 290, ["wh"] = 375, ["mx"] = 13, ["my"] = -23, ["ms"] = 1},
-		[BFG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 340, ["wh"] = 370, ["mx"] = 6, ["my"] = -28, ["ms"] = 1},
-		[TP] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 245, ["wh"] = 460, ["mx"] = 1, ["my"] = -33, ["ms"] = 1},
-		[SM] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 390, ["wh"] = 250, ["mx"] = 19, ["my"] = -21, ["ms"] = 1},
-		[TOK] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 460, ["wh"] = 350, ["mx"] = 7, ["my"] = -43, ["ms"] = 1},
-		[DG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 520, ["wh"] = 385, ["mx"] = -10, ["my"] = -45, ["ms"] = 1},
-		[TMVS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 370, ["mx"] = -2, ["my"] = -22, ["ms"] = 1},
-		[SS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 360, ["wh"] = 385, ["mx"] = 66, ["my"] = -63, ["ms"] = 1}
+	profile = {
+		BarHandle = 11,
+		BarX = RE.ScreenHeight,
+		BarY = RE.ScreenWidth,
+		Locked = false,
+		Opacity = 0.75,
+		HideMinimap = false,
+		DisplayMarks = false,
+		Map = {
+			[AB] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 325, ["wh"] = 325, ["mx"] = 16, ["my"] = -77, ["ms"] = 1},
+			[WG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 280, ["wh"] = 460, ["mx"] = -5, ["my"] = -38, ["ms"] = 1},
+			[AV] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 185, ["wh"] = 450, ["mx"] = 32, ["my"] = -36, ["ms"] = 1},
+			[EOTS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 360, ["mx"] = 23, ["my"] = -41, ["ms"] = 1},
+			[IOC] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 290, ["wh"] = 375, ["mx"] = 13, ["my"] = -23, ["ms"] = 1},
+			[BFG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 340, ["wh"] = 370, ["mx"] = 6, ["my"] = -28, ["ms"] = 1},
+			[TP] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 245, ["wh"] = 460, ["mx"] = 1, ["my"] = -33, ["ms"] = 1},
+			[SM] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 390, ["wh"] = 250, ["mx"] = 19, ["my"] = -21, ["ms"] = 1},
+			[TOK] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 460, ["wh"] = 350, ["mx"] = 7, ["my"] = -43, ["ms"] = 1},
+			[DG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 520, ["wh"] = 385, ["mx"] = -10, ["my"] = -45, ["ms"] = 1},
+			[TMVS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 370, ["mx"] = -2, ["my"] = -22, ["ms"] = 1},
+			[SS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 360, ["wh"] = 385, ["mx"] = 66, ["my"] = -63, ["ms"] = 1}
+		}
 	}
 }
 RE.ReportBarAnchor = {
@@ -249,113 +251,119 @@ RE.ReportBarAnchor = {
 RE.AceConfig = {
 	type = "group",
 	args = {
-		Locked = {
-			name = L["Lock map"],
-			desc = L["When checked map and report bar is locked in place."],
-			type = "toggle",
-			width = "full",
-			order = 1,
-			set = function(_, val) RE.Settings.Locked = val; RE:UpdateConfig() end,
-			get = function(_) return RE.Settings.Locked end
-		},
-		Description = {
-			type = "description",
-			name = L["When the lock is disabled map can be moved by dragging.\nDragging + SHIFT will move map inside the frame.\nMap frame can be resized by using holder at the bottom right corner.\nScroll wheel control map zoom."],
-			order = 2,
-		},
-		HideMinimap = {
-			name = L["Hide minimap on battlegrounds"],
-			desc = L["When checked minimap will be hidden when a player is on the battleground."],
-			type = "toggle",
-			width = "full",
-			order = 3,
-			set = function(_, val) RE.Settings.HideMinimap = val; RE:UpdateConfig() end,
-			get = function(_) return RE.Settings.HideMinimap end
-		},
-		DisplayMarks = {
-			name = L["Always display raid markers"],
-			desc = L["When checked player pins will be always replaced with raid markers."],
-			type = "toggle",
-			width = "full",
-			order = 4,
-			set = function(_, val) RE.Settings.DisplayMarks = val; RE:UpdateConfig() end,
-			get = function(_) return RE.Settings.DisplayMarks end
-		},
-		BarHandle = {
-			name = L["Report bar location"],
-			desc = L["Anchor point of a bar with quick report buttons."],
-			type = "select",
-			width = "double",
-			order = 5,
-			values = {
-				[1] = L["Right bottom"],
-				[2] = L["Right"],
-				[3] = L["Right top"],
-				[4] = L["Left bottom"],
-				[5] = L["Left"],
-				[6] = L["Left top"],
-				[7] = L["Top left"],
-				[8] = L["Top"],
-				[9] = L["Top right"],
-				[10] = L["Bottom left"],
-				[11] = L["Bottom"],
-				[12] = L["Bottom right"],
-				[13] = L["Standalone - Horizontal"],
-				[14] = L["Standalone - Vertical"],
-				[15] = L["Hidden"]
-			},
-			set = function(_, val) RE.Settings.BarHandle = val; RE.Settings.BarX, RE.Settings.BarY = _G.REPorterBar:GetCenter(); RE:UpdateConfig() end,
-			get = function(_) return RE.Settings.BarHandle end
-		},
-		MapSettings = {
-			name = BATTLEGROUND,
-			desc = L["Map position is saved separately for each battleground."],
-			type = "select",
-			width = "double",
-			order = 6,
-			disabled = function(_) if select(2, IsInInstance()) == "pvp" then return true else return false end end,
-			values = {
-				[AB] = GetMapInfo(AB).name,
-				[WG] = GetMapInfo(WG).name,
-				[AV] = GetMapInfo(AV).name,
-				[EOTS] = GetMapInfo(EOTS).name,
-				[IOC] = GetMapInfo(IOC).name,
-				[BFG] = GetMapInfo(BFG).name,
-				[TP] = GetMapInfo(TP).name,
-				[SM] = GetMapInfo(SM).name,
-				[TOK] = GetMapInfo(TOK).name,
-				[DG] = GetMapInfo(DG).name,
-				[TMVS] = GetMapInfo(TMVS).name,
-				[SS] = GetMapInfo(SS).name,
-			},
-			set = function(_, val) RE.LastMap = val; RE:ShowDummyMap(val) end,
-			get = function(_) return RE.LastMap end
-		},
-		Scale = {
-			name = L["Map scale"],
-			desc = L["This option control map size."],
-			type = "range",
-			width = "double",
-			order = 7,
-			min = 0.5,
-			max = 1.5,
-			step = 0.05,
-			set = function(_, val) RE:UpdateScaleConfig(_, val) end,
-			get = function(_) return RE:UpdateScaleConfig() end
-		},
-		Opacity = {
-			name = L["Map alpha"],
-			desc = L["This option control map transparency."],
-			type = "range",
-			width = "double",
-			order = 8,
-			isPercent = true,
-			min = 0.1,
-			max = 1,
-			step = 0.01,
-			set = function(_, val) RE.Settings.Opacity = val; RE:UpdateConfig() end,
-			get = function(_) return RE.Settings.Opacity end
-		},
+		Options = {
+			type = "group",
+			name = OPTIONS,
+			args = {
+				Locked = {
+					name = L["Lock map"],
+					desc = L["When checked map and report bar is locked in place."],
+					type = "toggle",
+					width = "full",
+					order = 1,
+					set = function(_, val) RE.Settings.profile.Locked = val; RE:UpdateConfig() end,
+					get = function(_) return RE.Settings.profile.Locked end
+				},
+				Description = {
+					type = "description",
+					name = L["When the lock is disabled map can be moved by dragging.\nDragging + SHIFT will move map inside the frame.\nMap frame can be resized by using holder at the bottom right corner.\nScroll wheel control map zoom."],
+					order = 2,
+				},
+				HideMinimap = {
+					name = L["Hide minimap on battlegrounds"],
+					desc = L["When checked minimap will be hidden when a player is on the battleground."],
+					type = "toggle",
+					width = "full",
+					order = 3,
+					set = function(_, val) RE.Settings.profile.HideMinimap = val; RE:UpdateConfig() end,
+					get = function(_) return RE.Settings.profile.HideMinimap end
+				},
+				DisplayMarks = {
+					name = L["Always display raid markers"],
+					desc = L["When checked player pins will be always replaced with raid markers."],
+					type = "toggle",
+					width = "full",
+					order = 4,
+					set = function(_, val) RE.Settings.profile.DisplayMarks = val; RE:UpdateConfig() end,
+					get = function(_) return RE.Settings.profile.DisplayMarks end
+				},
+				BarHandle = {
+					name = L["Report bar location"],
+					desc = L["Anchor point of a bar with quick report buttons."],
+					type = "select",
+					width = "double",
+					order = 5,
+					values = {
+						[1] = L["Right bottom"],
+						[2] = L["Right"],
+						[3] = L["Right top"],
+						[4] = L["Left bottom"],
+						[5] = L["Left"],
+						[6] = L["Left top"],
+						[7] = L["Top left"],
+						[8] = L["Top"],
+						[9] = L["Top right"],
+						[10] = L["Bottom left"],
+						[11] = L["Bottom"],
+						[12] = L["Bottom right"],
+						[13] = L["Standalone - Horizontal"],
+						[14] = L["Standalone - Vertical"],
+						[15] = L["Hidden"]
+					},
+					set = function(_, val) RE.Settings.profile.BarHandle = val; RE.Settings.profile.BarX, RE.Settings.profile.BarY = _G.REPorterBar:GetCenter(); RE:UpdateConfig() end,
+					get = function(_) return RE.Settings.profile.BarHandle end
+				},
+				MapSettings = {
+					name = BATTLEGROUND,
+					desc = L["Map position is saved separately for each battleground."],
+					type = "select",
+					width = "double",
+					order = 6,
+					disabled = function(_) if select(2, IsInInstance()) == "pvp" then return true else return false end end,
+					values = {
+						[AB] = GetMapInfo(AB).name,
+						[WG] = GetMapInfo(WG).name,
+						[AV] = GetMapInfo(AV).name,
+						[EOTS] = GetMapInfo(EOTS).name,
+						[IOC] = GetMapInfo(IOC).name,
+						[BFG] = GetMapInfo(BFG).name,
+						[TP] = GetMapInfo(TP).name,
+						[SM] = GetMapInfo(SM).name,
+						[TOK] = GetMapInfo(TOK).name,
+						[DG] = GetMapInfo(DG).name,
+						[TMVS] = GetMapInfo(TMVS).name,
+						[SS] = GetMapInfo(SS).name,
+					},
+					set = function(_, val) RE.LastMap = val; RE:ShowDummyMap(val) end,
+					get = function(_) return RE.LastMap end
+				},
+				Scale = {
+					name = L["Map scale"],
+					desc = L["This option control map size."],
+					type = "range",
+					width = "double",
+					order = 7,
+					min = 0.5,
+					max = 1.5,
+					step = 0.05,
+					set = function(_, val) RE:UpdateScaleConfig(_, val) end,
+					get = function(_) return RE:UpdateScaleConfig() end
+				},
+				Opacity = {
+					name = L["Map alpha"],
+					desc = L["This option control map transparency."],
+					type = "range",
+					width = "double",
+					order = 8,
+					isPercent = true,
+					min = 0.1,
+					max = 1,
+					step = 0.01,
+					set = function(_, val) RE.Settings.profile.Opacity = val; RE:UpdateConfig() end,
+					get = function(_) return RE.Settings.profile.Opacity end
+				},
+			}
+		}
 	}
 }
 
@@ -558,7 +566,7 @@ end
 
 function RE:OnEnterBar(_)
 	TIMER:CancelTimer(RE.TimerBar)
-	_G.REPorterBar:SetAlpha(RE.Settings.Opacity)
+	_G.REPorterBar:SetAlpha(RE.Settings.profile.Opacity)
 end
 
 function RE:OnLeaveBar(_)
@@ -613,18 +621,15 @@ end
 function RE:OnEvent(self, event, ...)
 	if event == "ADDON_LOADED" and ... == "REPorter" then
 		RE.UpdateTimer = 0
-		if not _G.REPorterSettings then
-			_G.REPorterSettings = RE.DefaultConfig
-		end
-		RE.Settings = _G.REPorterSettings
-		for key, value in pairs(RE.DefaultConfig) do
-			if RE.Settings[key] == nil then
-				RE.Settings[key] = value
-			end
-		end
+		RE.Settings = _G.LibStub("AceDB-3.0"):New("REPorterSettings", RE.DefaultConfig, true)
+		RE.Settings.RegisterCallback(self, "OnProfileShutdown", function() RE:HideDummyMap(true) end)
+		RE.Settings.RegisterCallback(self, "OnProfileReset", function() RE:HideDummyMap(false) end)
+		RE.Settings.RegisterCallback(self, "OnProfileCopied", function() RE:HideDummyMap(false) end)
+		RE.AceConfig.args.Profiles = _G.LibStub("AceDBOptions-3.0"):GetOptionsTable(RE.Settings)
+
 		_G.LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", RE.AceConfig)
 		RE.ConfigFrame = _G.LibStub("AceConfigDialog-3.0"):AddToBlizOptions("REPorter", "REPorter")
-		_G.InterfaceOptionsFrame:HookScript("OnHide", RE.HideDummyMap)
+		_G.InterfaceOptionsFrame:HookScript("OnHide", function() RE:HideDummyMap(true) end)
 		RE:UpdateConfig()
 
 		RegisterAddonMessagePrefix("REPorter")
@@ -877,7 +882,7 @@ function RE:OnUpdate(elapsed)
 						end
 					else
 						RE.IsOverlay = false
-						if RE.Settings.DisplayMarks and raidMarker ~= nil then
+						if RE.Settings.profile.DisplayMarks and raidMarker ~= nil then
 							texture = "Interface\\Addons\\REPorter\\Textures\\RaidMarker"..raidMarker
 							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1, 0, false)
 						else
@@ -1266,7 +1271,7 @@ function RE:Startup()
 	_G.REPorterFrameCoreUP:ResetCurrentMouseOverUnits()
 	_G.REPorterFrame:Show()
 	_G.REPorterFrameEstimator:Show()
-	if RE.Settings.HideMinimap then
+	if RE.Settings.profile.HideMinimap then
 		_G.MinimapCluster:Hide()
 	end
 	SendAddonMessage("REPorter", "Version;"..RE.AddonVersionCheck, "INSTANCE_CHAT")
@@ -1292,7 +1297,7 @@ function RE:Shutdown()
 	_G.REPorterFrameCoreUP:ResetCurrentMouseOverUnits()
 	_G.CloseDropDownMenus()
 	BUCKET:UnregisterBucket(RE.PointBucket)
-	if not _G.MinimapCluster:IsShown() and RE.Settings.HideMinimap then
+	if not _G.MinimapCluster:IsShown() and RE.Settings.profile.HideMinimap then
 		_G.MinimapCluster:Show()
 	end
 	for i=1, RE.POINumber do
@@ -1606,21 +1611,21 @@ end
 
 -- *** Config functions
 function RE:UpdateConfig()
-	_G.REPorterFrame:SetAlpha(RE.Settings.Opacity)
+	_G.REPorterFrame:SetAlpha(RE.Settings.profile.Opacity)
 	_G.REPorterBar:SetAlpha(0.25)
-	_G.REPorterFrameBorderResize:SetShown(not RE.Settings.Locked)
+	_G.REPorterFrameBorderResize:SetShown(not RE.Settings.profile.Locked)
 	RE:SetupReportBar()
 	if select(2, IsInInstance()) == "pvp" then
-		_G.MinimapCluster:SetShown(not RE.Settings.HideMinimap)
+		_G.MinimapCluster:SetShown(not RE.Settings.profile.HideMinimap)
 	end
 end
 
 function RE:UpdateScaleConfig(_, val)
-	if RE.Settings.Map[RE.CurrentMap] then
+	if RE.Settings.profile.Map[RE.CurrentMap] then
 		if val then
 			local scale = RE:Round(val, 2)
 			_G.REPorterFrameCore:SetScale(scale)
-			RE.Settings.Map[RE.CurrentMap].ms = scale
+			RE.Settings.profile.Map[RE.CurrentMap].ms = scale
 			_G.REPorterFrameCore:ClearAllPoints()
 			_G.REPorterFrameCore:SetPoint("CENTER", _G.REPorterFrameCoreAnchor, "CENTER")
 		end
@@ -1632,7 +1637,7 @@ end
 
 function RE:SetupReportBar()
 	local previousButton = "B1"
-	local handle = RE.Settings.BarHandle
+	local handle = RE.Settings.profile.BarHandle
 	local offset = 0
 
 	if RE.ElvUI then
@@ -1653,7 +1658,7 @@ function RE:SetupReportBar()
 		end
 		if handle < 7 or handle == 13 then
 			if handle == 13 then
-				_G.REPorterBar:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings.BarX, RE.Settings.BarY)
+				_G.REPorterBar:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings.profile.BarX, RE.Settings.profile.BarY)
 			elseif handle > 3 then
 				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], 1, offset)
 			else
@@ -1673,7 +1678,7 @@ function RE:SetupReportBar()
 			end
 		else
 			if handle == 14 then
-				_G.REPorterBar:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings.BarX, RE.Settings.BarY)
+				_G.REPorterBar:SetPoint("CENTER", "UIParent", "BOTTOMLEFT", RE.Settings.profile.BarX, RE.Settings.profile.BarY)
 			elseif handle > 9 then
 				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], offset, -1)
 			else
@@ -1700,11 +1705,11 @@ end
 
 function RE:LoadMapSettings()
 	if RE.CurrentMap ~= -1 then
-		local wx, wy = RE.Settings.Map[RE.CurrentMap].wx, RE.Settings.Map[RE.CurrentMap].wy
-		local ww = RE.Settings.Map[RE.CurrentMap].ww
-		local wh = RE.Settings.Map[RE.CurrentMap].wh
-		local mx, my = RE.Settings.Map[RE.CurrentMap].mx, RE.Settings.Map[RE.CurrentMap].my
-		local ms = RE.Settings.Map[RE.CurrentMap].ms
+		local wx, wy = RE.Settings.profile.Map[RE.CurrentMap].wx, RE.Settings.profile.Map[RE.CurrentMap].wy
+		local ww = RE.Settings.profile.Map[RE.CurrentMap].ww
+		local wh = RE.Settings.profile.Map[RE.CurrentMap].wh
+		local mx, my = RE.Settings.profile.Map[RE.CurrentMap].mx, RE.Settings.profile.Map[RE.CurrentMap].my
+		local ms = RE.Settings.profile.Map[RE.CurrentMap].ms
 
 		_G.REPorterFrame:ClearAllPoints()
 		_G.REPorterFrameCore:ClearAllPoints()
@@ -1715,7 +1720,7 @@ function RE:LoadMapSettings()
 		_G.REPorterFrameCore:SetScale(ms)
 		_G.REPorterFrameCore:SetPoint("CENTER", _G.REPorterFrameCoreAnchor, "CENTER")
 		_G.REPorterFrameCoreAnchor:SetPoint("CENTER", _G.REPorterFrameClip, "CENTER", mx, my)
-		_G.REPorterFrame:SetAlpha(RE.Settings.Opacity)
+		_G.REPorterFrame:SetAlpha(RE.Settings.profile.Opacity)
 
 		local textures = GetMapArtLayerTextures(RE.CurrentMap, 1)
 		for i=1, #textures do
@@ -1734,7 +1739,7 @@ function RE:SaveMapSettings()
 		local mx, my = x2-x1, y2-y1
 		local ms = RE:Round(_G.REPorterFrameCore:GetScale(), 2)
 
-		RE.Settings.Map[RE.CurrentMap] = {["wx"] = RE:Round(wx, 0), ["wy"] = RE:Round(wy, 0), ["ww"] = RE:Round(ww, 0), ["wh"] = RE:Round(wh, 0), ["mx"] = RE:Round(mx, 0), ["my"] = RE:Round(my, 0), ["ms"] = RE:Round(ms, 2)}
+		RE.Settings.profile.Map[RE.CurrentMap] = {["wx"] = RE:Round(wx, 0), ["wy"] = RE:Round(wy, 0), ["ww"] = RE:Round(ww, 0), ["wh"] = RE:Round(wh, 0), ["mx"] = RE:Round(mx, 0), ["my"] = RE:Round(my, 0), ["ms"] = RE:Round(ms, 2)}
 	end
 end
 
@@ -1750,9 +1755,9 @@ function RE:ShowDummyMap(mapID)
 	_G.InterfaceOptionsFrame:SetFrameStrata("LOW")
 end
 
-function RE:HideDummyMap()
+function RE:HideDummyMap(save)
 	if _G.REPorterFrame:IsShown() and select(2, IsInInstance()) ~= "pvp" then
-		RE:SaveMapSettings()
+		if save then RE:SaveMapSettings() end
 		RE.CurrentMap = -1
 		RE.LastMap = 0
 		_G.REPorterFrame:Hide()
