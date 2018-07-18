@@ -218,6 +218,7 @@ RE.DefaultConfig = {
 		Opacity = 0.75,
 		HideMinimap = false,
 		DisplayMarks = false,
+		DisplayHealers = false,
 		Map = {
 			[AB] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 325, ["wh"] = 325, ["mx"] = 16, ["my"] = -77, ["ms"] = 1},
 			[WG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 280, ["wh"] = 460, ["mx"] = -5, ["my"] = -38, ["ms"] = 1},
@@ -287,12 +288,21 @@ RE.AceConfig = {
 					set = function(_, val) RE.Settings.profile.DisplayMarks = val; RE:UpdateConfig() end,
 					get = function(_) return RE.Settings.profile.DisplayMarks end
 				},
+				DisplayHealers = {
+					name = L["Always highlight the healers"],
+					desc = L["When checked healers will always be highlighted."],
+					type = "toggle",
+					width = "full",
+					order = 5,
+					set = function(_, val) RE.Settings.profile.DisplayHealers = val; RE:UpdateConfig() end,
+					get = function(_) return RE.Settings.profile.DisplayHealers end
+				},
 				BarHandle = {
 					name = L["Report bar location"],
 					desc = L["Anchor point of a bar with quick report buttons."],
 					type = "select",
 					width = "double",
-					order = 5,
+					order = 6,
 					values = {
 						[1] = L["Right bottom"],
 						[2] = L["Right"],
@@ -318,7 +328,7 @@ RE.AceConfig = {
 					desc = L["Map position is saved separately for each battleground."],
 					type = "select",
 					width = "double",
-					order = 6,
+					order = 7,
 					disabled = function(_) if select(2, IsInInstance()) == "pvp" then return true else return false end end,
 					values = {
 						[AB] = GetMapInfo(AB).name,
@@ -342,7 +352,7 @@ RE.AceConfig = {
 					desc = L["This option control map size."],
 					type = "range",
 					width = "double",
-					order = 7,
+					order = 8,
 					min = 0.5,
 					max = 1.5,
 					step = 0.05,
@@ -354,7 +364,7 @@ RE.AceConfig = {
 					desc = L["This option control map transparency."],
 					type = "range",
 					width = "double",
-					order = 8,
+					order = 9,
 					isPercent = true,
 					min = 0.1,
 					max = 1,
@@ -877,14 +887,15 @@ function RE:OnUpdate(elapsed)
 							texture = "Interface\\Addons\\REPorter\\Textures\\RaidMarker"..raidMarker
 							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1, 0, false)
 						elseif UnitGroupRolesAssigned(unit) == "HEALER" then
-							texture = "Interface\\Addons\\REPorter\\Textures\\BlipHealer"
-							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 30, 30, r, g, b, 1, 0, false)
+							_G.REPorterFrameCoreUP:AddUnit(unit, texture.."Healer", 30, 30, r, g, b, 1, 0, false)
 						end
 					else
 						RE.IsOverlay = false
 						if RE.Settings.profile.DisplayMarks and raidMarker ~= nil then
 							texture = "Interface\\Addons\\REPorter\\Textures\\RaidMarker"..raidMarker
 							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 25, 25, 1, 1, 1, 1, 0, false)
+						elseif RE.Settings.profile.DisplayHealers and UnitGroupRolesAssigned(unit) == "HEALER" then
+							_G.REPorterFrameCoreUP:AddUnit(unit, texture.."Healer", 30, 30, r, g, b, 1, 0, false)
 						else
 							_G.REPorterFrameCoreUP:AddUnit(unit, texture, 25, 25, r, g, b, 1, 0, false)
 						end

@@ -22,6 +22,8 @@ L["This option control map transparency."] = true
 L["Map position is saved separately for each battleground."] = true
 L["Always display raid markers"] = true
 L["When checked player pins will be always replaced with raid markers."] = true
+L["Always highlight the healers"] = true
+L["When checked healers will always be highlighted."] = true
 
 L["Right bottom"] = true
 L["Right"] = true
