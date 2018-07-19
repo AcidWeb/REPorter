@@ -44,12 +44,10 @@ if (UIDROPDOWNMENU_OPEN_PATCH_VERSION or 0) < 1 then
 end
 
 --GLOBALS: FACTION_ALLIANCE, FACTION_HORDE, HELP_LABEL, ATTACK, HEALTH, BLUE_GEM, RED_GEM, OPTIONS, MAX_RAID_MEMBERS, UIDROPDOWNMENU_VALUE_PATCH_VERSION, UIDROPDOWNMENU_MAXLEVELS, UIDROPDOWNMENU_MAXBUTTONS, UIDROPDOWNMENU_OPEN_PATCH_VERSION, UIDROPDOWNMENU_OPEN_MENU, issecurevariable
-local select, pairs, strsplit, tonumber, strfind, print, strupper, next, strmatch = _G.select, _G.pairs, _G.strsplit, _G.tonumber, _G.strfind, _G.print, _G.strupper, _G.next, _G.strmatch
-local mfloor = _G.math.floor
+local select, pairs, strsplit, tonumber, strfind, print, strupper, next, strmatch, wipe, floor = _G.select, _G.pairs, _G.strsplit, _G.tonumber, _G.strfind, _G.print, _G.strupper, _G.next, _G.strmatch, _G.wipe, _G.floor
 local CreateFrame = _G.CreateFrame
 local CreateFramePool = _G.CreateFramePool
 local IsInInstance = _G.IsInInstance
-local IsRatedBattleground = _G.IsRatedBattleground
 local IsInGuild = _G.IsInGuild
 local IsShiftKeyDown = _G.IsShiftKeyDown
 local IsAltKeyDown = _G.IsAltKeyDown
@@ -107,13 +105,18 @@ local ABW = 837
 local SS = 907
 
 RE.POIIconSize = 30
-RE.POINumber = 25
-RE.MapUpdateRate = 0.05
+RE.POINumber = 20
+RE.MapUpdateRate = 0.1
 RE.LastMap = 0
 RE.CurrentMap = -1
 RE.NeedRefresh = false
+RE.UpdateInProgress = false
 RE.BGVehicles = {}
 RE.POINodes = {}
+RE.POIInfo = {}
+RE.POIList = {}
+RE.VignetteInfo = {}
+RE.VignettePosition = {}
 RE.PinTextures = {}
 RE.ClickedPOI = ""
 
@@ -123,7 +126,6 @@ RE.CareAboutPoints = false
 RE.CareAboutGates = false
 RE.CareAboutFlags = false
 RE.PlayedFromStart = true
-RE.GateSyncRequested = false
 RE.IoCAllianceGateName = ""
 RE.IoCHordeGateName = ""
 RE.IoCGateEstimator = {}
@@ -146,18 +148,18 @@ RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 RE.ElvUI = IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins")
 
 RE.MapSettings = {
-	[AB] = {["PointsToWin"] = 1500, ["StartTimer"] = 120},
-	[WG] = {["StartTimer"] = 120},
-	[AV] = {["StartTimer"] = 120},
-	[EOTS] = {["PointsToWin"] = 1500, ["StartTimer"] = 120},
-	[IOC] = {["StartTimer"] = 120},
-	[BFG] = {["PointsToWin"] = 1500, ["StartTimer"] = 120},
-	[TP] = {["StartTimer"] = 120},
-	[TOK] = {["PointsToWin"] = 1500, ["StartTimer"] = 120},
-	[SM] = {["PointsToWin"] = 1500, ["StartTimer"] = 120},
-	[DG] = {["PointsToWin"] = 1500, ["StartTimer"] = 120},
-	[TMVS] = {["StartTimer"] = 120},
-	[SS] = {["StartTimer"] = 120}
+	[AB] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15},
+	[WG] = {["StartTimer"] = 120, ["PlayerNumber"] = 10},
+	[AV] = {["StartTimer"] = 120, ["PlayerNumber"] = 40},
+	[EOTS] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15},
+	[IOC] = {["StartTimer"] = 120, ["PlayerNumber"] = 40},
+	[BFG] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 10},
+	[TP] = {["StartTimer"] = 120, ["PlayerNumber"] = 10},
+	[TOK] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 10},
+	[SM] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 10},
+	[DG] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15},
+	[TMVS] = {["StartTimer"] = 120, ["PlayerNumber"] = 40},
+	[SS] = {["StartTimer"] = 120, ["PlayerNumber"] = 10}
 }
 RE.EstimatorSettings = {
 	[AB] = { [0] = 0, [1] = 10/12, [2] = 10/9, [3] = 10/6, [4] = 10/3, [5] = 30},
@@ -227,8 +229,8 @@ RE.DefaultConfig = {
 			[IOC] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 290, ["wh"] = 375, ["mx"] = 13, ["my"] = -23, ["ms"] = 1},
 			[BFG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 340, ["wh"] = 370, ["mx"] = 6, ["my"] = -28, ["ms"] = 1},
 			[TP] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 245, ["wh"] = 460, ["mx"] = 1, ["my"] = -33, ["ms"] = 1},
-			[SM] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 390, ["wh"] = 250, ["mx"] = 19, ["my"] = -21, ["ms"] = 1},
-			[TOK] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 460, ["wh"] = 350, ["mx"] = 7, ["my"] = -43, ["ms"] = 1},
+			[TOK] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 390, ["wh"] = 250, ["mx"] = 19, ["my"] = -21, ["ms"] = 1},
+			[SM] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 460, ["wh"] = 350, ["mx"] = 7, ["my"] = -43, ["ms"] = 1},
 			[DG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 520, ["wh"] = 385, ["mx"] = -10, ["my"] = -45, ["ms"] = 1},
 			[TMVS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 370, ["mx"] = -2, ["my"] = -22, ["ms"] = 1},
 			[SS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 360, ["wh"] = 385, ["mx"] = 66, ["my"] = -63, ["ms"] = 1}
@@ -414,8 +416,8 @@ function RE:BlinkPOI()
 end
 
 function RE:ShortTime(TimeRaw)
-	local TimeSec = mfloor(TimeRaw % 60)
-	local TimeMin = mfloor(TimeRaw / 60)
+	local TimeSec = floor(TimeRaw % 60)
+	local TimeMin = floor(TimeRaw / 60)
 	if TimeSec < 10 then
 		TimeSec = "0" .. TimeSec
 	end
@@ -424,12 +426,18 @@ end
 
 function RE:Round(num, idp)
 	local mult = 10^(idp or 0)
-	return mfloor(num * mult + 0.5) / mult
+	return floor(num * mult + 0.5) / mult
 end
 
 function RE:GetRealCoords(rawX, rawY)
 	-- X -17 Y -78
 	return rawX * 783, -rawY * 522
+end
+
+function RE:CheckCoordinates(x1, y1, x2, y2)
+	x1 = floor(x1)
+	y1 = floor(y1)
+	return (x1 == x2 or x1 == x2 + 1 or x1 == x2 - 1) and (y1 == y2 or y1 == y2 + 1 or y1 == y2 - 1)
 end
 
 function RE:FramesOverlap(frameA, frameB)
@@ -481,9 +489,9 @@ end
 
 function RE:UpdateIoCEstimator()
 	if RE.IoCGateEstimator[FACTION_HORDE] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-		RE.IoCGateEstimatorText = "|cFF00A9FF"..RE:Round((RE.IoCGateEstimator[FACTION_HORDE]/600000)*100, 0).."%|r"
+		RE.IoCGateEstimatorText = "|cFF00A9FF"..RE:Round((RE.IoCGateEstimator[FACTION_HORDE]/780000)*100, 0).."%|r"
 	elseif RE.IoCGateEstimator[FACTION_HORDE] > RE.IoCGateEstimator[FACTION_ALLIANCE] then
-		RE.IoCGateEstimatorText = "|cFFFF141D"..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/600000)*100, 0).."%|r"
+		RE.IoCGateEstimatorText = "|cFFFF141D"..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE]/780000)*100, 0).."%|r"
 	else
 		RE.IoCGateEstimatorText = ""
 	end
@@ -494,13 +502,13 @@ function RE:PointParse(custom, id)
 	if custom then
 		local text = GetIconAndTextWidgetVisualizationInfo(GetAllWidgetsBySetID(GetTopCenterWidgetSetID())[id].widgetID).text
 		if text ~= nil then
-			PointsNeeded = RE.MapSettings[RE.CurrentMap]["PointsToWin"] - tonumber(strmatch(text, "(%d+)/%d+"))
+			PointsNeeded = RE.MapSettings[RE.CurrentMap].PointsToWin - tonumber(strmatch(text, "(%d+)/%d+"))
 		end
 	else
 		local text = GetIconAndTextWidgetVisualizationInfo(GetAllWidgetsBySetID(GetTopCenterWidgetSetID())[id].widgetID).text
 		if text ~= nil then
 			BaseNum = tonumber(strmatch(text, "(%d+)"))
-			PointsNeeded = RE.MapSettings[RE.CurrentMap]["PointsToWin"] - tonumber(strmatch(text, "(%d+)/%d+"))
+			PointsNeeded = RE.MapSettings[RE.CurrentMap].PointsToWin - tonumber(strmatch(text, "(%d+)/%d+"))
 		end
 	end
 	return PointsNeeded, BaseNum
@@ -540,13 +548,9 @@ function RE:TimerNull()
 end
 
 function RE:TimerJoinCheck()
-	local BGTime = GetBattlefieldInstanceRunTime()/1000
-	if RE.CurrentMap ~= -1 and BGTime > RE.MapSettings[RE.CurrentMap]["StartTimer"] then
+	if RE.CurrentMap ~= -1 and GetBattlefieldInstanceRunTime()/1000 > RE.MapSettings[RE.CurrentMap].StartTimer then
 		RE.PlayedFromStart = false
-		if RE.CurrentMap == IOC then
-			RE.GateSyncRequested = true
-			SendAddonMessage("REPorter", "GateSyncRequest;", "INSTANCE_CHAT")
-		end
+		RE:OnPOIUpdate()
 	end
 end
 
@@ -624,7 +628,7 @@ function RE:OnMouseWheel(delta)
 	newscale = RE:Round(newscale, 2)
 	_G.REPorterFrameCore:SetScale(newscale)
 	if _G.InterfaceOptionsFrame:IsShown() then
-		RE.ConfigFrame.obj.children[1].children[7]:SetValue(newscale)
+		RE.ConfigFrame.obj.children[1].children[1].children[8]:SetValue(newscale)
 	end
 end
 
@@ -683,58 +687,41 @@ function RE:OnEvent(self, event, ...)
 				TOAST:Spawn("REPorterToastInfo", L["New version released!"])
 				RE.FoundNewVersion = true
 			end
-		elseif REMessageEx[1] == "GateSyncRequest" and RE.PlayedFromStart then
-			local message = "GateSync;"
-			for k, _ in pairs(RE.POINodes) do
-				if RE.POINodes[k]["health"] then
-					message = message..RE.POINodes[k]["id"]..";"..RE.POINodes[k]["health"]..";"
-				end
-			end
-			SendAddonMessage("REPorter", message, "INSTANCE_CHAT")
-		elseif RE.GateSyncRequested and REMessageEx[1] == "GateSync" then
-			RE.GateSyncRequested = false
-			for key, _ in pairs(RE.POINodes) do
-				for k=2, #REMessageEx do
-					if REMessageEx[k] == RE.POINodes[key]["id"] then
-						RE.POINodes[key]["health"] = REMessageEx[k+1]
-					end
-				end
-			end
 		end
 	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" and next(RE.POINodes) ~= nil then
 		local _, event, _, _, _, _, _, guid, _, _, _, _, _, _, damage = CombatLogGetCurrentEventInfo()
 		if event ~= "SPELL_BUILDING_DAMAGE" then return end
+
 		local gateID = {strsplit("-", guid)}
-		--TODO check GUID
 		if gateID[6] == "195496" then -- Horde East
-			RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] - damage
-			if RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
-				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]]["health"]
+			RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health - damage
+			if RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health < RE.IoCGateEstimator[FACTION_HORDE] then
+				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health
 			end
 		elseif gateID[6] == "195494" then -- Horde Central
-			RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] - damage
-			if RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
-				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]]["health"]
+			RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health - damage
+			if RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health < RE.IoCGateEstimator[FACTION_HORDE] then
+				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health
 			end
 		elseif gateID[6] == "195495" then -- Horde West
-			RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] - damage
-			if RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_HORDE] then
-				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]]["health"]
+			RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health - damage
+			if RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health < RE.IoCGateEstimator[FACTION_HORDE] then
+				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health
 			end
 		elseif gateID[6] == "195700" then -- Alliance East
-			RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] - damage
-			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]]["health"]
+			RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health - damage
+			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health
 			end
 		elseif gateID[6] == "195698" then -- Alliance Center
-			RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] - damage
-			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]]["health"]
+			RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health - damage
+			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health
 			end
 		elseif gateID[6] == "195699" then -- Alliance West
-			RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] - damage
-			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]]["health"]
+			RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health - damage
+			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health
 			end
 		end
 		RE:UpdateIoCEstimator()
@@ -772,6 +759,8 @@ function RE:OnEvent(self, event, ...)
 		end
 	elseif event == "GROUP_ROSTER_UPDATE" and _G.REPorterFrame:IsShown() then
 		RE.NeedRefresh = true
+	elseif event == "AREA_POIS_UPDATED" or event == "VIGNETTES_UPDATED" then
+		RE:OnPOIUpdate()
 	end
 end
 
@@ -822,7 +811,7 @@ function RE:OnPointsUpdate()
 			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(AllianceCartsNeeded, 1).."|r\n|cFFFF141D"..RE:Round(HordeCartsNeeded, 1).."|r"
 			RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(AllianceCartsNeeded, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HordeCartsNeeded, 1).." "..L["carts"]
 		elseif RE.CareAboutFlags then
-			RE:CreateTimer(13)
+			RE:CreateTimer(12)
 		else
 			local AllianceTimeToWin, HordeTimeToWin = 0, 0
 			local AlliancePointsNeeded, AllianceBaseNum = RE:PointParse(false, 2)
@@ -840,6 +829,153 @@ function RE:OnPointsUpdate()
 			RE:EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 5)
 		end
 	end
+end
+
+function RE:OnPOIUpdate()
+	RE.UpdateInProgress = true
+	wipe(RE.POIList)
+	wipe(RE.POIInfo)
+	for _, v in pairs(RE.POINodes) do
+		v.active = false
+	end
+	if RE.CurrentMap ~= SS then
+		RE.POIList = GetAreaPOIForMap(RE.CurrentMap)
+	else
+		RE.POIList = GetVignettes()
+	end
+	for i=1, #RE.POIList do
+		local battlefieldPOIName = "REPorterFrameCorePOI"..i
+		local battlefieldPOI = _G[battlefieldPOIName]
+		local colorOverride = false
+		if RE.CurrentMap == SS then
+			wipe(RE.VignetteInfo)
+			wipe(RE.VignettePosition)
+			RE.VignetteInfo = GetVignetteInfo(RE.POIList[i])
+			RE.VignettePosition = GetVignettePosition(RE.POIList[i], RE.CurrentMap)
+			local xZ, yZ = RE:Round(RE.VignettePosition.x, 3), RE:Round(RE.VignettePosition.y, 3)
+			RE.POIInfo = {["areaPoiID"] = RE.VignetteInfo.vignetteID, ["name"] = RE.VignetteInfo.name, ["description"] = "", ["position"] = {["x"] = RE.VignettePosition.x, ["y"] = RE.VignettePosition.y}, ["textureIndex"] = 0, ["atlasID"] = RE.VignetteInfo.atlasName}
+			if RE.AzeriteNodes[xZ] and RE.AzeriteNodes[xZ][yZ] then
+				RE.POIInfo.name = RE.AzeriteNodes[xZ][yZ]
+			end
+			if RE.VignetteInfo.atlasName == "AzeriteReady" then
+				RE.POIInfo.textureIndex = 1002
+			elseif RE.VignetteInfo.atlasName == "AzeriteSpawning" then
+				RE.POIInfo.textureIndex = 1001
+			end
+		else
+			RE.POIInfo = GetAreaPOIInfo(RE.CurrentMap, RE.POIList[i])
+		end
+		if RE.POIInfo.name and RE.POIInfo.textureIndex ~= nil and RE.POIInfo.textureIndex ~= 0 then
+			local x, y = RE:GetRealCoords(RE.POIInfo.position.x, RE.POIInfo.position.y)
+			local x1, x2, y1, y2 = GetPOITextureCoords(RE.POIInfo.textureIndex)
+			if RE.CurrentMap == IOC then
+				RE.POIInfo.gate = false
+				if RE:CheckCoordinates(x, y, 421, -401) then
+					RE.IoCAllianceGateName = RE.POIInfo.name
+					RE.POIInfo.name = RE.POIInfo.name.." - "..L["East"]
+					RE.POIInfo.gate = true
+					x = x + 15
+				elseif RE:CheckCoordinates(x, y, 381, -401) then
+					RE.POIInfo.name = RE.POIInfo.name.." - "..L["West"]
+					RE.POIInfo.gate = true
+					x = x - 13
+				elseif RE:CheckCoordinates(x, y, 401, -384) then
+					RE.POIInfo.name = RE.POIInfo.name.." - "..L["Front"]
+					RE.POIInfo.gate = true
+					y = y + 15
+				elseif RE:CheckCoordinates(x, y, 380, -165) then
+					RE.IoCHordeGateName = RE.POIInfo.name
+					RE.POIInfo.name = RE.POIInfo.name.." - "..L["Front"]
+					RE.POIInfo.gate = true
+					y = y - 15
+				elseif RE:CheckCoordinates(x, y, 406, -145) then
+					RE.POIInfo.name = RE.POIInfo.name.." - "..L["East"]
+					RE.POIInfo.gate = true
+					x = x + 10
+				elseif RE:CheckCoordinates(x, y, 355, -145) then
+					RE.POIInfo.name = RE.POIInfo.name.." - "..L["West"]
+					RE.POIInfo.gate = true
+					x = x - 10
+					y = y - 1
+				end
+			elseif RE.CurrentMap == AV then
+				if RE:CheckCoordinates(x, y, 385, -78) then
+					y = y - 15
+				elseif RE:CheckCoordinates(x, y, 405, -189) then
+					y = y - 10
+				elseif RE:CheckCoordinates(x, y, 404, -299) then
+					x = x + 10
+				elseif RE:CheckCoordinates(x, y, 385, -401) then
+					x = x + 10
+				elseif RE:CheckCoordinates(x, y, 332, -83) then
+					x = x - 20
+				elseif RE:CheckCoordinates(x, y, 334, -95) then
+					y = y - 20
+				elseif RE:CheckCoordinates(x, y, 354, -76) then
+					y = y + 10
+				elseif RE:CheckCoordinates(x, y, 352, -78) then
+					y = y + 15
+				elseif RE:CheckCoordinates(x, y, 390, -53) then
+					y = y - 5
+				elseif RE:CheckCoordinates(x, y, 387, -444) then
+					x = x + 25
+					y = y + 5
+				elseif RE:CheckCoordinates(x, y, 385, -463) then
+					y = y - 10
+				end
+			elseif RE.CurrentMap == TOK then
+				if RE.POIInfo.areaPoiID == 2774 then
+					RE.POIInfo.name = RE.POIInfo.name.." - "..BLUE_GEM
+					colorOverride = {0, 0, 1}
+				elseif RE.POIInfo.areaPoiID == 2775 then
+					RE.POIInfo.name = RE.POIInfo.name.." - "..L["Purple"]
+					colorOverride = {0.5, 0, 0.5}
+				elseif RE.POIInfo.areaPoiID == 2776 then
+					RE.POIInfo.name = RE.POIInfo.name.." - "..RED_GEM
+					colorOverride = {1, 0, 0}
+				elseif RE.POIInfo.areaPoiID == 2777 then
+					RE.POIInfo.name = RE.POIInfo.name.." - "..L["Green"]
+					colorOverride = {0, 1, 0}
+				end
+			end
+			if RE.POINodes[RE.POIInfo.name] == nil then
+				RE.POINodes[RE.POIInfo.name] = {["id"] = i, ["poiID"] = RE.POIInfo.areaPoiID, ["name"] = RE.POIInfo.name, ["status"] = RE.POIInfo.description, ["x"] = x, ["y"] = y, ["texture"] = RE.POIInfo.textureIndex, ["active"] = true}
+				if RE.CurrentMap == IOC and RE.POIInfo.gate then
+					RE.POINodes[RE.POIInfo.name].health = 780000
+					RE.POINodes[RE.POIInfo.name].maxHealth = 780000
+				elseif RE.CurrentMap == SS and RE.PlayedFromStart then
+					RE:NodeChange(RE.POIInfo.textureIndex, RE.POIInfo.name)
+				end
+			else
+				RE.POINodes[RE.POIInfo.name].id = i
+				RE.POINodes[RE.POIInfo.name].poiID = RE.POIInfo.areaPoiID
+				RE.POINodes[RE.POIInfo.name].name = RE.POIInfo.name
+				RE.POINodes[RE.POIInfo.name].status = RE.POIInfo.description
+				RE.POINodes[RE.POIInfo.name].x = x
+				RE.POINodes[RE.POIInfo.name].y = y
+				RE.POINodes[RE.POIInfo.name].active = true
+				if RE.CareAboutNodes and RE.POINodes[RE.POIInfo.name].texture and RE.POINodes[RE.POIInfo.name].texture ~= RE.POIInfo.textureIndex then
+					RE:NodeChange(RE.POIInfo.textureIndex, RE.POIInfo.name)
+				end
+				RE.POINodes[RE.POIInfo.name].texture = RE.POIInfo.textureIndex
+			end
+			battlefieldPOI.name = RE.POIInfo.name
+			battlefieldPOI:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", x, y)
+			battlefieldPOI:SetWidth(RE.POIIconSize)
+			battlefieldPOI:SetHeight(RE.POIIconSize)
+			if RE.POIInfo.textureIndex > 1000 then
+				_G[battlefieldPOIName.."Texture"]:SetAtlas(RE.POIInfo.atlasID)
+			else
+				_G[battlefieldPOIName.."Texture"]:SetTexCoord(x1, x2, y1, y2)
+			end
+			if colorOverride then
+				_G[battlefieldPOIName.."Texture"]:SetVertexColor(colorOverride[1], colorOverride[2], colorOverride[3], 1)
+			else
+				_G[battlefieldPOIName.."Texture"]:SetVertexColor(1, 1, 1, 1)
+			end
+		end
+	end
+	RE.UpdateInProgress = false
 end
 
 function RE:OnUpdate(elapsed)
@@ -864,7 +1000,7 @@ function RE:OnUpdate(elapsed)
 		end
 		_G.REPorterFrameCoreUP:AddUnit("player", "Interface\\Minimap\\MinimapArrow", 40, 40, 1, 1, 1, 1, 1, true)
 		if not (IsShiftKeyDown() and IsAltKeyDown()) then
-			for i = 1, MAX_RAID_MEMBERS do
+			for i = 1, RE.MapSettings[RE.CurrentMap].PlayerNumber do
 				local unit = "raid"..i
 				local texture = ""
 				if UnitExists(unit) and not UnitIsUnit(unit, "player") then
@@ -933,23 +1069,18 @@ function RE:OnUpdate(elapsed)
 				RE.BGVehicles[i] = CreateFrame("FRAME", vehicleName, _G.REPorterFrameCorePOI, "REPorterVehicleTemplate")
 				RE.BGVehicles[i].texture = _G[vehicleName.."Texture"]
 			end
-			if RE.CurrentMap == IOC then
-				RE.BGVehicles[i]:EnableMouse(true)
-				RE.BGVehicles[i]:SetScript("OnEnter", function(self) RE:UnitOnEnterVehicle(self) end)
-				RE.BGVehicles[i]:SetScript("OnLeave", RE.HideTooltip)
-			else
-				RE.BGVehicles[i]:EnableMouse(false)
-				RE.BGVehicles[i]:SetScript("OnEnter", nil)
-				RE.BGVehicles[i]:SetScript("OnLeave", nil)
-			end
 			local vehicleX, vehicleY, unitName, isPossessed, vehicleType, orientation, isPlayer, isAlive = GetBattlefieldVehicleInfo(i, RE.CurrentMap)
-			if vehicleX and isAlive and not isPlayer then
+			if vehicleX and isAlive and not isPlayer and vehicleType ~= "Idle" then
 				vehicleX, vehicleY = RE:GetRealCoords(vehicleX, vehicleY)
 				RE.BGVehicles[i].texture:SetTexture(GetVehicleTexture(vehicleType, isPossessed))
 				RE.BGVehicles[i].texture:SetRotation(orientation)
 				RE.BGVehicles[i].name = unitName
 				RE.BGVehicles[i]:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", vehicleX, vehicleY)
-				RE.BGVehicles[i]:SetFrameLevel(playerBlipFrameLevel - 1)
+				if IsShiftKeyDown() and IsAltKeyDown() then
+					RE.BGVehicles[i]:SetFrameLevel(9)
+				else
+					RE.BGVehicles[i]:SetFrameLevel(playerBlipFrameLevel - 1)
+				end
 				RE.BGVehicles[i]:Show()
 				index = i
 			else
@@ -962,191 +1093,68 @@ function RE:OnUpdate(elapsed)
 			end
 		end
 
-		for i=1, RE.POINumber do
-			_G["REPorterFrameCorePOI"..i]:Hide()
-			_G["REPorterFrameCorePOI"..i.."Timer"]:Hide()
-		end
-		local poiList
-		if RE.CurrentMap == SS then
-			poiList = GetVignettes()
-		else
-			poiList = GetAreaPOIForMap(RE.CurrentMap)
-		end
-		for i=1, #poiList do
-			local battlefieldPOIName = "REPorterFrameCorePOI"..i
-			local battlefieldPOI = _G[battlefieldPOIName]
-			local colorOverride = false
-			local poiInfo
-			if RE.CurrentMap == SS then
-				local vignetteInfo = GetVignetteInfo(poiList[i])
-				local vignettePosition = GetVignettePosition(poiList[i], RE.CurrentMap)
-				local xZ, yZ = RE:Round(vignettePosition.x, 3), RE:Round(vignettePosition.y, 3)
-				poiInfo = {["areaPoiID"] = vignetteInfo.vignetteID, ["name"] = vignetteInfo.name, ["description"] = "", ["position"] = {["x"] = vignettePosition.x, ["y"] = vignettePosition.y}, ["textureIndex"] = 0, ["atlasID"] = vignetteInfo.atlasName}
-				if RE.AzeriteNodes[xZ] and RE.AzeriteNodes[xZ][yZ] then
-					poiInfo.name = RE.AzeriteNodes[xZ][yZ]
-				end
-				if vignetteInfo.atlasName == "AzeriteReady" then
-					poiInfo.textureIndex = 1002
-				elseif vignetteInfo.atlasName == "AzeriteSpawning" then
-					poiInfo.textureIndex = 1001
-				end
-			else
-				poiInfo = GetAreaPOIInfo(RE.CurrentMap, poiList[i])
+		if not RE.UpdateInProgress then
+			for i=1, RE.POINumber do
+				_G["REPorterFrameCorePOI"..i]:Hide()
+				_G["REPorterFrameCorePOI"..i.."Timer"]:Hide()
 			end
-			if poiInfo.name and poiInfo.textureIndex ~= nil and poiInfo.textureIndex ~= 0 then
-				local x, y = RE:GetRealCoords(poiInfo.position.x, poiInfo.position.y)
-				local x1, x2, y1, y2 = GetPOITextureCoords(poiInfo.textureIndex)
-				if RE.CurrentMap == IOC then
-					--TODO nodes id and placement
-					if i == 9 then
-						RE.IoCAllianceGateName = poiInfo.name
-						poiInfo.name = poiInfo.name.." - "..L["East"]
-						--x = x + 15
-					elseif i == 10 then
-						poiInfo.name = poiInfo.name.." - "..L["West"]
-						--x = x - 13
-					elseif i == 11 then
-						poiInfo.name = poiInfo.name.." - "..L["Front"]
-						--y = y + 15
-					elseif i == 6 then
-						RE.IoCHordeGateName = poiInfo.name
-						poiInfo.name = poiInfo.name.." - "..L["Front"]
-						--y = y - 15
-					elseif i == 7 then
-						poiInfo.name = poiInfo.name.." - "..L["East"]
-						--x = x + 10
-					elseif i == 8 then
-						poiInfo.name = poiInfo.name.." - "..L["West"]
-						--x = x - 10
-						--y = y - 1
-					end
-				elseif RE.CurrentMap == AV then
-					--[[TODO nodes placement
-					if x > 343 and x < 346 then
-						x = 350
-						y = -108
-					elseif x > 330 and x < 343 then
-						x = 318
-					elseif x > 402 and x < 405 then
-						x = 412
-					elseif x > 383 and x < 387 and y > -80 then
-						x = 388
-						y = -85
-					elseif y < -186 and y > -189 then
-						y = -192
-					elseif y < -398 and y > -402 then
-						x = 398
-					elseif y < -441 and y > -444 and x > 385 and x < 388 then
-						x = 410
-						y = -440
-					elseif y < -460 then
-						y = -472
-					end
-					]]
-				elseif RE.CurrentMap == TOK then
-					if poiInfo.areaPoiID == 2774 then
-						poiInfo.name = poiInfo.name.." - "..BLUE_GEM
-						colorOverride = {0, 0, 1}
-					elseif poiInfo.areaPoiID == 2775 then
-						poiInfo.name = poiInfo.name.." - "..L["Purple"]
-						colorOverride = {0.5, 0, 0.5}
-					elseif poiInfo.areaPoiID == 2776 then
-						poiInfo.name = poiInfo.name.." - "..RED_GEM
-						colorOverride = {1, 0, 0}
-					elseif poiInfo.areaPoiID == 2777 then
-						poiInfo.name = poiInfo.name.." - "..L["Green"]
-						colorOverride = {0, 1, 0}
-					end
+			for _, v in pairs(RE.POINodes) do
+				if v.active then
+				  local battlefieldPOIName = "REPorterFrameCorePOI"..v.id
+					local battlefieldPOI = _G[battlefieldPOIName]
+				  if TIMER:TimeLeft(v.timer) == 0 then
+				    if strfind(v.status, FACTION_HORDE) then
+				      _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,0.3)
+				    elseif strfind(v.status, FACTION_ALLIANCE) then
+				      _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,0.3)
+				    else
+				      if RE.CurrentMap == SS then
+				        _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,1,0,0.3)
+				      else
+				        _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,0,0.3)
+				      end
+				    end
+				    _G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize)
+				    _G[battlefieldPOIName.."TextureBGofBG"]:Hide()
+				    if RE.CareAboutGates and v.health and v.health > 0 then
+				      _G[battlefieldPOIName.."TextureBGTop1"]:Hide()
+				      _G[battlefieldPOIName.."TextureBGTop2"]:Show()
+				      _G[battlefieldPOIName.."TextureBGTop2"]:SetWidth((v.health/v.maxHealth) * RE.POIIconSize)
+				      if RE.PlayedFromStart then
+								_G[battlefieldPOIName.."TimerCaption"]:SetText(RE:Round((v.health/v.maxHealth)*100, 0).."%")
+				      else
+				        _G[battlefieldPOIName.."TimerCaption"]:SetText("|cFFFF141D"..RE:Round((v.health/v.maxHealth)*100, 0).."%|r")
+				      end
+				      _G[battlefieldPOIName.."Timer"]:Show()
+				    else
+				      _G[battlefieldPOIName.."TextureBGTop1"]:Hide()
+				      _G[battlefieldPOIName.."TextureBGTop2"]:Hide()
+				      _G[battlefieldPOIName.."Timer"]:Hide()
+				    end
+				  else
+				    local timeLeft = TIMER:TimeLeft(v.timer)
+				    _G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize - ((timeLeft / RE.DefaultTimer) * RE.POIIconSize))
+				    _G[battlefieldPOIName.."TextureBGofBG"]:Show()
+				    _G[battlefieldPOIName.."TextureBGofBG"]:SetWidth((timeLeft / RE.DefaultTimer) * RE.POIIconSize)
+				    if v.isCapturing == FACTION_HORDE or RE.CurrentMap == SS then
+				      _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,RE.BlinkPOIValue)
+				    elseif v.isCapturing == FACTION_ALLIANCE then
+				      _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,RE.BlinkPOIValue)
+				    end
+				    if timeLeft <= 10 then
+				      _G[battlefieldPOIName.."TextureBGTop1"]:Show()
+				      _G[battlefieldPOIName.."TextureBGTop2"]:Show()
+				      _G[battlefieldPOIName.."TextureBGTop1"]:SetWidth((timeLeft / 10) * RE.POIIconSize)
+				      _G[battlefieldPOIName.."TextureBGTop2"]:SetWidth((timeLeft / 10) * RE.POIIconSize)
+				    else
+				      _G[battlefieldPOIName.."TextureBGTop1"]:Hide()
+				      _G[battlefieldPOIName.."TextureBGTop2"]:Hide()
+				    end
+				    _G[battlefieldPOIName.."Timer"]:Show()
+				    _G[battlefieldPOIName.."TimerCaption"]:SetText(RE:ShortTime(RE:Round(TIMER:TimeLeft(v.timer), 0)))
+				  end
+					battlefieldPOI:Show()
 				end
-				if RE.POINodes[poiInfo.name] == nil then
-					RE.POINodes[poiInfo.name] = {["id"] = i, ["poiID"] = poiInfo.areaPoiID, ["name"] = poiInfo.name, ["status"] = poiInfo.description, ["x"] = x, ["y"] = y, ["texture"] = poiInfo.textureIndex}
-					if RE.CurrentMap == IOC then
-						--TODO gate IDs
-						if i == 6 or i == 7 or i == 8 or i == 9 or i == 10 or i == 11 then
-							RE.POINodes[poiInfo.name]["health"] = 600000
-							RE.POINodes[poiInfo.name]["maxHealth"] = 600000
-						end
-					elseif RE.CurrentMap == SS and RE.PlayedFromStart then
-						RE:NodeChange(poiInfo.textureIndex, poiInfo.name)
-					end
-				else
-					RE.POINodes[poiInfo.name]["id"] = i
-					RE.POINodes[poiInfo.name]["poiID"] = poiInfo.areaPoiID
-					RE.POINodes[poiInfo.name]["name"] = poiInfo.name
-					RE.POINodes[poiInfo.name]["status"] = poiInfo.description
-					RE.POINodes[poiInfo.name]["x"] = x
-					RE.POINodes[poiInfo.name]["y"] = y
-					if RE.CareAboutNodes and RE.POINodes[poiInfo.name]["texture"] and RE.POINodes[poiInfo.name]["texture"] ~= poiInfo.textureIndex then
-						RE:NodeChange(poiInfo.textureIndex, poiInfo.name)
-					end
-					RE.POINodes[poiInfo.name]["texture"] = poiInfo.textureIndex
-				end
-				battlefieldPOI.name = poiInfo.name
-				battlefieldPOI:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", x, y)
-				battlefieldPOI:SetWidth(RE.POIIconSize)
-				battlefieldPOI:SetHeight(RE.POIIconSize)
-				if poiInfo.textureIndex > 1000 then
-					_G[battlefieldPOIName.."Texture"]:SetAtlas(poiInfo.atlasID)
-				else
-					_G[battlefieldPOIName.."Texture"]:SetTexCoord(x1, x2, y1, y2)
-				end
-				if colorOverride then
-					_G[battlefieldPOIName.."Texture"]:SetVertexColor(colorOverride[1], colorOverride[2], colorOverride[3], 1)
-				else
-					_G[battlefieldPOIName.."Texture"]:SetVertexColor(1, 1, 1, 1)
-				end
-				if TIMER:TimeLeft(RE.POINodes[poiInfo.name]["timer"]) == 0 then
-					if strfind(poiInfo.description, FACTION_HORDE) then
-						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,0.3)
-					elseif strfind(poiInfo.description, FACTION_ALLIANCE) then
-						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,0.3)
-					else
-						if RE.CurrentMap == SS then
-							_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,1,0,0.3)
-						else
-							_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,0,0.3)
-						end
-					end
-					_G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize)
-					_G[battlefieldPOIName.."TextureBGofBG"]:Hide()
-					if RE.CareAboutGates and RE.POINodes[poiInfo.name]["health"] and RE.POINodes[poiInfo.name]["health"] ~= 0 and poiInfo.textureIndex ~= 76 and poiInfo.textureIndex ~= 79 and poiInfo.textureIndex ~= 82 and poiInfo.textureIndex ~= 104 and poiInfo.textureIndex ~= 107 and poiInfo.textureIndex ~= 110 then
-						_G[battlefieldPOIName.."TextureBGTop1"]:Hide()
-						_G[battlefieldPOIName.."TextureBGTop2"]:Show()
-						_G[battlefieldPOIName.."TextureBGTop2"]:SetWidth((RE.POINodes[poiInfo.name]["health"]/RE.POINodes[poiInfo.name]["maxHealth"]) * RE.POIIconSize)
-						if RE.GateSyncRequested then
-							_G[battlefieldPOIName.."TimerCaption"]:SetText("|cFFFF141D"..RE:Round((RE.POINodes[poiInfo.name]["health"]/RE.POINodes[poiInfo.name]["maxHealth"])*100, 0).."%|r")
-						else
-							_G[battlefieldPOIName.."TimerCaption"]:SetText(RE:Round((RE.POINodes[poiInfo.name]["health"]/RE.POINodes[poiInfo.name]["maxHealth"])*100, 0).."%")
-						end
-						_G[battlefieldPOIName.."Timer"]:Show()
-					else
-						_G[battlefieldPOIName.."TextureBGTop1"]:Hide()
-						_G[battlefieldPOIName.."TextureBGTop2"]:Hide()
-						_G[battlefieldPOIName.."Timer"]:Hide()
-					end
-				else
-					local timeLeft = TIMER:TimeLeft(RE.POINodes[poiInfo.name]["timer"])
-					_G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize - ((timeLeft / RE.DefaultTimer) * RE.POIIconSize))
-					_G[battlefieldPOIName.."TextureBGofBG"]:Show()
-					_G[battlefieldPOIName.."TextureBGofBG"]:SetWidth((timeLeft / RE.DefaultTimer) * RE.POIIconSize)
-					if RE.POINodes[poiInfo.name]["isCapturing"] == FACTION_HORDE or RE.CurrentMap == SS then
-						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,RE.BlinkPOIValue)
-					elseif RE.POINodes[poiInfo.name]["isCapturing"] == FACTION_ALLIANCE then
-						_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,RE.BlinkPOIValue)
-					end
-					if timeLeft <= 10 then
-						_G[battlefieldPOIName.."TextureBGTop1"]:Show()
-						_G[battlefieldPOIName.."TextureBGTop2"]:Show()
-						_G[battlefieldPOIName.."TextureBGTop1"]:SetWidth((timeLeft / 10) * RE.POIIconSize)
-						_G[battlefieldPOIName.."TextureBGTop2"]:SetWidth((timeLeft / 10) * RE.POIIconSize)
-					else
-						_G[battlefieldPOIName.."TextureBGTop1"]:Hide()
-						_G[battlefieldPOIName.."TextureBGTop2"]:Hide()
-					end
-					_G[battlefieldPOIName.."Timer"]:Show()
-					_G[battlefieldPOIName.."TimerCaption"]:SetText(RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[poiInfo.name]["timer"]), 0)))
-				end
-				battlefieldPOI:Show()
 			end
 		end
 
@@ -1160,7 +1168,7 @@ function RE:OnUpdate(elapsed)
 			end
 		elseif RE.CurrentMap == SM then
 			_G.REPorterFrameEstimatorText:SetText(RE.SMEstimatorText)
-		elseif RE.CurrentMap == IOC and not RE.GateSyncRequested then
+		elseif RE.CurrentMap == IOC and RE.PlayedFromStart then
 			_G.REPorterFrameEstimatorText:SetText(RE.IoCGateEstimatorText)
 		else
 			_G.REPorterFrameEstimatorText:SetText("")
@@ -1194,65 +1202,27 @@ function RE:UnitOnEnterPlayer(self, tooltipFrame)
 	end
 end
 
-function RE:UnitOnEnterVehicle(self)
-	local tooltipText = ""
-	local prefix = ""
-	local vehicleGroup = {}
-
-	for i=1, #RE.BGVehicles do
-		local unitButton = RE.BGVehicles[i]
-		if unitButton:IsVisible() and unitButton:IsMouseOver() then
-			if RE.BGVehicles[i].name and RE.BGVehicles[i].name ~= "" then
-				if vehicleGroup[RE.BGVehicles[i].name] then
-					vehicleGroup[RE.BGVehicles[i].name] = vehicleGroup[RE.BGVehicles[i].name] + 1
-				else
-					vehicleGroup[RE.BGVehicles[i].name] = 1
-				end
-			end
-		end
-	end
-	for k, _ in pairs(vehicleGroup) do
-		if vehicleGroup[k] == 1 then
-			tooltipText = tooltipText..prefix..k
-		else
-			tooltipText = tooltipText..prefix.."|cFFFFFFFF"..vehicleGroup[k].."x|r "..k
-		end
-		prefix = "\n"
-	end
-
-	if tooltipText ~= "" then
-		_G.GameTooltip:SetOwner(self, "ANCHOR_CURSOR_RIGHT")
-		_G.GameTooltip:SetText(tooltipText)
-		_G.GameTooltip:Show()
-	elseif _G.GameTooltip:GetOwner() == self then
-		_G.GameTooltip:ClearLines()
-		_G.GameTooltip:Hide()
-	end
-end
-
 function RE:UnitOnEnterPOI(self)
 	local tooltipText = ""
 	local prefix = ""
-	local battlefieldPOIName = self:GetName()
-	local battlefieldPOI = _G[battlefieldPOIName]
+	local battlefieldPOI = _G[self:GetName()]
 
 	if battlefieldPOI:IsMouseOver() and battlefieldPOI.name ~= "" then
 		local status = ""
-		if RE.POINodes[battlefieldPOI.name]["status"] and RE.POINodes[battlefieldPOI.name]["status"] ~= "" then
-			status = "\n"..RE.POINodes[battlefieldPOI.name]["status"]
+		if RE.POINodes[battlefieldPOI.name].status and RE.POINodes[battlefieldPOI.name].status ~= "" then
+			status = "\n"..RE.POINodes[battlefieldPOI.name].status
 		end
-		if RE.POINodes[battlefieldPOI.name]["health"] then
-			if RE.GateSyncRequested then
-				status = "\n[|r|cFFFF141D"..RE:Round((RE.POINodes[battlefieldPOI.name]["health"]/RE.POINodes[battlefieldPOI.name]["maxHealth"])*100, 0).."%|r|cFFFFFFFF]"
+		if RE.POINodes[battlefieldPOI.name].health then
+			if RE.PlayedFromStart then
+				status = "\n["..RE:Round((RE.POINodes[battlefieldPOI.name].health/RE.POINodes[battlefieldPOI.name].maxHealth)*100, 0).."%]"
 			else
-				status = "\n["..RE:Round((RE.POINodes[battlefieldPOI.name]["health"]/RE.POINodes[battlefieldPOI.name]["maxHealth"])*100, 0).."%]"
+				status = "\n[|r|cFFFF141D"..RE:Round((RE.POINodes[battlefieldPOI.name].health/RE.POINodes[battlefieldPOI.name].maxHealth)*100, 0).."%|r|cFFFFFFFF]"
 			end
 		end
-		-- TODO poiID
-		if TIMER:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]) == 0 then
-			tooltipText = tooltipText..prefix..battlefieldPOI.name.." "..RE.POINodes[battlefieldPOI.name].poiID.."|cFFFFFFFF"..status.."|r"
+		if TIMER:TimeLeft(RE.POINodes[battlefieldPOI.name].timer) == 0 then
+			tooltipText = tooltipText..prefix..battlefieldPOI.name.."|cFFFFFFFF"..status.."|r"
 		else
-			tooltipText = tooltipText..prefix..battlefieldPOI.name.." "..RE.POINodes[battlefieldPOI.name].poiID.."|cFFFFFFFF ["..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[battlefieldPOI.name]["timer"]), 0)).."]"..status.."|r"
+			tooltipText = tooltipText..prefix..battlefieldPOI.name.."|cFFFFFFFF ["..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[battlefieldPOI.name].timer), 0)).."]"..status.."|r"
 		end
 		prefix = "\n"
 	end
@@ -1269,7 +1239,7 @@ end
 
 function RE:OnClickPOI(self)
 	_G.CloseDropDownMenus()
-	RE.ClickedPOI = RE.POINodes[self.name]["name"]
+	RE.ClickedPOI = RE.POINodes[self.name].name
 	_G.EasyMenu(RE.POIDropDown, _G.REPorterReportDropDown, self, 0 , 0, "MENU")
 end
 ---
@@ -1277,7 +1247,6 @@ end
 -- *** Core functions
 function RE:Startup()
 	RE.PlayedFromStart = true
-	RE.GateSyncRequested = false
 	RE:Create()
 	_G.REPorterFrameCoreUP:ResetCurrentMouseOverUnits()
 	_G.REPorterFrame:Show()
@@ -1304,10 +1273,12 @@ function RE:Shutdown()
 	RE.CareAboutFlags = false
 	RE.TimerOverride = false
 	_G.REPorterFrame:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+	_G.REPorterFrame:UnregisterEvent("VIGNETTES_UPDATED")
+	_G.REPorterFrame:UnregisterEvent("AREA_POIS_UPDATED")
 	_G.REPorterFrameEstimatorText:SetText("")
 	_G.REPorterFrameCoreUP:ResetCurrentMouseOverUnits()
 	_G.CloseDropDownMenus()
-	BUCKET:UnregisterBucket(RE.PointBucket)
+	BUCKET:UnregisterBucket(RE.EventBucket)
 	if not _G.MinimapCluster:IsShown() and RE.Settings.profile.HideMinimap then
 		_G.MinimapCluster:Show()
 	end
@@ -1316,8 +1287,8 @@ function RE:Shutdown()
 		_G["REPorterFrameCorePOI"..i.."Timer"]:Hide()
 		_G["REPorterFrameCorePOI"..i.."Texture"]:SetTexture("Interface\\Minimap\\POIIcons")
 		_G["REPorterFrameCorePOI"..i.."Texture"]:SetTexCoord(0, 1, 0, 1)
-		for k, _ in pairs(RE.POINodes) do
-			TIMER:CancelTimer(RE.POINodes[k]["timer"])
+		for _, v in pairs(RE.POINodes) do
+			TIMER:CancelTimer(v.timer)
 		end
 	end
 	if RE.NumVehicles then
@@ -1332,18 +1303,28 @@ end
 
 function RE:Create()
 	_G.REPorterFrameCore:SetScript("OnUpdate", nil)
+	_G.REPorterFrameEstimator:ClearAllPoints()
 	RE.IsBrawl = IsInBrawl()
 	RE.POINodes = {}
+
+	if RE.CurrentMap == TOK or RE.CurrentMap == DG then
+		_G.REPorterFrameEstimator:SetPoint("RIGHT", _G.UIWidgetTopCenterContainerFrame, "LEFT", -50, 0)
+	elseif RE.CurrentMap == SM or RE.CurrentMap == IOC then
+		_G.REPorterFrameEstimator:SetPoint("RIGHT", _G.UIWidgetTopCenterContainerFrame, "LEFT", -35, 0)
+	else
+		_G.REPorterFrameEstimator:SetPoint("RIGHT", _G.UIWidgetTopCenterContainerFrame, "LEFT", -60, 0)
+	end
+
 	if RE.CurrentMap == IOC then
 		RE.IoCGateEstimator = {}
-		RE.IoCGateEstimator[FACTION_ALLIANCE] = 600000
-		RE.IoCGateEstimator[FACTION_HORDE] = 600000
+		RE.IoCGateEstimator[FACTION_ALLIANCE] = 780000
+		RE.IoCGateEstimator[FACTION_HORDE] = 780000
 		RE.IoCGateEstimatorText = ""
-	end
-	if RE.CurrentMap == SM then
+	elseif RE.CurrentMap == SM then
 		RE.SMEstimatorText = ""
 		RE.SMEstimatorReport = ""
 	end
+
 	if RE.CurrentMap == AV then
 		RE.DefaultTimer = 240
 	elseif RE.CurrentMap == DG then
@@ -1353,14 +1334,20 @@ function RE:Create()
 	else
 		RE.DefaultTimer = 60
 	end
-	if RE.CurrentMap == AV or RE.CurrentMap == BFG or RE.CurrentMap == IOC or RE.CurrentMap == AB or RE.CurrentMap == DG or RE.CurrentMap == SS or (IsRatedBattleground() and RE.CurrentMap == EOTS) then
+
+	if RE.CurrentMap == AV or RE.CurrentMap == BFG or RE.CurrentMap == IOC or RE.CurrentMap == AB or RE.CurrentMap == DG or RE.CurrentMap == SS or RE.CurrentMap == EOTS or RE.CurrentMap == TOK then
 		RE.CareAboutNodes = true
+		if RE.CurrentMap == SS then
+			_G.REPorterFrame:RegisterEvent("VIGNETTES_UPDATED")
+		else
+			_G.REPorterFrame:RegisterEvent("AREA_POIS_UPDATED")
+		end
 	else
 		RE.CareAboutNodes = false
 	end
 	if RE.CurrentMap == BFG or RE.CurrentMap == EOTS or RE.CurrentMap == AB or RE.CurrentMap == DG or RE.CurrentMap == SM or RE.CurrentMap == TOK then
 		RE.CareAboutPoints = true
-		RE.PointBucket = BUCKET:RegisterBucketEvent({"BATTLEGROUND_POINTS_UPDATE", "UPDATE_UI_WIDGET"}, 2, RE.OnPointsUpdate)
+		RE.EventBucket = BUCKET:RegisterBucketEvent({"BATTLEGROUND_POINTS_UPDATE", "UPDATE_UI_WIDGET"}, 2, RE.OnPointsUpdate)
 	else
 		RE.CareAboutPoints = false
 	end
@@ -1372,10 +1359,11 @@ function RE:Create()
 	end
 	if RE.CurrentMap == WG or RE.CurrentMap == TP then
 		RE.CareAboutFlags = true
-		RE.PointBucket = BUCKET:RegisterBucketEvent({"BATTLEGROUND_POINTS_UPDATE", "UPDATE_UI_WIDGET"}, 2, RE.OnPointsUpdate)
+		RE.EventBucket = BUCKET:RegisterBucketEvent("BATTLEGROUND_POINTS_UPDATE", 1, RE.OnPointsUpdate)
 	else
 		RE.CareAboutFlags = false
 	end
+
 	RE:LoadMapSettings()
 	RE:SetupReportBar()
 	TIMER:ScheduleTimer(RE.TimerJoinCheck, 5)
@@ -1383,145 +1371,145 @@ function RE:Create()
 end
 
 function RE:NodeChange(newTexture, nodeName)
-	TIMER:CancelTimer(RE.POINodes[nodeName]["timer"])
+	TIMER:CancelTimer(RE.POINodes[nodeName].timer)
 	if RE.CurrentMap == AV then
 		if newTexture == 9 then -- Tower Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 12 then -- Tower Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		elseif newTexture == 4 then -- GY Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 14 then -- GY Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		end
 	elseif RE.CurrentMap == EOTS then
 		if newTexture == 9 then -- Tower Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 12 then -- Tower Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		end
 	elseif RE.CurrentMap == BFG then
 		if newTexture == 9 then -- Lighthouse Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 12 then -- Lighthouse Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		elseif newTexture == 27 then -- Waterworks Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 29 then -- Waterworks Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		elseif newTexture == 17 then -- Mine Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 19 then -- Mine Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		end
 	elseif RE.CurrentMap == IOC then
 		if newTexture == 9 then -- Keep Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 12 then -- Keep Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		elseif newTexture == 152 then -- Oil Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 154 then -- Oil Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		elseif newTexture == 147 then -- Dock Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 149 then -- Dock Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		elseif newTexture == 137 then -- Workshop Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 139 then -- Workshop Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		elseif newTexture == 142 then -- Air Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 144 then -- Air Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		elseif newTexture == 17 then -- Quary Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 19 then -- Quary Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		end
 	elseif RE.CurrentMap == AB then
 		if newTexture == 32 then -- Farm Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 34 then -- Farm Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		elseif newTexture == 17 then -- Mine Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 19 then -- Mine Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		elseif newTexture == 37 then -- Stables Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 39 then -- Stables Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		elseif newTexture == 27 then -- Blacksmith Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 29 then -- Blacksmith Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		elseif newTexture == 22 then -- Lumbermill Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 24 then -- Lumbermill Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		end
 	elseif RE.CurrentMap == DG then
 		if newTexture == 17 then -- Mine Ally
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_ALLIANCE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
 		elseif newTexture == 19 then -- Mine Horde
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = FACTION_HORDE
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
 		end
 	elseif RE.CurrentMap == SS then
 		if newTexture == 1001 then
-			RE.POINodes[nodeName]["timer"] = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName]["isCapturing"] = ""
+			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+			RE.POINodes[nodeName].isCapturing = ""
 		end
 	end
 end
 
 function RE:POIStatus(POIName)
 	if RE.POINodes[POIName]then
-		if TIMER:TimeLeft(RE.POINodes[POIName]["timer"]) == 0 then
-			if RE.POINodes[POIName]["health"] and not RE.GateSyncRequested then
-				local gateHealth = RE:Round((RE.POINodes[POIName]["health"] / RE.POINodes[POIName]["maxHealth"]) * 100, 0)
+		if TIMER:TimeLeft(RE.POINodes[POIName].timer) == 0 then
+			if RE.POINodes[POIName].health and RE.PlayedFromStart then
+				local gateHealth = RE:Round((RE.POINodes[POIName].health / RE.POINodes[POIName].maxHealth) * 100, 0)
 				return " - "..HEALTH..": "..gateHealth.."%"
 			end
 			return ""
 		else
-			local timeLeft = RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[POIName]["timer"]), 0))
+			local timeLeft = RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[POIName].timer), 0))
 			return " - "..timeLeft
 		end
 	end
@@ -1534,14 +1522,14 @@ function RE:POIOwner(POIName, isReport)
 		prefix = ""
 	end
 	if RE.POINodes[POIName] then
-		if strfind(RE.POINodes[POIName]["status"], FACTION_HORDE) then
+		if strfind(RE.POINodes[POIName].status, FACTION_HORDE) then
 			return prefix..POIName.." ("..FACTION_HORDE..")"
-		elseif strfind(RE.POINodes[POIName]["status"], FACTION_ALLIANCE) then
+		elseif strfind(RE.POINodes[POIName].status, FACTION_ALLIANCE) then
 			return prefix..POIName.." ("..FACTION_ALLIANCE..")"
 		else
-			if RE.POINodes[POIName]["isCapturing"] == FACTION_HORDE and TIMER:TimeLeft(RE.POINodes[POIName]["timer"]) ~= 0 then
+			if RE.POINodes[POIName].isCapturing == FACTION_HORDE and TIMER:TimeLeft(RE.POINodes[POIName].timer) ~= 0 then
 				return prefix..POIName.." ("..FACTION_HORDE..")"
-			elseif RE.POINodes[POIName]["isCapturing"] == FACTION_ALLIANCE and TIMER:TimeLeft(RE.POINodes[POIName]["timer"]) ~= 0 then
+			elseif RE.POINodes[POIName].isCapturing == FACTION_ALLIANCE and TIMER:TimeLeft(RE.POINodes[POIName].timer) ~= 0 then
 				return prefix..POIName.." ("..FACTION_ALLIANCE..")"
 			else
 				return prefix..POIName
@@ -1606,8 +1594,8 @@ function RE:ReportEstimator()
 		SendChatMessage(RE.IsWinning.." "..L["victory"]..": "..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)), "INSTANCE_CHAT")
 	elseif RE.CurrentMap == SM and RE.SMEstimatorReport ~= "" then
 		SendChatMessage(RE.SMEstimatorReport, "INSTANCE_CHAT")
-	elseif RE.CurrentMap == IOC and not RE.GateSyncRequested then
-		SendChatMessage(FACTION_ALLIANCE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE] / 600000) * 100, 0).."% - "..FACTION_HORDE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_HORDE] / 600000) * 100, 0).."%", "INSTANCE_CHAT")
+	elseif RE.CurrentMap == IOC and RE.PlayedFromStart then
+		SendChatMessage(FACTION_ALLIANCE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE] / 780000) * 100, 0).."% - "..FACTION_HORDE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_HORDE] / 780000) * 100, 0).."%", "INSTANCE_CHAT")
 	end
 end
 

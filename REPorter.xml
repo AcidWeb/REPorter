@@ -362,13 +362,6 @@
 		<Size>
 			<AbsDimension x="100" y="50"/>
 		</Size>
-		<Anchors>
-			<Anchor point="RIGHT" relativePoint="LEFT">
-				<Offset>
-					<AbsDimension x="-60" y="0"/>
-				</Offset>
-			</Anchor>
-		</Anchors>
 		<Layers>
 			<Layer>
 				<FontString name="$ParentText" justifyH="CENTER" inherits="SystemFont_Shadow_Med3" setAllPoints="true"/>
