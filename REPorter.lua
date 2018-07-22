@@ -143,7 +143,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 210
+RE.AddonVersionCheck = 211
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 RE.ElvUI = IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins")
 
@@ -726,20 +726,23 @@ function RE:OnEvent(self, event, ...)
 		end
 		RE:UpdateIoCEstimator()
 	elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
+		local instance = select(2, IsInInstance())
 		if RE.CurrentMap ~= -1 then
 			RE:SaveMapSettings()
 		end
-		_G.REPorterFrame:Hide()
-		_G.REPorterBar:Hide()
-		_G.REPorterFrameEstimator:Hide()
-		if select(2, IsInInstance()) == "pvp" and RE.CurrentMap == -1 then
+		if instance ~= "pvp" then
+			_G.REPorterFrame:Hide()
+			_G.REPorterBar:Hide()
+			_G.REPorterFrameEstimator:Hide()
+		end
+		if instance == "pvp" and RE.CurrentMap == -1 then
 			local mapID = GetBestMapForUnit("player")
 			if mapID == ABW then mapID = AB end
 			if mapID and RE.MapSettings[mapID] then
 				RE.CurrentMap = mapID
 				RE:Startup()
 			end
-		elseif select(2, IsInInstance()) ~= "pvp" and RE.CurrentMap ~= -1 then
+		elseif instance ~= "pvp" and RE.CurrentMap ~= -1 then
 			RE.CurrentMap = -1
 			RE:Shutdown()
 		end
