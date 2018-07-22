@@ -106,7 +106,7 @@ local SS = 907
 
 RE.POIIconSize = 30
 RE.POINumber = 20
-RE.MapUpdateRate = 0.1
+RE.MapUpdateRate = 0.05
 RE.LastMap = 0
 RE.CurrentMap = -1
 RE.NeedRefresh = false
@@ -125,6 +125,7 @@ RE.CareAboutNodes = false
 RE.CareAboutPoints = false
 RE.CareAboutGates = false
 RE.CareAboutFlags = false
+RE.CareAboutVehicles = false
 RE.PlayedFromStart = true
 RE.IoCAllianceGateName = ""
 RE.IoCHordeGateName = ""
@@ -386,18 +387,6 @@ local function ElvUISwag(sender)
   return nil
 end
 
--- *** Pre-hook section
-RE.TimerOverride = false
-RE.TimerOriginal = StartTimer_BigNumberOnUpdate
-_G.StartTimer_BigNumberOnUpdate = function(...)
-	if RE.TimerOverride then
-		_G.StartTimer_BarOnlyOnUpdate(...)
-	else
-		RE.TimerOriginal(...)
-	end
-end
---
-
 -- *** Auxiliary functions
 function RE:BlinkPOI()
 	if RE.BlinkPOIValue + 0.03 <= RE.BlinkPOIMax and RE.BlinkPOIUp then
@@ -536,11 +525,6 @@ function RE:EstimatorFill(ATimeToWin, HTimeToWin, RefreshTimer)
 		TIMER:CancelTimer(RE.EstimatorTimer)
 		RE.IsWinning = ""
 	end
-end
-
-function RE:CreateTimer(time)
-	RE.TimerOverride = true
-	_G.TimerTracker_OnEvent(_G.TimerTracker, "START_TIMER", 1, time, time)
 end
 
 function RE:TimerNull()
@@ -813,8 +797,6 @@ function RE:OnPointsUpdate()
 			HordeCartsNeeded = HordePointsNeeded / RE.EstimatorSettings[SM]
 			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(AllianceCartsNeeded, 1).."|r\n|cFFFF141D"..RE:Round(HordeCartsNeeded, 1).."|r"
 			RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(AllianceCartsNeeded, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HordeCartsNeeded, 1).." "..L["carts"]
-		elseif RE.CareAboutFlags then
-			RE:CreateTimer(12)
 		else
 			local AllianceTimeToWin, HordeTimeToWin = 0, 0
 			local AlliancePointsNeeded, AllianceBaseNum = RE:PointParse(false, 2)
@@ -1050,49 +1032,53 @@ function RE:OnUpdate(elapsed)
 		_G.REPorterFrameCoreUP:UpdateTooltips(_G.GameTooltip)
 		local playerBlipFrameLevel = _G.REPorterFrameCoreUP:GetFrameLevel()
 
-		RE.FlagsPool:ReleaseAll()
-		for i = 1, GetNumBattlefieldFlagPositions() do
-			local flagX, flagY, flagTexture = GetBattlefieldFlagPosition(i)
-			if flagX then
-				local flagFrame = RE.FlagsPool:Acquire()
-				flagX, flagY = RE:GetRealCoords(flagX, flagY)
-				flagFrame.Texture:SetTexture(flagTexture)
-				flagFrame:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", flagX, flagY)
-				flagFrame:SetFrameLevel(playerBlipFrameLevel - 1)
-				flagFrame:Show()
+		if RE.CareAboutFlags then
+			RE.FlagsPool:ReleaseAll()
+			for i = 1, GetNumBattlefieldFlagPositions() do
+				local flagX, flagY, flagTexture = GetBattlefieldFlagPosition(i)
+				if flagX then
+					local flagFrame = RE.FlagsPool:Acquire()
+					flagX, flagY = RE:GetRealCoords(flagX, flagY)
+					flagFrame.Texture:SetTexture(flagTexture)
+					flagFrame:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", flagX, flagY)
+					flagFrame:SetFrameLevel(playerBlipFrameLevel - 1)
+					flagFrame:Show()
+				end
 			end
 		end
 
-		RE.NumVehicles = GetNumBattlefieldVehicles()
-		local totalVehicles = #RE.BGVehicles
-		local index = 0
-		for i=1, RE.NumVehicles do
-			if i > totalVehicles then
-				local vehicleName = "REPorterFrameCorePOIVehicle"..i
-				RE.BGVehicles[i] = CreateFrame("FRAME", vehicleName, _G.REPorterFrameCorePOI, "REPorterVehicleTemplate")
-				RE.BGVehicles[i].texture = _G[vehicleName.."Texture"]
-			end
-			local vehicleX, vehicleY, unitName, isPossessed, vehicleType, orientation, isPlayer, isAlive = GetBattlefieldVehicleInfo(i, RE.CurrentMap)
-			if vehicleX and isAlive and not isPlayer and vehicleType ~= "Idle" then
-				vehicleX, vehicleY = RE:GetRealCoords(vehicleX, vehicleY)
-				RE.BGVehicles[i].texture:SetTexture(GetVehicleTexture(vehicleType, isPossessed))
-				RE.BGVehicles[i].texture:SetRotation(orientation)
-				RE.BGVehicles[i].name = unitName
-				RE.BGVehicles[i]:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", vehicleX, vehicleY)
-				if IsShiftKeyDown() and IsAltKeyDown() then
-					RE.BGVehicles[i]:SetFrameLevel(9)
-				else
-					RE.BGVehicles[i]:SetFrameLevel(playerBlipFrameLevel - 1)
+		if RE.CareAboutVehicles then
+			RE.NumVehicles = GetNumBattlefieldVehicles()
+			local totalVehicles = #RE.BGVehicles
+			local index = 0
+			for i=1, RE.NumVehicles do
+				if i > totalVehicles then
+					local vehicleName = "REPorterFrameCorePOIVehicle"..i
+					RE.BGVehicles[i] = CreateFrame("FRAME", vehicleName, _G.REPorterFrameCorePOI, "REPorterVehicleTemplate")
+					RE.BGVehicles[i].texture = _G[vehicleName.."Texture"]
 				end
-				RE.BGVehicles[i]:Show()
-				index = i
-			else
-				RE.BGVehicles[i]:Hide()
+				local vehicleX, vehicleY, unitName, isPossessed, vehicleType, orientation, isPlayer, isAlive = GetBattlefieldVehicleInfo(i, RE.CurrentMap)
+				if vehicleX and isAlive and not isPlayer and vehicleType ~= "Idle" then
+					vehicleX, vehicleY = RE:GetRealCoords(vehicleX, vehicleY)
+					RE.BGVehicles[i].texture:SetTexture(GetVehicleTexture(vehicleType, isPossessed))
+					RE.BGVehicles[i].texture:SetRotation(orientation)
+					RE.BGVehicles[i].name = unitName
+					RE.BGVehicles[i]:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", vehicleX, vehicleY)
+					if IsShiftKeyDown() and IsAltKeyDown() then
+						RE.BGVehicles[i]:SetFrameLevel(9)
+					else
+						RE.BGVehicles[i]:SetFrameLevel(playerBlipFrameLevel - 1)
+					end
+					RE.BGVehicles[i]:Show()
+					index = i
+				else
+					RE.BGVehicles[i]:Hide()
+				end
 			end
-		end
-		if index < totalVehicles then
-			for i=index+1, totalVehicles do
-				RE.BGVehicles[i]:Hide()
+			if index < totalVehicles then
+				for i=index+1, totalVehicles do
+					RE.BGVehicles[i]:Hide()
+				end
 			end
 		end
 
@@ -1274,7 +1260,7 @@ function RE:Shutdown()
 	RE.CareAboutPoints = false
 	RE.CareAboutGates = false
 	RE.CareAboutFlags = false
-	RE.TimerOverride = false
+	RE.CareAboutVehicles = false
 	_G.REPorterFrame:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	_G.REPorterFrame:UnregisterEvent("VIGNETTES_UPDATED")
 	_G.REPorterFrame:UnregisterEvent("AREA_POIS_UPDATED")
@@ -1360,11 +1346,15 @@ function RE:Create()
 	else
 		RE.CareAboutGates = false
 	end
-	if RE.CurrentMap == WG or RE.CurrentMap == TP then
+	if RE.CurrentMap == WG or RE.CurrentMap == TP or RE.CurrentMap == EOTS or RE.CurrentMap == TOK or (RE.CurrentMap == DG and RE.IsBrawl) then
 		RE.CareAboutFlags = true
-		RE.EventBucket = BUCKET:RegisterBucketEvent("BATTLEGROUND_POINTS_UPDATE", 1, RE.OnPointsUpdate)
 	else
 		RE.CareAboutFlags = false
+	end
+	if RE.CurrentMap == IOC or RE.CurrentMap == SM or RE.CurrentMap == DG then
+		RE.CareAboutVehicles = true
+	else
+		RE.CareAboutVehicles = false
 	end
 
 	RE:LoadMapSettings()
