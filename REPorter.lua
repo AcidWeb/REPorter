@@ -129,6 +129,7 @@ RE.CareAboutVehicles = false
 RE.PlayedFromStart = true
 RE.IoCAllianceGateName = ""
 RE.IoCHordeGateName = ""
+RE.IoCGateHealth = 1248000
 RE.IoCGateEstimator = {}
 RE.IoCGateEstimatorText = ""
 RE.SMEstimatorText = ""
@@ -144,7 +145,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 212
+RE.AddonVersionCheck = 213
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 RE.ElvUI = IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins")
 
@@ -478,9 +479,9 @@ end
 
 function RE:UpdateIoCEstimator()
 	if RE.IoCGateEstimator[FACTION_HORDE] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-		RE.IoCGateEstimatorText = "|cFF00A9FF"..RE:Round((RE.IoCGateEstimator[FACTION_HORDE] / 1560000) * 100, 0).."%|r"
+		RE.IoCGateEstimatorText = "|cFF00A9FF"..RE:Round((RE.IoCGateEstimator[FACTION_HORDE] / RE.IoCGateHealth) * 100, 0).."%|r"
 	elseif RE.IoCGateEstimator[FACTION_HORDE] > RE.IoCGateEstimator[FACTION_ALLIANCE] then
-		RE.IoCGateEstimatorText = "|cFFFF141D"..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE] / 1560000) * 100, 0).."%|r"
+		RE.IoCGateEstimatorText = "|cFFFF141D"..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE] / RE.IoCGateHealth) * 100, 0).."%|r"
 	else
 		RE.IoCGateEstimatorText = ""
 	end
@@ -926,8 +927,8 @@ function RE:OnPOIUpdate()
 			if RE.POINodes[RE.POIInfo.name] == nil then
 				RE.POINodes[RE.POIInfo.name] = {["id"] = i, ["poiID"] = RE.POIInfo.areaPoiID, ["name"] = RE.POIInfo.name, ["status"] = RE.POIInfo.description, ["x"] = x, ["y"] = y, ["texture"] = RE.POIInfo.textureIndex, ["active"] = true}
 				if RE.CurrentMap == IOC and RE.POIInfo.gate then
-					RE.POINodes[RE.POIInfo.name].health = 1560000
-					RE.POINodes[RE.POIInfo.name].maxHealth = 1560000
+					RE.POINodes[RE.POIInfo.name].health = RE.IoCGateHealth
+					RE.POINodes[RE.POIInfo.name].maxHealth = RE.IoCGateHealth
 				elseif RE.CurrentMap == SS and RE.PlayedFromStart then
 					RE:NodeChange(RE.POIInfo.textureIndex, RE.POIInfo.name)
 				end
@@ -1306,8 +1307,8 @@ function RE:Create()
 
 	if RE.CurrentMap == IOC then
 		RE.IoCGateEstimator = {}
-		RE.IoCGateEstimator[FACTION_ALLIANCE] = 1560000
-		RE.IoCGateEstimator[FACTION_HORDE] = 1560000
+		RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.IoCGateHealth
+		RE.IoCGateEstimator[FACTION_HORDE] = RE.IoCGateHealth
 		RE.IoCGateEstimatorText = ""
 	elseif RE.CurrentMap == SM then
 		RE.SMEstimatorText = ""
@@ -1588,7 +1589,7 @@ function RE:ReportEstimator()
 	elseif RE.CurrentMap == SM and RE.SMEstimatorReport ~= "" then
 		SendChatMessage(RE.SMEstimatorReport, "INSTANCE_CHAT")
 	elseif RE.CurrentMap == IOC and RE.PlayedFromStart then
-		SendChatMessage(FACTION_ALLIANCE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE] / 1560000) * 100, 0).."% - "..FACTION_HORDE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_HORDE] / 1560000) * 100, 0).."%", "INSTANCE_CHAT")
+		SendChatMessage(FACTION_ALLIANCE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE] / RE.IoCGateHealth) * 100, 0).."% - "..FACTION_HORDE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_HORDE] / RE.IoCGateHealth) * 100, 0).."%", "INSTANCE_CHAT")
 	end
 end
 
