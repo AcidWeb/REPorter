@@ -53,7 +53,6 @@ local IsShiftKeyDown = _G.IsShiftKeyDown
 local IsAltKeyDown = _G.IsAltKeyDown
 local IsControlKeyDown = _G.IsControlKeyDown
 local IsInBrawl = _G.C_PvP.IsInBrawl
-local IsAddOnLoaded = _G.IsAddOnLoaded
 local GetBattlefieldInstanceRunTime = _G.GetBattlefieldInstanceRunTime
 local GetMapInfo = _G.C_Map.GetMapInfo
 local GetMapArtLayerTextures = _G.C_Map.GetMapArtLayerTextures
@@ -145,9 +144,8 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 213
+RE.AddonVersionCheck = 214
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
-RE.ElvUI = IsAddOnLoaded("ElvUI") and IsAddOnLoaded("AddOnSkins")
 
 RE.MapSettings = {
 	[AB] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15},
@@ -658,6 +656,7 @@ function RE:OnEvent(self, event, ...)
 			toast:SetIconTexture([[Interface\Challenges\ChallengeMode_Medal_Bronze]])
 		end)
 
+		RE.IsSkinned = _G.AddOnSkins and _G.AddOnSkins[1]:CheckOption("REPorter") or false
 		if ElvUI then
 			ElvUI[1]:GetModule("Chat"):AddPluginIcons(ElvUISwag)
 		end
@@ -1633,7 +1632,7 @@ function RE:SetupReportBar()
 	local handle = RE.Settings.profile.BarHandle
 	local offset = 0
 
-	if RE.ElvUI then
+	if RE.IsSkinned then
 		if handle == 3 or handle == 6 or handle == 9 or handle == 12 then
 			offset = -2
 		elseif handle == 1 or handle == 4 or handle == 7 or handle == 10 then
@@ -1644,7 +1643,7 @@ function RE:SetupReportBar()
 	_G.REPorterBar:ClearAllPoints()
 	if handle < 15 and not RE.ZonesWithoutSubZones[RE.CurrentMap] then
 		_G.REPorterBar:SetAlpha(0.25)
-		if RE.ElvUI then
+		if RE.IsSkinned then
 			_G.REPorterBarB1:SetPoint("TOPLEFT", "REPorterBar", "TOPLEFT", 5, -5)
 		else
 			_G.REPorterBarB1:SetPoint("TOPLEFT", "REPorterBar", "TOPLEFT", 10, -10)
@@ -1657,7 +1656,7 @@ function RE:SetupReportBar()
 			else
 				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], -1, offset)
 			end
-			if RE.ElvUI then
+			if RE.IsSkinned then
 				_G.REPorterBar:SetHeight(210)
 				_G.REPorterBar:SetWidth(35)
 			else
@@ -1677,7 +1676,7 @@ function RE:SetupReportBar()
 			else
 				_G.REPorterBar:SetPoint(RE.ReportBarAnchor[handle][1], _G.REPorterFrameBorder, RE.ReportBarAnchor[handle][2], offset, 1)
 			end
-			if RE.ElvUI then
+			if RE.IsSkinned then
 				_G.REPorterBar:SetHeight(35)
 				_G.REPorterBar:SetWidth(210)
 			else
