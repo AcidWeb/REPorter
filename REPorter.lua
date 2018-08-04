@@ -128,7 +128,7 @@ RE.CareAboutVehicles = false
 RE.PlayedFromStart = true
 RE.IoCAllianceGateName = ""
 RE.IoCHordeGateName = ""
-RE.IoCGateHealth = 1248000
+RE.IoCGateHealth = 1497600
 RE.IoCGateEstimator = {}
 RE.IoCGateEstimatorText = ""
 RE.SMEstimatorText = ""
@@ -144,7 +144,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 214
+RE.AddonVersionCheck = 215
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
