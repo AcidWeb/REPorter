@@ -144,7 +144,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 215
+RE.AddonVersionCheck = 216
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -1714,7 +1714,14 @@ function RE:LoadMapSettings()
 		_G.REPorterFrameCoreAnchor:SetPoint("CENTER", _G.REPorterFrameClip, "CENTER", mx, my)
 		_G.REPorterFrame:SetAlpha(RE.Settings.profile.Opacity)
 
-		local textures = GetMapArtLayerTextures(RE.CurrentMap, 1)
+		local textures
+		if RE.CurrentMap == AB and RE.IsBrawl then
+			textures = GetMapArtLayerTextures(ABW, 1)
+			RE.ZonesWithoutSubZones[AB] = true
+		else
+			textures = GetMapArtLayerTextures(RE.CurrentMap, 1)
+			RE.ZonesWithoutSubZones[AB] = nil
+		end
 		for i=1, #textures do
 			_G["REPorterFrameCoreMap"..i]:SetTexture(textures[i])
 		end
