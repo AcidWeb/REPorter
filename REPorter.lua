@@ -96,6 +96,7 @@ local EOTS = 112
 local IOC = 169
 local TP = 206
 local BFG = 275
+local EOTSR = 397
 local TOK = 417
 local SM = 423
 local DG = 519
@@ -144,7 +145,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 216
+RE.AddonVersionCheck = 217
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -721,7 +722,11 @@ function RE:OnEvent(self, event, ...)
 		end
 		if instance == "pvp" and RE.CurrentMap == -1 then
 			local mapID = GetBestMapForUnit("player")
-			if mapID == ABW then mapID = AB end
+			if mapID == ABW then
+				mapID = AB
+			elseif mapID == EOTSR then
+				mapID = EOTS
+			end
 			if mapID and RE.MapSettings[mapID] then
 				RE.CurrentMap = mapID
 				RE:Startup()
