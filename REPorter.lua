@@ -53,6 +53,7 @@ local IsShiftKeyDown = _G.IsShiftKeyDown
 local IsAltKeyDown = _G.IsAltKeyDown
 local IsControlKeyDown = _G.IsControlKeyDown
 local IsInBrawl = _G.C_PvP.IsInBrawl
+local IsRatedBattleground = _G.IsRatedBattleground
 local GetBattlefieldInstanceRunTime = _G.GetBattlefieldInstanceRunTime
 local GetMapInfo = _G.C_Map.GetMapInfo
 local GetMapArtLayerTextures = _G.C_Map.GetMapArtLayerTextures
@@ -136,6 +137,7 @@ RE.SMEstimatorText = ""
 RE.SMEstimatorReport = ""
 RE.IsWinning = ""
 RE.IsBrawl = false
+RE.IsRated = false
 RE.IsOverlay = false
 
 RE.BlipOffsetT = 0.5
@@ -145,7 +147,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 217
+RE.AddonVersionCheck = 218
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -828,7 +830,9 @@ function RE:OnPOIUpdate()
 	for _, v in pairs(RE.POINodes) do
 		v.active = false
 	end
-	if RE.CurrentMap ~= SS then
+	if RE.CurrentMap == EOTS and RE.IsRated then
+		RE.POIList = GetAreaPOIForMap(EOTSR)
+	elseif RE.CurrentMap ~= SS then
 		RE.POIList = GetAreaPOIForMap(RE.CurrentMap)
 	else
 		RE.POIList = GetVignettes()
@@ -1261,6 +1265,7 @@ function RE:Shutdown()
 	RE.POINodes = {}
 	RE.IsWinning = ""
 	RE.IsBrawl = false
+	RE.IsRated = false
 	RE.CareAboutNodes = false
 	RE.CareAboutPoints = false
 	RE.CareAboutGates = false
@@ -1299,6 +1304,7 @@ function RE:Create()
 	_G.REPorterFrameCore:SetScript("OnUpdate", nil)
 	_G.REPorterFrameEstimator:ClearAllPoints()
 	RE.IsBrawl = IsInBrawl()
+	RE.IsRated = IsRatedBattleground()
 	RE.POINodes = {}
 
 	if RE.CurrentMap == TOK or RE.CurrentMap == DG then
