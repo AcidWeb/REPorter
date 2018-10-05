@@ -147,7 +147,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 218
+RE.AddonVersionCheck = 219
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -856,6 +856,8 @@ function RE:OnPOIUpdate()
 			elseif RE.VignetteInfo.atlasName == "AzeriteSpawning" then
 				RE.POIInfo.textureIndex = 1001
 			end
+		elseif RE.CurrentMap == EOTS and RE.IsRated then
+			RE.POIInfo = GetAreaPOIInfo(EOTSR, RE.POIList[i])
 		else
 			RE.POIInfo = GetAreaPOIInfo(RE.CurrentMap, RE.POIList[i])
 		end
