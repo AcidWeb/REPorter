@@ -147,7 +147,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 219
+RE.AddonVersionCheck = 220
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -762,8 +762,8 @@ function RE:OnPointsUpdate()
 	if RE.MapSettings[RE.CurrentMap] and select(2, IsInInstance()) == "pvp" then
 		if RE.CurrentMap == TOK then
 			local AlliancePointsPerSec, AllianceTimeToWin, HordePointsPerSec, HordeTimeToWin = 0, 0, 0, 0
-			local AlliancePointsNeeded = RE:PointParse(true, 2)
-			local HordePointsNeeded = RE:PointParse(true, 3)
+			local AlliancePointsNeeded = RE:PointParse(true, 1)
+			local HordePointsNeeded = RE:PointParse(true, 2)
 			for i=1, 4 do
 				if i <= GetNumBattlefieldFlagPositions() then
 					local flagX, flagY, flagTexture = GetBattlefieldFlagPosition(i)
@@ -798,16 +798,16 @@ function RE:OnPointsUpdate()
 			end
 		elseif RE.CurrentMap == SM then
 			local AllianceCartsNeeded, HordeCartsNeeded = 10, 10
-			local AlliancePointsNeeded = RE:PointParse(true, 2)
-			local HordePointsNeeded = RE:PointParse(true, 3)
+			local AlliancePointsNeeded = RE:PointParse(true, 1)
+			local HordePointsNeeded = RE:PointParse(true, 2)
 			AllianceCartsNeeded = AlliancePointsNeeded / RE.EstimatorSettings[SM]
 			HordeCartsNeeded = HordePointsNeeded / RE.EstimatorSettings[SM]
 			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(AllianceCartsNeeded, 1).."|r\n|cFFFF141D"..RE:Round(HordeCartsNeeded, 1).."|r"
 			RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(AllianceCartsNeeded, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HordeCartsNeeded, 1).." "..L["carts"]
 		else
 			local AllianceTimeToWin, HordeTimeToWin = 0, 0
-			local AlliancePointsNeeded, AllianceBaseNum = RE:PointParse(false, 2)
-			local HordePointsNeeded, HordeBaseNum = RE:PointParse(false, 3)
+			local AlliancePointsNeeded, AllianceBaseNum = RE:PointParse(false, 1)
+			local HordePointsNeeded, HordeBaseNum = RE:PointParse(false, 2)
 			if RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum] == 0 then
 				AllianceTimeToWin = 10000
 			else
