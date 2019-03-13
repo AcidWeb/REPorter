@@ -80,7 +80,8 @@ local GetClassColor = _G.GetClassColor
 local GetRaidTargetIndex = _G.GetRaidTargetIndex
 local GetTopCenterWidgetSetID = _G.C_UIWidgetManager.GetTopCenterWidgetSetID
 local GetAllWidgetsBySetID = _G.C_UIWidgetManager.GetAllWidgetsBySetID
-local GetIconAndTextWidgetVisualizationInfo = _G.C_UIWidgetManager.GetIconAndTextWidgetVisualizationInfo
+local GetDoubleStatusBarWidgetVisualizationInfo = _G.C_UIWidgetManager.GetDoubleStatusBarWidgetVisualizationInfo
+local GetDoubleStateIconRowVisualizationInfo = _G.C_UIWidgetManager.GetDoubleStateIconRowVisualizationInfo
 local UnitName = _G.UnitName
 local UnitClass = _G.UnitClass
 local UnitExists = _G.UnitExists
@@ -94,11 +95,12 @@ local SendChatMessage = _G.SendChatMessage
 local SendAddonMessage = _G.C_ChatInfo.SendAddonMessage
 local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo
 local RegisterAddonMessagePrefix = _G.C_ChatInfo.RegisterAddonMessagePrefix
+local Contains = _G.tContains
 local ElvUI = _G.ElvUI
 
 local AV = 91
-local WG = 92
-local AB = 93
+local WG = 1339
+local AB = 1366
 local EOTS = 112
 local IOC = 169
 local TP = 206
@@ -110,9 +112,10 @@ local DG = 519
 local TMVS = 623
 local ABW = 837
 local SS = 907
+local BFW = 1334
 
 RE.POIIconSize = 30
-RE.POINumber = 20
+RE.POINumber = 50
 RE.MapUpdateRate = 0.05
 RE.LastMap = 0
 RE.CurrentMap = -1
@@ -153,7 +156,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 221
+RE.AddonVersionCheck = 230
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -168,7 +171,8 @@ RE.MapSettings = {
 	[SM] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 10},
 	[DG] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15},
 	[TMVS] = {["StartTimer"] = 120, ["PlayerNumber"] = 40},
-	[SS] = {["StartTimer"] = 120, ["PlayerNumber"] = 10}
+	[SS] = {["StartTimer"] = 120, ["PlayerNumber"] = 10},
+	[BFW] = {["StartTimer"] = 120, ["PlayerNumber"] = 40}
 }
 RE.EstimatorSettings = {
 	[AB] = { [0] = 0, [1] = 10/12, [2] = 10/9, [3] = 10/6, [4] = 10/3, [5] = 30},
@@ -196,6 +200,16 @@ RE.AzeriteNodes = {
 	[0.572] = {[0.263] = L["Temple"]},
 	[0.386] = {[0.433] = L["Plunge"]},
 	[0.349] = {[0.252] = L["Tower"]}
+}
+RE.BFWWalls = {
+	94,
+	95,
+	96,
+	97,
+	85,
+	86,
+	87,
+	88
 }
 
 RE.POIDropDown = {
@@ -242,7 +256,8 @@ RE.DefaultConfig = {
 			[SM] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 460, ["wh"] = 350, ["mx"] = 7, ["my"] = -43, ["ms"] = 1},
 			[DG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 520, ["wh"] = 385, ["mx"] = -10, ["my"] = -45, ["ms"] = 1},
 			[TMVS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 370, ["mx"] = -2, ["my"] = -22, ["ms"] = 1},
-			[SS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 360, ["wh"] = 385, ["mx"] = 66, ["my"] = -63, ["ms"] = 1}
+			[SS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 360, ["wh"] = 385, ["mx"] = 66, ["my"] = -63, ["ms"] = 1},
+			[BFW] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 500, ["wh"] = 320, ["mx"] = -3, ["my"] = -84, ["ms"] = 1}
 		}
 	}
 }
@@ -354,6 +369,7 @@ RE.AceConfig = {
 						[DG] = GetMapInfo(DG).name,
 						[TMVS] = GetMapInfo(TMVS).name,
 						[SS] = GetMapInfo(SS).name,
+						[BFW] = GetMapInfo(BFW).name,
 					},
 					set = function(_, val) RE.LastMap = val; RE:ShowDummyMap(val) end,
 					get = function(_) return RE.LastMap end
@@ -494,21 +510,32 @@ function RE:UpdateIoCEstimator()
 	end
 end
 
-function RE:PointParse(custom, id)
-	local PointsNeeded, BaseNum = 0, 0
-	if custom then
-		local text = GetIconAndTextWidgetVisualizationInfo(GetAllWidgetsBySetID(GetTopCenterWidgetSetID())[id].widgetID).text
-		if text ~= nil then
-			PointsNeeded = RE.MapSettings[RE.CurrentMap].PointsToWin - tonumber(strmatch(text, "(%d+)/%d+"))
-		end
-	else
-		local text = GetIconAndTextWidgetVisualizationInfo(GetAllWidgetsBySetID(GetTopCenterWidgetSetID())[id].widgetID).text
-		if text ~= nil then
-			BaseNum = tonumber(strmatch(text, "(%d+)"))
-			PointsNeeded = RE.MapSettings[RE.CurrentMap].PointsToWin - tonumber(strmatch(text, "(%d+)/%d+"))
+function RE:PointParse(bases)
+	local PointsNeededAlliance, BaseNumAliance, PointsNeededHorde, BaseNumHorde = 0, 0, 0, 0
+	local Widgets = GetAllWidgetsBySetID(GetTopCenterWidgetSetID())
+	local Payload = GetDoubleStatusBarWidgetVisualizationInfo(Widgets[2].widgetID)
+	if Payload and Payload.leftBarValue then
+		PointsNeededAlliance = RE.MapSettings[RE.CurrentMap].PointsToWin - Payload.leftBarValue
+	end
+	if Payload and Payload.rightBarValue then
+		PointsNeededHorde = RE.MapSettings[RE.CurrentMap].PointsToWin - Payload.rightBarValue
+	end
+	if bases then
+		local Payload = GetDoubleStateIconRowVisualizationInfo(Widgets[1].widgetID)
+		if Payload then
+			for _, v in pairs(Payload.leftIcons) do
+				if v.iconState == 2 then
+					BaseNumAliance = BaseNumAliance + 1
+				end
+			end
+			for _, v in pairs(Payload.rightIcons) do
+				if v.iconState == 2 then
+					BaseNumHorde = BaseNumHorde + 1
+				end
+			end
 		end
 	end
-	return PointsNeeded, BaseNum
+	return PointsNeededAlliance, BaseNumAliance, PointsNeededHorde, BaseNumHorde
 end
 
 function RE:EstimatorFill(ATimeToWin, HTimeToWin, RefreshTimer)
@@ -768,8 +795,7 @@ function RE:OnPointsUpdate()
 	if RE.MapSettings[RE.CurrentMap] and select(2, IsInInstance()) == "pvp" then
 		if RE.CurrentMap == TOK then
 			local AlliancePointsPerSec, AllianceTimeToWin, HordePointsPerSec, HordeTimeToWin = 0, 0, 0, 0
-			local AlliancePointsNeeded = RE:PointParse(true, 1)
-			local HordePointsNeeded = RE:PointParse(true, 2)
+			local AlliancePointsNeeded, _, HordePointsNeeded = RE:PointParse(false)
 			for i=1, 4 do
 				if i <= GetNumBattlefieldFlagPositions() then
 					local flagX, flagY, flagTexture = GetBattlefieldFlagPosition(i)
@@ -804,16 +830,14 @@ function RE:OnPointsUpdate()
 			end
 		elseif RE.CurrentMap == SM then
 			local AllianceCartsNeeded, HordeCartsNeeded = 10, 10
-			local AlliancePointsNeeded = RE:PointParse(true, 1)
-			local HordePointsNeeded = RE:PointParse(true, 2)
+			local AlliancePointsNeeded, _, HordePointsNeeded = RE:PointParse(false)
 			AllianceCartsNeeded = AlliancePointsNeeded / RE.EstimatorSettings[SM]
 			HordeCartsNeeded = HordePointsNeeded / RE.EstimatorSettings[SM]
 			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(AllianceCartsNeeded, 1).."|r\n|cFFFF141D"..RE:Round(HordeCartsNeeded, 1).."|r"
 			RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(AllianceCartsNeeded, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HordeCartsNeeded, 1).." "..L["carts"]
 		else
 			local AllianceTimeToWin, HordeTimeToWin = 0, 0
-			local AlliancePointsNeeded, AllianceBaseNum = RE:PointParse(false, 1)
-			local HordePointsNeeded, HordeBaseNum = RE:PointParse(false, 2)
+			local AlliancePointsNeeded, AllianceBaseNum, HordePointsNeeded, HordeBaseNum = RE:PointParse(true)
 			if RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum] == 0 then
 				AllianceTimeToWin = 10000
 			else
@@ -943,6 +967,10 @@ function RE:OnPOIUpdate()
 				elseif RE.POIInfo.areaPoiID == 2777 then
 					RE.POIInfo.name = RE.POIInfo.name.." - "..L["Green"]
 					colorOverride = {0, 1, 0}
+				end
+			elseif RE.CurrentMap == BFW then
+				if Contains(RE.BFWWalls, RE.POIInfo.textureIndex) then
+					RE.POIInfo.name = RE.POIInfo.name.." "..RE.POIInfo.areaPoiID
 				end
 			end
 			if RE.POINodes[RE.POIInfo.name] == nil then
@@ -1121,6 +1149,8 @@ function RE:OnUpdate(elapsed)
 				    else
 				      if RE.CurrentMap == SS then
 				        _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,1,0,0.3)
+							elseif RE.CurrentMap == BFW and Contains(RE.BFWWalls, v.texture) then
+								_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,0,0)
 				      else
 				        _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,0,0.3)
 				      end
@@ -1218,6 +1248,10 @@ function RE:UnitOnEnterPOI(self)
 	local prefix = ""
 	local battlefieldPOI = _G[self:GetName()]
 
+	if RE.CurrentMap == BFW and Contains(RE.BFWWalls, RE.POINodes[battlefieldPOI.name].texture) then
+		return
+	end
+
 	if battlefieldPOI:IsMouseOver() and battlefieldPOI.name ~= "" then
 		local status = ""
 		if RE.POINodes[battlefieldPOI.name].status and RE.POINodes[battlefieldPOI.name].status ~= "" then
@@ -1249,6 +1283,10 @@ function RE:UnitOnEnterPOI(self)
 end
 
 function RE:OnClickPOI(self)
+	if RE.CurrentMap == BFW and Contains(RE.BFWWalls, RE.POINodes[self.name].texture) then
+		return
+	end
+
 	_G.CloseDropDownMenus()
 	RE.ClickedPOI = RE.POINodes[self.name].name
 	_G.EasyMenu(RE.POIDropDown, _G.REPorterReportDropDown, self, 0 , 0, "MENU")
@@ -1320,13 +1358,7 @@ function RE:Create()
 	RE.IsRated = IsRatedBattleground()
 	RE.POINodes = {}
 
-	if RE.CurrentMap == TOK or RE.CurrentMap == DG then
-		_G.REPorterFrameEstimator:SetPoint("RIGHT", _G.UIWidgetTopCenterContainerFrame, "LEFT", -50, 0)
-	elseif RE.CurrentMap == SM or RE.CurrentMap == IOC then
-		_G.REPorterFrameEstimator:SetPoint("RIGHT", _G.UIWidgetTopCenterContainerFrame, "LEFT", -35, 0)
-	else
-		_G.REPorterFrameEstimator:SetPoint("RIGHT", _G.UIWidgetTopCenterContainerFrame, "LEFT", -60, 0)
-	end
+	_G.REPorterFrameEstimator:SetPoint("TOP", _G.UIWidgetTopCenterContainerFrame, "BOTTOM", 0, -1)
 
 	if RE.CurrentMap == IOC then
 		RE.IoCGateEstimator = {}
@@ -1348,7 +1380,7 @@ function RE:Create()
 		RE.DefaultTimer = 60
 	end
 
-	if RE.CurrentMap == AV or RE.CurrentMap == BFG or RE.CurrentMap == IOC or RE.CurrentMap == AB or RE.CurrentMap == DG or RE.CurrentMap == SS or RE.CurrentMap == EOTS or RE.CurrentMap == TOK then
+	if Contains({AV, BFG, IOC, AB, DG, SS, EOTS, TOK, BFW}, RE.CurrentMap) then
 		RE.CareAboutNodes = true
 		if RE.CurrentMap == SS then
 			_G.REPorterFrame:RegisterEvent("VIGNETTES_UPDATED")
@@ -1358,7 +1390,7 @@ function RE:Create()
 	else
 		RE.CareAboutNodes = false
 	end
-	if RE.CurrentMap == BFG or RE.CurrentMap == EOTS or RE.CurrentMap == AB or RE.CurrentMap == DG or RE.CurrentMap == SM or RE.CurrentMap == TOK then
+	if Contains({BFG, EOTS, AB, DG, SM, TOK}, RE.CurrentMap) then
 		RE.CareAboutPoints = true
 		RE.EventBucket = BUCKET:RegisterBucketEvent({"BATTLEGROUND_POINTS_UPDATE", "UPDATE_UI_WIDGET"}, 2, RE.OnPointsUpdate)
 	else
@@ -1370,12 +1402,12 @@ function RE:Create()
 	else
 		RE.CareAboutGates = false
 	end
-	if RE.CurrentMap == WG or RE.CurrentMap == TP or RE.CurrentMap == EOTS or RE.CurrentMap == TOK or (RE.CurrentMap == DG and RE.IsBrawl) then
+	if Contains({WG, TP, EOTS, TOK }, RE.CurrentMap) or (RE.CurrentMap == DG and RE.IsBrawl) then
 		RE.CareAboutFlags = true
 	else
 		RE.CareAboutFlags = false
 	end
-	if RE.CurrentMap == IOC or RE.CurrentMap == SM or RE.CurrentMap == DG then
+	if Contains({IOC, SM, DG, BFW}, RE.CurrentMap) then
 		RE.CareAboutVehicles = true
 	else
 		RE.CareAboutVehicles = false
