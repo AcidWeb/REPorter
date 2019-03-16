@@ -115,8 +115,8 @@ local SS = 907
 local BFW = 1334
 
 RE.POIIconSize = 30
-RE.POINumber = 50
-RE.MapUpdateRate = 0.05
+RE.POINumber = 40
+RE.MapUpdateRate = 0.1
 RE.LastMap = 0
 RE.CurrentMap = -1
 RE.NeedRefresh = false
@@ -156,7 +156,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 230
+RE.AddonVersionCheck = 231
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -201,16 +201,54 @@ RE.AzeriteNodes = {
 	[0.386] = {[0.433] = L["Plunge"]},
 	[0.349] = {[0.252] = L["Tower"]}
 }
-RE.BFWWalls = {
-	94,
-	95,
-	96,
-	97,
-	85,
-	86,
-	87,
-	88
+RE.AtlasNameToTextureIndex = {
+	["dg_capPts-neutralIcon1-state1"] = 16,
+	["dg_capPts-neutralIcon2-state1"] = 16,
+	["dg_capPts-neutralIcon3-state1"] = 16,
+	["dg_capPts-neutralIcon4-state1"] = 16,
+	["dg_capPts-leftIcon1-state1"] = 17,
+	["dg_capPts-leftIcon1-state2"] = 18,
+	["dg_capPts-leftIcon2-state1"] = 17,
+	["dg_capPts-leftIcon2-state2"] = 18,
+	["dg_capPts-leftIcon3-state1"] = 17,
+	["dg_capPts-leftIcon3-state2"] = 18,
+	["dg_capPts-leftIcon4-state1"] = 17,
+	["dg_capPts-leftIcon4-state2"] = 18,
+	["dg_capPts-rightIcon1-state1"] = 19,
+	["dg_capPts-rightIcon1-state2"] = 20,
+	["dg_capPts-rightIcon2-state1"] = 19,
+	["dg_capPts-rightIcon2-state2"] = 20,
+	["dg_capPts-rightIcon3-state1"] = 19,
+	["dg_capPts-rightIcon3-state2"] = 20,
+	["dg_capPts-rightIcon4-state1"] = 19,
+	["dg_capPts-rightIcon4-state2"] = 20,
+	["eots_capPts-neutralIcon1-state1"] = 6,
+	["eots_capPts-neutralIcon2-state1"] = 6,
+	["eots_capPts-neutralIcon3-state1"] = 6,
+	["eots_capPts-neutralIcon4-state1"] = 6,
+	["eots_capPts-neutralIcon5-state1"] = 6,
+	["eots_capPts-leftIcon1-state1"] = 9,
+	["eots_capPts-leftIcon1-state2"] = 11,
+	["eots_capPts-leftIcon2-state1"] = 9,
+	["eots_capPts-leftIcon2-state2"] = 11,
+	["eots_capPts-leftIcon3-state1"] = 9,
+	["eots_capPts-leftIcon3-state2"] = 11,
+	["eots_capPts-leftIcon4-state1"] = 9,
+	["eots_capPts-leftIcon4-state2"] = 11,
+	["eots_capPts-leftIcon5-state1"] = 9,
+	["eots_capPts-leftIcon5-state2"] = 11,
+	["eots_capPts-rightIcon1-state1"] = 12,
+	["eots_capPts-rightIcon1-state2"] = 10,
+	["eots_capPts-rightIcon2-state1"] = 12,
+	["eots_capPts-rightIcon2-state2"] = 10,
+	["eots_capPts-rightIcon3-state1"] = 12,
+	["eots_capPts-rightIcon3-state2"] = 10,
+	["eots_capPts-rightIcon4-state1"] = 12,
+	["eots_capPts-rightIcon4-state2"] = 10,
+	["eots_capPts-rightIcon5-state1"] = 12,
+	["eots_capPts-rightIcon5-state2"] = 10,
 }
+RE.BFWWalls = {86, 87, 88, 89, 90, 91, 95, 96, 97, 98, 99, 100}
 
 RE.POIDropDown = {
 	{ text = L["Incoming"], hasArrow = true, notCheckable = true,
@@ -511,9 +549,11 @@ function RE:UpdateIoCEstimator()
 end
 
 function RE:PointParse(bases)
+	local WidgetOrder = 2
+	if RE.CurrentMap == SM then WidgetOrder = 1 end
 	local PointsNeededAlliance, BaseNumAliance, PointsNeededHorde, BaseNumHorde = 0, 0, 0, 0
 	local Widgets = GetAllWidgetsBySetID(GetTopCenterWidgetSetID())
-	local Payload = GetDoubleStatusBarWidgetVisualizationInfo(Widgets[2].widgetID)
+	local Payload = GetDoubleStatusBarWidgetVisualizationInfo(Widgets[WidgetOrder].widgetID)
 	if Payload and Payload.leftBarValue then
 		PointsNeededAlliance = RE.MapSettings[RE.CurrentMap].PointsToWin - Payload.leftBarValue
 	end
@@ -833,7 +873,7 @@ function RE:OnPointsUpdate()
 			local AlliancePointsNeeded, _, HordePointsNeeded = RE:PointParse(false)
 			AllianceCartsNeeded = AlliancePointsNeeded / RE.EstimatorSettings[SM]
 			HordeCartsNeeded = HordePointsNeeded / RE.EstimatorSettings[SM]
-			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(AllianceCartsNeeded, 1).."|r\n|cFFFF141D"..RE:Round(HordeCartsNeeded, 1).."|r"
+			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(AllianceCartsNeeded, 1).."|r   |cFFFF141D"..RE:Round(HordeCartsNeeded, 1).."|r"
 			RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(AllianceCartsNeeded, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HordeCartsNeeded, 1).." "..L["carts"]
 		else
 			local AllianceTimeToWin, HordeTimeToWin = 0, 0
@@ -874,8 +914,8 @@ function RE:OnPOIUpdate()
 		if RE.CurrentMap == SS then
 			wipe(RE.VignetteInfo)
 			wipe(RE.VignettePosition)
-			RE.VignetteInfo = GetVignetteInfo(RE.POIList[i])
-			RE.VignettePosition = GetVignettePosition(RE.POIList[i], RE.CurrentMap)
+			RE.VignetteInfo = GetVignetteInfo(RE.POIList[i]) or {}
+			RE.VignettePosition = GetVignettePosition(RE.POIList[i], RE.CurrentMap) or {}
 			if RE.VignetteInfo and RE.VignettePosition then
 				local xZ, yZ = RE:Round(RE.VignettePosition.x, 3), RE:Round(RE.VignettePosition.y, 3)
 				RE.POIInfo = {["areaPoiID"] = RE.VignetteInfo.vignetteID, ["name"] = RE.VignetteInfo.name, ["description"] = "", ["position"] = {["x"] = RE.VignettePosition.x, ["y"] = RE.VignettePosition.y}, ["textureIndex"] = 0, ["atlasID"] = RE.VignetteInfo.atlasName}
@@ -887,14 +927,14 @@ function RE:OnPOIUpdate()
 				elseif RE.VignetteInfo.atlasName == "AzeriteSpawning" then
 					RE.POIInfo.textureIndex = 1001
 				end
-			else
-				RE.VignetteInfo = {}
-				RE.VignettePosition = {}
 			end
 		elseif RE.CurrentMap == EOTS and RE.IsRated then
 			RE.POIInfo = GetAreaPOIInfo(EOTSR, RE.POIList[i])
 		else
 			RE.POIInfo = GetAreaPOIInfo(RE.CurrentMap, RE.POIList[i])
+		end
+		if RE.POIInfo.atlasName and not RE.POIInfo.textureIndex then
+			RE.POIInfo.textureIndex = RE.AtlasNameToTextureIndex[RE.POIInfo.atlasName]
 		end
 		if RE.POIInfo.name and RE.POIInfo.textureIndex ~= nil and RE.POIInfo.textureIndex ~= 0 then
 			local x, y = RE:GetRealCoords(RE.POIInfo.position.x, RE.POIInfo.position.y)
@@ -1354,11 +1394,10 @@ end
 function RE:Create()
 	_G.REPorterFrameCore:SetScript("OnUpdate", nil)
 	_G.REPorterFrameEstimator:ClearAllPoints()
+	_G.REPorterFrameEstimator:SetPoint("TOP", _G.UIWidgetTopCenterContainerFrame, "BOTTOM", 0, 10)
 	RE.IsBrawl = IsInBrawl()
 	RE.IsRated = IsRatedBattleground()
 	RE.POINodes = {}
-
-	_G.REPorterFrameEstimator:SetPoint("TOP", _G.UIWidgetTopCenterContainerFrame, "BOTTOM", 0, -1)
 
 	if RE.CurrentMap == IOC then
 		RE.IoCGateEstimator = {}
