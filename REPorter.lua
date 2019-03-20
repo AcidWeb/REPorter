@@ -110,6 +110,7 @@ local SM = 423
 local DG = 519
 local TMVS = 623
 local ABW = 837
+local ABJ = 1383
 local SS = 907
 local BFW = 1334
 
@@ -155,7 +156,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 231
+RE.AddonVersionCheck = 232
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -796,7 +797,7 @@ function RE:OnEvent(self, event, ...)
 		end
 		if instance == "pvp" and RE.CurrentMap == -1 then
 			local mapID = GetBestMapForUnit("player")
-			if mapID == ABW then
+			if mapID == ABW or mapID == ABJ then
 				mapID = AB
 			elseif mapID == EOTSR then
 				mapID = EOTS
@@ -1808,7 +1809,11 @@ function RE:LoadMapSettings()
 
 		local textures
 		if RE.CurrentMap == AB and RE.IsBrawl then
-			textures = GetMapArtLayerTextures(ABW, 1)
+			if GetBestMapForUnit("player") == ABJ then
+				textures = GetMapArtLayerTextures(AB, 1)
+			else
+				textures = GetMapArtLayerTextures(ABW, 1)
+			end
 			RE.ZonesWithoutSubZones[AB] = true
 		else
 			textures = GetMapArtLayerTextures(RE.CurrentMap, 1)
