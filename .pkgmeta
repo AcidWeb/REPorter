@@ -16,6 +16,7 @@ externals:
 
 ignore:
   - README.md
+  - .luacheckrc
   - Libs/CallbackHandler-1.0/CallbackHandler-1.0.xml
   - Libs/LibToast-1.0/LibStub
   - Libs/LibToast-1.0/LibToast-1.0.toc

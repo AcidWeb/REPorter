@@ -49,8 +49,7 @@ if (COMMUNITY_UIDD_REFRESH_PATCH_VERSION or 0) < 1 then
 	end)
 end
 
---GLOBALS: FACTION_ALLIANCE, FACTION_HORDE, HELP_LABEL, ATTACK, HEALTH, BLUE_GEM, RED_GEM, OPTIONS, MAX_RAID_MEMBERS, UIDROPDOWNMENU_VALUE_PATCH_VERSION, UIDROPDOWNMENU_MAXLEVELS, UIDROPDOWNMENU_MAXBUTTONS, UIDROPDOWNMENU_OPEN_PATCH_VERSION, UIDROPDOWNMENU_OPEN_MENU, issecurevariable
-local select, pairs, strsplit, tonumber, strfind, print, strupper, next, strmatch, wipe, floor = _G.select, _G.pairs, _G.strsplit, _G.tonumber, _G.strfind, _G.print, _G.strupper, _G.next, _G.strmatch, _G.wipe, _G.floor
+local select, pairs, strsplit, tonumber, strfind, print, strupper, next, wipe, floor = _G.select, _G.pairs, _G.strsplit, _G.tonumber, _G.strfind, _G.print, _G.strupper, _G.next, _G.wipe, _G.floor
 local CreateFrame = _G.CreateFrame
 local CreateFramePool = _G.CreateFramePool
 local IsInInstance = _G.IsInInstance
@@ -512,23 +511,23 @@ function RE:CreatePOI(index)
 	texture:SetWidth(RE.POIIconSize - 13)
 	texture:SetHeight(RE.POIIconSize - 13)
 	texture:SetTexture("Interface\\Minimap\\POIIcons")
-	local texture = frameMain:CreateTexture(frameMain:GetName().."TextureBG", "BACKGROUND")
+	texture = frameMain:CreateTexture(frameMain:GetName().."TextureBG", "BACKGROUND")
 	texture:SetPoint("TOPLEFT", frameMain, "TOPLEFT")
 	texture:SetPoint("BOTTOMLEFT", frameMain, "BOTTOMLEFT")
 	texture:SetWidth(RE.POIIconSize)
 	texture:SetColorTexture(0,0,0,0.3)
-	local texture = frameMain:CreateTexture(frameMain:GetName().."TextureBGofBG", "BACKGROUND")
+	texture = frameMain:CreateTexture(frameMain:GetName().."TextureBGofBG", "BACKGROUND")
 	texture:SetPoint("TOPRIGHT", frameMain, "TOPRIGHT")
 	texture:SetPoint("BOTTOMRIGHT", frameMain, "BOTTOMRIGHT")
 	texture:SetWidth(RE.POIIconSize)
 	texture:SetColorTexture(0,0,0,0.3)
 	texture:Hide()
-	local texture = frameMain:CreateTexture(frameMain:GetName().."TextureBGTop1", "BORDER")
+	texture = frameMain:CreateTexture(frameMain:GetName().."TextureBGTop1", "BORDER")
 	texture:SetPoint("TOPLEFT", frameMain, "TOPLEFT")
 	texture:SetWidth(RE.POIIconSize)
 	texture:SetHeight(2)
 	texture:SetColorTexture(0,1,0,1)
-	local texture = frameMain:CreateTexture(frameMain:GetName().."TextureBGTop2", "BORDER")
+	texture = frameMain:CreateTexture(frameMain:GetName().."TextureBGTop2", "BORDER")
 	texture:SetPoint("BOTTOMLEFT", frameMain, "BOTTOMLEFT")
 	texture:SetWidth(RE.POIIconSize)
 	texture:SetHeight(2)
@@ -561,7 +560,7 @@ function RE:PointParse(bases)
 		PointsNeededHorde = RE.MapSettings[RE.CurrentMap].PointsToWin - Payload.rightBarValue
 	end
 	if bases then
-		local Payload = GetDoubleStateIconRowVisualizationInfo(Widgets[1].widgetID)
+		Payload = GetDoubleStateIconRowVisualizationInfo(Widgets[1].widgetID)
 		if Payload then
 			for _, v in pairs(Payload.leftIcons) do
 				if v.iconState == 2 then
@@ -749,8 +748,8 @@ function RE:OnEvent(self, event, ...)
 			end
 		end
 	elseif event == "COMBAT_LOG_EVENT_UNFILTERED" and next(RE.POINodes) ~= nil then
-		local _, event, _, _, _, _, _, guid, _, _, _, _, _, _, damage = CombatLogGetCurrentEventInfo()
-		if event ~= "SPELL_BUILDING_DAMAGE" then return end
+		local _, e, _, _, _, _, _, guid, _, _, _, _, _, _, damage = CombatLogGetCurrentEventInfo()
+		if e ~= "SPELL_BUILDING_DAMAGE" then return end
 
 		local gateID = {strsplit("-", guid)}
 		if gateID[6] == "195496" then -- Horde East
@@ -834,7 +833,7 @@ end
 function RE:OnPointsUpdate()
 	if RE.MapSettings[RE.CurrentMap] and select(2, IsInInstance()) == "pvp" then
 		if RE.CurrentMap == TOK then
-			local AlliancePointsPerSec, AllianceTimeToWin, HordePointsPerSec, HordeTimeToWin = 0, 0, 0, 0
+			local AlliancePointsPerSec, HordePointsPerSec, AllianceTimeToWin, HordeTimeToWin = 0, 0
 			local AlliancePointsNeeded, _, HordePointsNeeded = RE:PointParse(false)
 			for i=1, 4 do
 				if i <= GetNumBattlefieldFlagPositions() then
@@ -869,14 +868,14 @@ function RE:OnPointsUpdate()
 				RE:EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 2)
 			end
 		elseif RE.CurrentMap == SM then
-			local AllianceCartsNeeded, HordeCartsNeeded = 10, 10
+			local AllianceCartsNeeded, HordeCartsNeeded
 			local AlliancePointsNeeded, _, HordePointsNeeded = RE:PointParse(false)
 			AllianceCartsNeeded = AlliancePointsNeeded / RE.EstimatorSettings[SM]
 			HordeCartsNeeded = HordePointsNeeded / RE.EstimatorSettings[SM]
 			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(AllianceCartsNeeded, 1).."|r   |cFFFF141D"..RE:Round(HordeCartsNeeded, 1).."|r"
 			RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(AllianceCartsNeeded, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HordeCartsNeeded, 1).." "..L["carts"]
 		else
-			local AllianceTimeToWin, HordeTimeToWin = 0, 0
+			local AllianceTimeToWin, HordeTimeToWin
 			local AlliancePointsNeeded, AllianceBaseNum, HordePointsNeeded, HordeBaseNum = RE:PointParse(true)
 			if RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum] == 0 then
 				AllianceTimeToWin = 10000
@@ -1285,7 +1284,6 @@ end
 
 function RE:UnitOnEnterPOI(self)
 	local tooltipText = ""
-	local prefix = ""
 	local battlefieldPOI = _G[self:GetName()]
 
 	if RE.CurrentMap == BFW and Contains(RE.BFWWalls, RE.POINodes[battlefieldPOI.name].texture) then
@@ -1305,11 +1303,10 @@ function RE:UnitOnEnterPOI(self)
 			end
 		end
 		if TIMER:TimeLeft(RE.POINodes[battlefieldPOI.name].timer) == 0 then
-			tooltipText = tooltipText..prefix..battlefieldPOI.name.."|cFFFFFFFF"..status.."|r"
+			tooltipText = tooltipText..battlefieldPOI.name.."|cFFFFFFFF"..status.."|r"
 		else
-			tooltipText = tooltipText..prefix..battlefieldPOI.name.."|cFFFFFFFF ["..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[battlefieldPOI.name].timer), 0)).."]"..status.."|r"
+			tooltipText = tooltipText..battlefieldPOI.name.."|cFFFFFFFF ["..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.POINodes[battlefieldPOI.name].timer), 0)).."]"..status.."|r"
 		end
-		prefix = "\n"
 	end
 
 	if tooltipText ~= "" then
@@ -1629,7 +1626,7 @@ end
 
 function RE:SmallButton(number, otherNode)
 	if select(2, IsInInstance()) == "pvp" then
-		local name = ""
+		local name
 		if otherNode then
 			name = RE.ClickedPOI
 		elseif RE.ZonesWithoutSubZones[RE.CurrentMap] then
@@ -1637,7 +1634,7 @@ function RE:SmallButton(number, otherNode)
 		else
 			name = GetSubZoneText()
 		end
-		local message = ""
+		local message
 		if name and name ~= "" then
 			if number < 6 then
 				message = strupper(L["Incoming"]).." "..number
@@ -1655,7 +1652,7 @@ end
 
 function RE:BigButton(isHelp, otherNode)
 	if select(2, IsInInstance()) == "pvp" then
-		local name = ""
+		local name
 		if otherNode then
 			name = RE.ClickedPOI
 		elseif RE.ZonesWithoutSubZones[RE.CurrentMap] then

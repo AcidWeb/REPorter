@@ -1,8 +1,8 @@
 local _G = _G
 local unpack, pairs = _G.unpack, _G.pairs
 
-if not AddOnSkins then return end
-local AS = unpack(AddOnSkins)
+if not _G.AddOnSkins then return end
+local AS = unpack(_G.AddOnSkins)
 if not AS:CheckAddOn("REPorter") then return end
 
 function AS:REPorter()
