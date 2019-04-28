@@ -193,6 +193,7 @@ RE.AzeriteNodes = {
 	[0.286] = {[0.769] = L["Crash Site"]},
 	[0.599] = {[0.358] = L["Tide Pools"], [0.553] = L["Shipwreck"]},
 	[0.252] = {[0.423] = L["Ruins"]},
+	[0.253] = {[0.427] = L["Ruins"]},
 	[0.290] = {[0.556] = L["Waterfall"]},
 	[0.450] = {[0.577] = L["Ridge"]},
 	[0.527] = {[0.401] = L["Bonfire"]},
@@ -1412,7 +1413,7 @@ function RE:Create()
 	elseif RE.CurrentMap == DG then
 		RE.DefaultTimer = 61
 	elseif RE.CurrentMap == SS then
-		RE.DefaultTimer = 30
+		RE.DefaultTimer = 40
 	else
 		RE.DefaultTimer = 60
 	end
