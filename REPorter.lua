@@ -156,23 +156,23 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 233
+RE.AddonVersionCheck = 234
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
-	[AB] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15},
-	[WG] = {["StartTimer"] = 120, ["PlayerNumber"] = 10},
-	[AV] = {["StartTimer"] = 120, ["PlayerNumber"] = 40},
-	[EOTS] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15},
-	[IOC] = {["StartTimer"] = 120, ["PlayerNumber"] = 40},
-	[BFG] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 10},
-	[TP] = {["StartTimer"] = 120, ["PlayerNumber"] = 10},
-	[TOK] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 10},
-	[SM] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 10},
-	[DG] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15},
-	[TMVS] = {["StartTimer"] = 120, ["PlayerNumber"] = 40},
-	[SS] = {["StartTimer"] = 120, ["PlayerNumber"] = 10},
-	[BFW] = {["StartTimer"] = 120, ["PlayerNumber"] = 40}
+	[AB] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15, ["WidgetOrder"] = {2, 1}},
+	[WG] = {["StartTimer"] = 120, ["PlayerNumber"] = 10, ["WidgetOrder"] = {2, 1}},
+	[AV] = {["StartTimer"] = 120, ["PlayerNumber"] = 40, ["WidgetOrder"] = {2, 1}},
+	[EOTS] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15, ["WidgetOrder"] = {1, 2}},
+	[IOC] = {["StartTimer"] = 120, ["PlayerNumber"] = 40, ["WidgetOrder"] = {2, 1}},
+	[BFG] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 10, ["WidgetOrder"] = {2, 1}},
+	[TP] = {["StartTimer"] = 120, ["PlayerNumber"] = 10, ["WidgetOrder"] = {2, 1}},
+	[TOK] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 10, ["WidgetOrder"] = {2, 1}},
+	[SM] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 10, ["WidgetOrder"] = {1, 2}},
+	[DG] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15, ["WidgetOrder"] = {1, 3}},
+	[TMVS] = {["StartTimer"] = 120, ["PlayerNumber"] = 40, ["WidgetOrder"] = {2, 1}},
+	[SS] = {["StartTimer"] = 120, ["PlayerNumber"] = 10, ["WidgetOrder"] = {2, 1}},
+	[BFW] = {["StartTimer"] = 120, ["PlayerNumber"] = 40, ["WidgetOrder"] = {2, 1}}
 }
 RE.EstimatorSettings = {
 	[AB] = { [0] = 0, [1] = 10/12, [2] = 10/9, [3] = 10/6, [4] = 10/3, [5] = 30},
@@ -550,11 +550,9 @@ function RE:UpdateIoCEstimator()
 end
 
 function RE:PointParse(bases)
-	local WidgetOrder = 2
-	if RE.CurrentMap == SM then WidgetOrder = 1 end
 	local PointsNeededAlliance, BaseNumAliance, PointsNeededHorde, BaseNumHorde = 0, 0, 0, 0
 	local Widgets = GetAllWidgetsBySetID(GetTopCenterWidgetSetID())
-	local Payload = GetDoubleStatusBarWidgetVisualizationInfo(Widgets[WidgetOrder].widgetID)
+	local Payload = GetDoubleStatusBarWidgetVisualizationInfo(Widgets[RE.MapSettings[RE.CurrentMap]["WidgetOrder"][1]].widgetID)
 	if Payload and Payload.leftBarValue then
 		PointsNeededAlliance = RE.MapSettings[RE.CurrentMap].PointsToWin - Payload.leftBarValue
 	end
@@ -562,7 +560,7 @@ function RE:PointParse(bases)
 		PointsNeededHorde = RE.MapSettings[RE.CurrentMap].PointsToWin - Payload.rightBarValue
 	end
 	if bases then
-		Payload = GetDoubleStateIconRowVisualizationInfo(Widgets[1].widgetID)
+		Payload = GetDoubleStateIconRowVisualizationInfo(Widgets[RE.MapSettings[RE.CurrentMap]["WidgetOrder"][2]].widgetID)
 		if Payload then
 			for _, v in pairs(Payload.leftIcons) do
 				if v.iconState == 2 then
