@@ -49,7 +49,7 @@ if (COMMUNITY_UIDD_REFRESH_PATCH_VERSION or 0) < 1 then
 	end)
 end
 
-local select, pairs, strsplit, tonumber, strfind, print, strupper, next, wipe, floor = _G.select, _G.pairs, _G.strsplit, _G.tonumber, _G.strfind, _G.print, _G.strupper, _G.next, _G.wipe, _G.floor
+local select, pairs, strsplit, tonumber, strfind, print, strupper, next, wipe, floor, ceil = _G.select, _G.pairs, _G.strsplit, _G.tonumber, _G.strfind, _G.print, _G.strupper, _G.next, _G.wipe, _G.floor, _G.ceil
 local CreateFrame = _G.CreateFrame
 local CreateFramePool = _G.CreateFramePool
 local IsInInstance = _G.IsInInstance
@@ -59,6 +59,7 @@ local IsAltKeyDown = _G.IsAltKeyDown
 local IsControlKeyDown = _G.IsControlKeyDown
 local IsInBrawl = _G.C_PvP.IsInBrawl
 local IsRatedBattleground = _G.IsRatedBattleground
+local GetTime = _G.GetTime
 local GetBattlefieldInstanceRunTime = _G.GetBattlefieldInstanceRunTime
 local GetMapInfo = _G.C_Map.GetMapInfo
 local GetMapArtLayerTextures = _G.C_Map.GetMapArtLayerTextures
@@ -77,10 +78,7 @@ local GetVehicleTexture = _G.VehicleUtil.GetVehicleTexture
 local GetSubZoneText = _G.GetSubZoneText
 local GetClassColor = _G.GetClassColor
 local GetRaidTargetIndex = _G.GetRaidTargetIndex
-local GetTopCenterWidgetSetID = _G.C_UIWidgetManager.GetTopCenterWidgetSetID
-local GetAllWidgetsBySetID = _G.C_UIWidgetManager.GetAllWidgetsBySetID
 local GetDoubleStatusBarWidgetVisualizationInfo = _G.C_UIWidgetManager.GetDoubleStatusBarWidgetVisualizationInfo
-local GetDoubleStateIconRowVisualizationInfo = _G.C_UIWidgetManager.GetDoubleStateIconRowVisualizationInfo
 local UnitName = _G.UnitName
 local UnitClass = _G.UnitClass
 local UnitExists = _G.UnitExists
@@ -144,6 +142,8 @@ RE.IoCGateEstimator = {}
 RE.IoCGateEstimatorText = ""
 RE.SMEstimatorText = ""
 RE.SMEstimatorReport = ""
+RE.EstimatorTicks = {10000, 10000}
+RE.EstimatorData = {0, 0, 0, 0, -1}
 RE.IsWinning = ""
 RE.IsBrawl = false
 RE.IsRated = false
@@ -156,7 +156,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 234
+RE.AddonVersionCheck = 240
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -173,14 +173,6 @@ RE.MapSettings = {
 	[TMVS] = {["StartTimer"] = 120, ["PlayerNumber"] = 40, ["WidgetOrder"] = {2, 1}},
 	[SS] = {["StartTimer"] = 120, ["PlayerNumber"] = 10, ["WidgetOrder"] = {2, 1}},
 	[BFW] = {["StartTimer"] = 120, ["PlayerNumber"] = 40, ["WidgetOrder"] = {2, 1}}
-}
-RE.EstimatorSettings = {
-	[AB] = { [0] = 0, [1] = 10/12, [2] = 10/9, [3] = 10/6, [4] = 10/3, [5] = 30},
-	[EOTS] = { [0] = 0, [1] = 1, [2] = 2, [3] = 5, [4] = 10},
-	[BFG] = { [0] = 0, [1] = 10/9, [2] = 10/3, [3] = 30},
-	[DG] = { [0] = 0, [1] = 1.6, [2] = 3.2, [3] = 6.4},
-	[TOK] = {["CenterP"] = 1, ["InnerP"] = 0.8, ["OuterP"] = 0.6},
-	[SM] = 150
 }
 RE.ZonesWithoutSubZones = {
 	[DG] = true,
@@ -272,7 +264,6 @@ RE.POIDropDown = {
 	{ text = L["On my way"], notCheckable = true, func = function() RE:ReportDropDownClick(L["On my way"]) end },
 	{ text = L["Report status"], notCheckable = true, func = function() RE:ReportDropDownClick("") end }
 }
-
 RE.DefaultConfig = {
 	profile = {
 		BarHandle = 11,
@@ -539,68 +530,6 @@ function RE:CreatePOI(index)
 	frame:SetPoint("CENTER", frameMain, "CENTER")
 end
 
-function RE:UpdateIoCEstimator()
-	if RE.IoCGateEstimator[FACTION_HORDE] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-		RE.IoCGateEstimatorText = "|cFF00A9FF"..RE:Round((RE.IoCGateEstimator[FACTION_HORDE] / RE.IoCGateHealth) * 100, 0).."%|r"
-	elseif RE.IoCGateEstimator[FACTION_HORDE] > RE.IoCGateEstimator[FACTION_ALLIANCE] then
-		RE.IoCGateEstimatorText = "|cFFFF141D"..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE] / RE.IoCGateHealth) * 100, 0).."%|r"
-	else
-		RE.IoCGateEstimatorText = ""
-	end
-end
-
-function RE:PointParse(bases)
-	local PointsNeededAlliance, BaseNumAliance, PointsNeededHorde, BaseNumHorde = 0, 0, 0, 0
-	local Widgets = GetAllWidgetsBySetID(GetTopCenterWidgetSetID())
-	local Payload = GetDoubleStatusBarWidgetVisualizationInfo(Widgets[RE.MapSettings[RE.CurrentMap]["WidgetOrder"][1]].widgetID)
-	if Payload and Payload.leftBarValue then
-		PointsNeededAlliance = RE.MapSettings[RE.CurrentMap].PointsToWin - Payload.leftBarValue
-	end
-	if Payload and Payload.rightBarValue then
-		PointsNeededHorde = RE.MapSettings[RE.CurrentMap].PointsToWin - Payload.rightBarValue
-	end
-	if bases then
-		Payload = GetDoubleStateIconRowVisualizationInfo(Widgets[RE.MapSettings[RE.CurrentMap]["WidgetOrder"][2]].widgetID)
-		if Payload then
-			for _, v in pairs(Payload.leftIcons) do
-				if v.iconState == 2 then
-					BaseNumAliance = BaseNumAliance + 1
-				end
-			end
-			for _, v in pairs(Payload.rightIcons) do
-				if v.iconState == 2 then
-					BaseNumHorde = BaseNumHorde + 1
-				end
-			end
-		end
-	end
-	return PointsNeededAlliance, BaseNumAliance, PointsNeededHorde, BaseNumHorde
-end
-
-function RE:EstimatorFill(ATimeToWin, HTimeToWin, RefreshTimer)
-	local TimeLeft = TIMER:TimeLeft(RE.EstimatorTimer)
-	if ATimeToWin > 1 and HTimeToWin > 1 then
-		if ATimeToWin < HTimeToWin then
-			if RE.IsWinning ~= FACTION_ALLIANCE or (TimeLeft - ATimeToWin > RefreshTimer) or (TimeLeft - ATimeToWin < -RefreshTimer) then
-				TIMER:CancelTimer(RE.EstimatorTimer)
-				RE.IsWinning = FACTION_ALLIANCE
-				RE.EstimatorTimer = TIMER:ScheduleTimer(RE.TimerNull, RE:Round(ATimeToWin, 0))
-			end
-		elseif ATimeToWin > HTimeToWin then
-			if RE.IsWinning ~= FACTION_HORDE or (TimeLeft - HTimeToWin > RefreshTimer) or (TimeLeft - HTimeToWin < -RefreshTimer) then
-				TIMER:CancelTimer(RE.EstimatorTimer)
-				RE.IsWinning = FACTION_HORDE
-				RE.EstimatorTimer = TIMER:ScheduleTimer(RE.TimerNull, RE:Round(HTimeToWin, 0))
-			end
-		else
-			RE.IsWinning = ""
-		end
-	else
-		TIMER:CancelTimer(RE.EstimatorTimer)
-		RE.IsWinning = ""
-	end
-end
-
 function RE:TimerNull()
 	-- And Now His Watch is Ended
 end
@@ -783,7 +712,15 @@ function RE:OnEvent(self, event, ...)
 				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health
 			end
 		end
-		RE:UpdateIoCEstimator()
+
+		if RE.IoCGateEstimator[FACTION_HORDE] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
+			RE.IoCGateEstimatorText = "|cFF00A9FF"..RE:Round((RE.IoCGateEstimator[FACTION_HORDE] / RE.IoCGateHealth) * 100, 0).."%|r"
+		elseif RE.IoCGateEstimator[FACTION_HORDE] > RE.IoCGateEstimator[FACTION_ALLIANCE] then
+			RE.IoCGateEstimatorText = "|cFFFF141D"..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE] / RE.IoCGateHealth) * 100, 0).."%|r"
+		else
+			RE.IoCGateEstimatorText = ""
+		end
+		_G.REPorterFrameEstimatorText:SetText(RE.IoCGateEstimatorText)
 	elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" then
 		local instance = select(2, IsInInstance())
 		if RE.CurrentMap ~= -1 then
@@ -831,63 +768,38 @@ function RE:OnEvent(self, event, ...)
 end
 
 function RE:OnPointsUpdate()
-	if RE.MapSettings[RE.CurrentMap] and select(2, IsInInstance()) == "pvp" then
-		if RE.CurrentMap == TOK then
-			local AlliancePointsPerSec, HordePointsPerSec, AllianceTimeToWin, HordeTimeToWin = 0, 0
-			local AlliancePointsNeeded, _, HordePointsNeeded = RE:PointParse(false)
-			for i=1, 4 do
-				if i <= GetNumBattlefieldFlagPositions() then
-					local flagX, flagY, flagTexture = GetBattlefieldFlagPosition(i)
-					if flagX then
-						local location
-						flagX, flagY = RE:GetRealCoords(flagX, flagY)
-						if flagX < 420 and flagX > 350 and flagY < -255 and flagY > -305 then
-							location = "CenterP"
-						elseif flagX < 470 and flagX > 300 and flagY < -210 and flagY > -350 then
-							location = "InnerP"
-						else
-							location = "OuterP"
-						end
-						if flagTexture == 137200 then
-							AlliancePointsPerSec = AlliancePointsPerSec + RE.EstimatorSettings[TOK][location]
-						else
-							HordePointsPerSec = HordePointsPerSec + RE.EstimatorSettings[TOK][location]
-						end
-					end
-				end
-				if AlliancePointsPerSec > 0 then
-					AllianceTimeToWin = AlliancePointsNeeded / AlliancePointsPerSec
-				else
-					AllianceTimeToWin = 10000
-				end
-				if HordePointsPerSec > 0 then
-					HordeTimeToWin = HordePointsNeeded / HordePointsPerSec
-				else
-					HordeTimeToWin = 10000
-				end
-				RE:EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 2)
-			end
-		elseif RE.CurrentMap == SM then
-			local AllianceCartsNeeded, HordeCartsNeeded
-			local AlliancePointsNeeded, _, HordePointsNeeded = RE:PointParse(false)
-			AllianceCartsNeeded = AlliancePointsNeeded / RE.EstimatorSettings[SM]
-			HordeCartsNeeded = HordePointsNeeded / RE.EstimatorSettings[SM]
-			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(AllianceCartsNeeded, 1).."|r   |cFFFF141D"..RE:Round(HordeCartsNeeded, 1).."|r"
-			RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(AllianceCartsNeeded, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HordeCartsNeeded, 1).." "..L["carts"]
+	local Data = GetDoubleStatusBarWidgetVisualizationInfo(1671)
+	if Data and Data.leftBarValue and Data.rightBarValue then
+		if RE.CurrentMap == SM then
+			local ACart, HCart = (Data.leftBarMax - Data.leftBarValue) / 150, (Data.rightBarMax - Data.rightBarValue) / 150
+			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(ACart, 1).."|r   |cFFFF141D"..RE:Round(HCart, 1).."|r"
+			RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(ACart, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HCart, 1).." "..L["carts"]
+			_G.REPorterFrameEstimatorText:SetText(RE.SMEstimatorText)
 		else
-			local AllianceTimeToWin, HordeTimeToWin
-			local AlliancePointsNeeded, AllianceBaseNum, HordePointsNeeded, HordeBaseNum = RE:PointParse(true)
-			if RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum] == 0 then
-				AllianceTimeToWin = 10000
-			else
-				AllianceTimeToWin = AlliancePointsNeeded / RE.EstimatorSettings[RE.CurrentMap][AllianceBaseNum]
+			RE.EstimatorData[2] = Data.leftBarValue - RE.EstimatorData[1]
+			RE.EstimatorData[4] = Data.rightBarValue - RE.EstimatorData[3]
+			RE.EstimatorData[1] = Data.leftBarValue
+			RE.EstimatorData[3] = Data.rightBarValue
+			if (RE.EstimatorData[2] == 0 and RE.EstimatorData[4] == 0) or RE.EstimatorData[5] == -1 then
+				RE.EstimatorData[5] = GetTime()
+				return
 			end
-			if RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum] == 0 then
-				HordeTimeToWin = 10000
+			local PreviousTick = RE.EstimatorData[5]
+			local CurrentTick = GetTime()
+			local TickTime = (CurrentTick - PreviousTick) % 1 >= 0.5 and ceil(CurrentTick - PreviousTick) or floor(CurrentTick - PreviousTick)
+			RE.EstimatorData[5] = CurrentTick
+			RE.EstimatorTicks[1] = RE.EstimatorData[2] > 0 and ceil((Data.leftBarMax - Data.leftBarValue) / RE.EstimatorData[2]) or 10000
+			RE.EstimatorTicks[2] = RE.EstimatorData[4] > 0 and ceil((Data.rightBarMax - Data.rightBarValue) / RE.EstimatorData[4]) or 10000
+			TIMER:CancelTimer(RE.EstimatorTimer)
+			if RE.EstimatorTicks[1] < RE.EstimatorTicks[2] then
+				RE.IsWinning = FACTION_ALLIANCE
+				RE.EstimatorTimer = TIMER:ScheduleTimer(RE.TimerNull, RE.EstimatorTicks[1] * TickTime)
+			elseif RE.EstimatorTicks[1] > RE.EstimatorTicks[2] then
+				RE.IsWinning = FACTION_HORDE
+				RE.EstimatorTimer = TIMER:ScheduleTimer(RE.TimerNull, RE.EstimatorTicks[2] * TickTime)
 			else
-				HordeTimeToWin = HordePointsNeeded / RE.EstimatorSettings[RE.CurrentMap][HordeBaseNum]
+				RE.IsWinning = ""
 			end
-			RE:EstimatorFill(AllianceTimeToWin, HordeTimeToWin, 5)
 		end
 	end
 end
@@ -1237,7 +1149,6 @@ function RE:OnUpdate(elapsed)
 				end
 			end
 		end
-
 		if TIMER:TimeLeft(RE.EstimatorTimer) > 0 then
 			if RE.IsWinning == FACTION_ALLIANCE then
 				_G.REPorterFrameEstimatorText:SetText("|cFF00A9FF"..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)).."|r")
@@ -1246,12 +1157,6 @@ function RE:OnUpdate(elapsed)
 			else
 				_G.REPorterFrameEstimatorText:SetText("")
 			end
-		elseif RE.CurrentMap == SM then
-			_G.REPorterFrameEstimatorText:SetText(RE.SMEstimatorText)
-		elseif RE.CurrentMap == IOC and RE.PlayedFromStart then
-			_G.REPorterFrameEstimatorText:SetText(RE.IoCGateEstimatorText)
-		else
-			_G.REPorterFrameEstimatorText:SetText("")
 		end
 		RE.UpdateTimer = RE.MapUpdateRate
 	else
@@ -1404,6 +1309,9 @@ function RE:Create()
 	elseif RE.CurrentMap == SM then
 		RE.SMEstimatorText = ""
 		RE.SMEstimatorReport = ""
+	else
+		RE.EstimatorTicks = {10000, 10000}
+		RE.EstimatorData = {0, 0, 0, 0, -1}
 	end
 
 	if RE.CurrentMap == AV then
@@ -1428,7 +1336,7 @@ function RE:Create()
 	end
 	if Contains({BFG, EOTS, AB, DG, SM, TOK}, RE.CurrentMap) then
 		RE.CareAboutPoints = true
-		RE.EventBucket = BUCKET:RegisterBucketEvent({"BATTLEGROUND_POINTS_UPDATE", "UPDATE_UI_WIDGET"}, 2, RE.OnPointsUpdate)
+		RE.EventBucket = BUCKET:RegisterBucketEvent("UPDATE_UI_WIDGET", 1, RE.OnPointsUpdate)
 	else
 		RE.CareAboutPoints = false
 	end
@@ -1438,7 +1346,7 @@ function RE:Create()
 	else
 		RE.CareAboutGates = false
 	end
-	if Contains({WG, TP, EOTS, TOK }, RE.CurrentMap) or (RE.CurrentMap == DG and RE.IsBrawl) then
+	if Contains({WG, TP, EOTS, TOK}, RE.CurrentMap) or (RE.CurrentMap == DG and RE.IsBrawl) then
 		RE.CareAboutFlags = true
 	else
 		RE.CareAboutFlags = false
