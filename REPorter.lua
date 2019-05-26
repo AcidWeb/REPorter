@@ -3,7 +3,6 @@ local _, RE = ...
 local L = LibStub("AceLocale-3.0"):GetLocale("REPorter")
 local TOAST = LibStub("LibToast-1.0")
 local TIMER = LibStub("AceTimer-3.0")
-local BUCKET = LibStub("AceBucket-3.0")
 _G.REPorter = RE
 
 -- UIDropDownMenu taint workaround by foxlit
@@ -160,19 +159,19 @@ RE.AddonVersionCheck = 240
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
-	[AB] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15, ["WidgetOrder"] = {2, 1}},
-	[WG] = {["StartTimer"] = 120, ["PlayerNumber"] = 10, ["WidgetOrder"] = {2, 1}},
-	[AV] = {["StartTimer"] = 120, ["PlayerNumber"] = 40, ["WidgetOrder"] = {2, 1}},
-	[EOTS] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15, ["WidgetOrder"] = {1, 2}},
-	[IOC] = {["StartTimer"] = 120, ["PlayerNumber"] = 40, ["WidgetOrder"] = {2, 1}},
-	[BFG] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 10, ["WidgetOrder"] = {2, 1}},
-	[TP] = {["StartTimer"] = 120, ["PlayerNumber"] = 10, ["WidgetOrder"] = {2, 1}},
-	[TOK] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 10, ["WidgetOrder"] = {2, 1}},
-	[SM] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 10, ["WidgetOrder"] = {1, 2}},
-	[DG] = {["PointsToWin"] = 1500, ["StartTimer"] = 120, ["PlayerNumber"] = 15, ["WidgetOrder"] = {1, 3}},
-	[TMVS] = {["StartTimer"] = 120, ["PlayerNumber"] = 40, ["WidgetOrder"] = {2, 1}},
-	[SS] = {["StartTimer"] = 120, ["PlayerNumber"] = 10, ["WidgetOrder"] = {2, 1}},
-	[BFW] = {["StartTimer"] = 120, ["PlayerNumber"] = 40, ["WidgetOrder"] = {2, 1}}
+	[AB] = {["PlayerNumber"] = 15, ["WidgetID"] = 1671},
+	[WG] = {["PlayerNumber"] = 10},
+	[AV] = {["PlayerNumber"] = 40, ["NodeTimer"] = 240},
+	[EOTS] = {["PlayerNumber"] = 15, ["WidgetID"] = 1671},
+	[IOC] = {["PlayerNumber"] = 40},
+	[BFG] = {["PlayerNumber"] = 10, ["WidgetID"] = 1671},
+	[TP] = {["PlayerNumber"] = 10},
+	[TOK] = {["PlayerNumber"] = 10},
+	[SM] = {["PlayerNumber"] = 10, ["WidgetID"] = 1687},
+	[DG] = {["PlayerNumber"] = 15, ["NodeTimer"] = 61, ["WidgetID"] = 1671},
+	[TMVS] = {["PlayerNumber"] = 40},
+	[SS] = {["PlayerNumber"] = 10, ["NodeTimer"] = 40},
+	[BFW] = {["PlayerNumber"] = 40}
 }
 RE.ZonesWithoutSubZones = {
 	[DG] = true,
@@ -239,7 +238,7 @@ RE.AtlasNameToTextureIndex = {
 	["eots_capPts-rightIcon4-state1"] = 12,
 	["eots_capPts-rightIcon4-state2"] = 10,
 	["eots_capPts-rightIcon5-state1"] = 12,
-	["eots_capPts-rightIcon5-state2"] = 10,
+	["eots_capPts-rightIcon5-state2"] = 10
 }
 RE.BFWWalls = {86, 87, 88, 89, 90, 91, 95, 96, 97, 98, 99, 100}
 
@@ -497,7 +496,7 @@ function RE:CreatePOI(index)
 	frameMain:SetWidth(RE.POIIconSize)
 	frameMain:SetHeight(RE.POIIconSize)
 	frameMain:SetScript("OnEnter", function(self) RE:UnitOnEnterPOI(self) end)
-	frameMain:SetScript("OnLeave", RE.HideTooltip)
+	frameMain:SetScript("OnLeave", function() _G.GameTooltip:Hide() end)
 	frameMain:SetScript("OnMouseDown", function(self) RE:OnClickPOI(self) end)
 	local texture = frameMain:CreateTexture(frameMain:GetName().."Texture", "BORDER")
 	texture:SetPoint("CENTER", frameMain, "CENTER")
@@ -530,27 +529,15 @@ function RE:CreatePOI(index)
 	frame:SetPoint("CENTER", frameMain, "CENTER")
 end
 
-function RE:TimerNull()
-	-- And Now His Watch is Ended
-end
-
 function RE:TimerJoinCheck()
-	if RE.CurrentMap ~= -1 and GetBattlefieldInstanceRunTime()/1000 > RE.MapSettings[RE.CurrentMap].StartTimer then
+	if RE.CurrentMap ~= -1 and GetBattlefieldInstanceRunTime() / 1000 > 120 then
 		RE.PlayedFromStart = false
 		RE:OnPOIUpdate()
 	end
 end
 
-function RE:TimerBarHider()
-	_G.REPorterBar:SetAlpha(0.25)
-end
-
-function RE:TimerDropDownHider()
-	_G.CloseDropDownMenus()
-end
-
-function RE:HideTooltip()
-	_G.GameTooltip:Hide()
+function RE:TimerNull()
+	-- And Now His Watch is Ended
 end
 --
 
@@ -573,13 +560,13 @@ end
 function RE:OnLeaveBar(_)
 	if not _G.REPorterBar:IsMouseOver() then
 		TIMER:CancelTimer(RE.TimerBar)
-		RE.TimerBar = TIMER:ScheduleTimer(RE.TimerBarHider, 0.5)
+		RE.TimerBar = TIMER:ScheduleTimer(function() _G.REPorterBar:SetAlpha(0.25) end, 0.5)
 	end
 end
 
 function RE:OnLeave(_)
 	TIMER:CancelTimer(RE.TimerDropDown)
-	RE.TimerDropDown = TIMER:ScheduleTimer(RE.TimerDropDownHider, 3)
+	RE.TimerDropDown = TIMER:ScheduleTimer(function() _G.CloseDropDownMenus() end, 3)
 end
 
 function RE:OnDragStart(_)
@@ -680,33 +667,33 @@ function RE:OnEvent(self, event, ...)
 		local _, e, _, _, _, _, _, guid, _, _, _, _, _, _, damage = CombatLogGetCurrentEventInfo()
 		if e ~= "SPELL_BUILDING_DAMAGE" then return end
 
-		local gateID = {strsplit("-", guid)}
-		if gateID[6] == "195496" then -- Horde East
+		local gateID = guid:match("%-(%d-)%-%x-$")
+		if gateID == "195496" then -- Horde East
 			RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health - damage
 			if RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health < RE.IoCGateEstimator[FACTION_HORDE] then
 				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health
 			end
-		elseif gateID[6] == "195494" then -- Horde Central
+		elseif gateID == "195494" then -- Horde Central
 			RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health - damage
 			if RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health < RE.IoCGateEstimator[FACTION_HORDE] then
 				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health
 			end
-		elseif gateID[6] == "195495" then -- Horde West
+		elseif gateID == "195495" then -- Horde West
 			RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health - damage
 			if RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health < RE.IoCGateEstimator[FACTION_HORDE] then
 				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health
 			end
-		elseif gateID[6] == "195700" then -- Alliance East
+		elseif gateID == "195700" then -- Alliance East
 			RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health - damage
 			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health < RE.IoCGateEstimator[FACTION_ALLIANCE] then
 				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health
 			end
-		elseif gateID[6] == "195698" then -- Alliance Center
+		elseif gateID == "195698" then -- Alliance Center
 			RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health - damage
 			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health < RE.IoCGateEstimator[FACTION_ALLIANCE] then
 				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health
 			end
-		elseif gateID[6] == "195699" then -- Alliance West
+		elseif gateID == "195699" then -- Alliance West
 			RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health - damage
 			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health < RE.IoCGateEstimator[FACTION_ALLIANCE] then
 				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health
@@ -762,15 +749,32 @@ function RE:OnEvent(self, event, ...)
 		end
 	elseif event == "GROUP_ROSTER_UPDATE" and _G.REPorterFrame:IsShown() then
 		RE.NeedRefresh = true
+	elseif event == "UPDATE_UI_WIDGET" then
+		local WidgetInfo = ...
+		if WidgetInfo and WidgetInfo.widgetID == RE.MapSettings[RE.CurrentMap].WidgetID then
+			if RE.CurrentMap == SM then
+				RE:OnPointsUpdate(-1)
+			else
+				if RE.EstimatorData[5] == -1 then
+					RE.EstimatorData[5] = GetTime()
+				end
+				local CurrentTick = GetTime()
+				local RawTick = CurrentTick - RE.EstimatorData[5]
+				if RawTick > 0.5 then
+					RE:OnPointsUpdate(RawTick)
+				end
+				RE.EstimatorData[5] = CurrentTick
+			end
+		end
 	elseif event == "AREA_POIS_UPDATED" or event == "VIGNETTES_UPDATED" then
 		RE:OnPOIUpdate()
 	end
 end
 
-function RE:OnPointsUpdate()
-	local Data = GetDoubleStatusBarWidgetVisualizationInfo(1671)
+function RE:OnPointsUpdate(RawTick)
+	local Data = GetDoubleStatusBarWidgetVisualizationInfo(RE.MapSettings[RE.CurrentMap].WidgetID)
 	if Data and Data.leftBarValue and Data.rightBarValue then
-		if RE.CurrentMap == SM then
+		if RawTick == -1 then
 			local ACart, HCart = (Data.leftBarMax - Data.leftBarValue) / 150, (Data.rightBarMax - Data.rightBarValue) / 150
 			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(ACart, 1).."|r   |cFFFF141D"..RE:Round(HCart, 1).."|r"
 			RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(ACart, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HCart, 1).." "..L["carts"]
@@ -780,14 +784,10 @@ function RE:OnPointsUpdate()
 			RE.EstimatorData[4] = Data.rightBarValue - RE.EstimatorData[3]
 			RE.EstimatorData[1] = Data.leftBarValue
 			RE.EstimatorData[3] = Data.rightBarValue
-			if (RE.EstimatorData[2] == 0 and RE.EstimatorData[4] == 0) or RE.EstimatorData[5] == -1 then
-				RE.EstimatorData[5] = GetTime()
+			if (RE.EstimatorData[2] == 0 and RE.EstimatorData[4] == 0) or RE.EstimatorData[2] >= 100 or RE.EstimatorData[4] >= 100 then
 				return
 			end
-			local PreviousTick = RE.EstimatorData[5]
-			local CurrentTick = GetTime()
-			local TickTime = (CurrentTick - PreviousTick) % 1 >= 0.5 and ceil(CurrentTick - PreviousTick) or floor(CurrentTick - PreviousTick)
-			RE.EstimatorData[5] = CurrentTick
+			local TickTime = RawTick % 1 >= 0.5 and ceil(RawTick) or floor(RawTick)
 			RE.EstimatorTicks[1] = RE.EstimatorData[2] > 0 and ceil((Data.leftBarMax - Data.leftBarValue) / RE.EstimatorData[2]) or 10000
 			RE.EstimatorTicks[2] = RE.EstimatorData[4] > 0 and ceil((Data.rightBarMax - Data.rightBarValue) / RE.EstimatorData[4]) or 10000
 			TIMER:CancelTimer(RE.EstimatorTimer)
@@ -1267,10 +1267,10 @@ function RE:Shutdown()
 	_G.REPorterFrame:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 	_G.REPorterFrame:UnregisterEvent("VIGNETTES_UPDATED")
 	_G.REPorterFrame:UnregisterEvent("AREA_POIS_UPDATED")
+	_G.REPorterFrame:UnregisterEvent("UPDATE_UI_WIDGET")
 	_G.REPorterFrameEstimatorText:SetText("")
 	_G.REPorterFrameCoreUP:ResetCurrentMouseOverUnits()
 	_G.CloseDropDownMenus()
-	BUCKET:UnregisterBucket(RE.EventBucket)
 	if not _G.MinimapCluster:IsShown() and RE.Settings.profile.HideMinimap then
 		_G.MinimapCluster:Show()
 	end
@@ -1314,12 +1314,8 @@ function RE:Create()
 		RE.EstimatorData = {0, 0, 0, 0, -1}
 	end
 
-	if RE.CurrentMap == AV then
-		RE.DefaultTimer = 240
-	elseif RE.CurrentMap == DG then
-		RE.DefaultTimer = 61
-	elseif RE.CurrentMap == SS then
-		RE.DefaultTimer = 40
+	if RE.MapSettings[RE.CurrentMap].NodeTimer then
+		RE.DefaultTimer = RE.MapSettings[RE.CurrentMap].NodeTimer
 	else
 		RE.DefaultTimer = 60
 	end
@@ -1334,9 +1330,9 @@ function RE:Create()
 	else
 		RE.CareAboutNodes = false
 	end
-	if Contains({BFG, EOTS, AB, DG, SM, TOK}, RE.CurrentMap) then
+	if Contains({BFG, EOTS, AB, DG, SM}, RE.CurrentMap) then
 		RE.CareAboutPoints = true
-		RE.EventBucket = BUCKET:RegisterBucketEvent("UPDATE_UI_WIDGET", 1, RE.OnPointsUpdate)
+		_G.REPorterFrame:RegisterEvent("UPDATE_UI_WIDGET")
 	else
 		RE.CareAboutPoints = false
 	end
