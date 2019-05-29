@@ -110,6 +110,7 @@ local ABW = 837
 local ABJ = 1383
 local SS = 907
 local BFW = 1334
+local CI = 1335
 
 RE.POIIconSize = 30
 RE.POINumber = 40
@@ -171,13 +172,15 @@ RE.MapSettings = {
 	[DG] = {["PlayerNumber"] = 15, ["NodeTimer"] = 61, ["WidgetID"] = 1671},
 	[TMVS] = {["PlayerNumber"] = 40},
 	[SS] = {["PlayerNumber"] = 10, ["NodeTimer"] = 40},
-	[BFW] = {["PlayerNumber"] = 40}
+	[BFW] = {["PlayerNumber"] = 40},
+	[CI] = {["PlayerNumber"] = 10}
 }
 RE.ZonesWithoutSubZones = {
 	[DG] = true,
 	[SM] = true,
 	[TOK] = true,
-	[TMVS] = true
+	[TMVS] = true,
+	[CI] = true
 }
 RE.AzeriteNodes = {
 	[0.391] = {[0.750] = L["Overlook"]},
@@ -286,7 +289,8 @@ RE.DefaultConfig = {
 			[DG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 520, ["wh"] = 385, ["mx"] = -10, ["my"] = -45, ["ms"] = 1},
 			[TMVS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 370, ["mx"] = -2, ["my"] = -22, ["ms"] = 1},
 			[SS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 360, ["wh"] = 385, ["mx"] = 66, ["my"] = -63, ["ms"] = 1},
-			[BFW] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 500, ["wh"] = 320, ["mx"] = -3, ["my"] = -84, ["ms"] = 1}
+			[BFW] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 500, ["wh"] = 320, ["mx"] = -3, ["my"] = -84, ["ms"] = 1},
+			[CI] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 270, ["wh"] = 305, ["mx"] = -30, ["my"] = 55, ["ms"] = 1}
 		}
 	}
 }
@@ -399,6 +403,7 @@ RE.AceConfig = {
 						[TMVS] = GetMapInfo(TMVS).name,
 						[SS] = GetMapInfo(SS).name,
 						[BFW] = GetMapInfo(BFW).name,
+						[CI] = GetMapInfo(CI).name
 					},
 					set = function(_, val) RE.LastMap = val; RE:ShowDummyMap(val) end,
 					get = function(_) return RE.LastMap end
@@ -813,16 +818,16 @@ function RE:OnPOIUpdate()
 	end
 	if RE.CurrentMap == EOTS and RE.IsRated then
 		RE.POIList = GetAreaPOIForMap(EOTSR)
-	elseif RE.CurrentMap ~= SS then
-		RE.POIList = GetAreaPOIForMap(RE.CurrentMap)
-	else
+	elseif RE.CurrentMap == SS or RE.CurrentMap == CI then
 		RE.POIList = GetVignettes()
+	else
+		RE.POIList = GetAreaPOIForMap(RE.CurrentMap)
 	end
 	for i=1, #RE.POIList do
 		local battlefieldPOIName = "REPorterFrameCorePOI"..i
 		local battlefieldPOI = _G[battlefieldPOIName]
 		local colorOverride = false
-		if RE.CurrentMap == SS then
+		if RE.CurrentMap == SS or RE.CurrentMap == CI then
 			wipe(RE.VignetteInfo)
 			wipe(RE.VignettePosition)
 			RE.VignetteInfo = GetVignetteInfo(RE.POIList[i]) or {}
@@ -830,13 +835,18 @@ function RE:OnPOIUpdate()
 			if RE.VignetteInfo and RE.VignettePosition then
 				local xZ, yZ = RE:Round(RE.VignettePosition.x, 3), RE:Round(RE.VignettePosition.y, 3)
 				RE.POIInfo = {["areaPoiID"] = RE.VignetteInfo.vignetteID, ["name"] = RE.VignetteInfo.name, ["description"] = "", ["position"] = {["x"] = RE.VignettePosition.x, ["y"] = RE.VignettePosition.y}, ["textureIndex"] = 0, ["atlasID"] = RE.VignetteInfo.atlasName}
-				if RE.AzeriteNodes[xZ] and RE.AzeriteNodes[xZ][yZ] then
-					RE.POIInfo.name = RE.AzeriteNodes[xZ][yZ]
-				end
-				if RE.VignetteInfo.atlasName == "AzeriteReady" then
-					RE.POIInfo.textureIndex = 1002
-				elseif RE.VignetteInfo.atlasName == "AzeriteSpawning" then
-					RE.POIInfo.textureIndex = 1001
+				if RE.CurrentMap == SS then
+					if RE.AzeriteNodes[xZ] and RE.AzeriteNodes[xZ][yZ] then
+						RE.POIInfo.name = RE.AzeriteNodes[xZ][yZ]
+					end
+					if RE.VignetteInfo.atlasName == "AzeriteReady" then
+						RE.POIInfo.textureIndex = 1002
+					elseif RE.VignetteInfo.atlasName == "AzeriteSpawning" then
+						RE.POIInfo.textureIndex = 1001
+					end
+				elseif RE.POIInfo.atlasID == "QuestObjective" then
+					RE.POIInfo.name = RE.POIInfo.areaPoiID
+					RE.POIInfo.textureIndex = 2000
 				end
 			end
 		elseif RE.CurrentMap == EOTS and RE.IsRated then
@@ -1100,7 +1110,7 @@ function RE:OnUpdate(elapsed)
 				    else
 				      if RE.CurrentMap == SS then
 				        _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,1,0,0.3)
-							elseif RE.CurrentMap == BFW and Contains(RE.BFWWalls, v.texture) then
+							elseif RE.CurrentMap == CI or (RE.CurrentMap == BFW and Contains(RE.BFWWalls, v.texture)) then
 								_G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,0,0)
 				      else
 				        _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,0,0.3)
@@ -1191,7 +1201,7 @@ function RE:UnitOnEnterPOI(self)
 	local tooltipText = ""
 	local battlefieldPOI = _G[self:GetName()]
 
-	if RE.CurrentMap == BFW and Contains(RE.BFWWalls, RE.POINodes[battlefieldPOI.name].texture) then
+	if RE.CurrentMap == CI or (RE.CurrentMap == BFW and Contains(RE.BFWWalls, RE.POINodes[battlefieldPOI.name].texture)) then
 		return
 	end
 
@@ -1225,7 +1235,7 @@ function RE:UnitOnEnterPOI(self)
 end
 
 function RE:OnClickPOI(self)
-	if RE.CurrentMap == BFW and Contains(RE.BFWWalls, RE.POINodes[self.name].texture) then
+	if RE.CurrentMap == CI or (RE.CurrentMap == BFW and Contains(RE.BFWWalls, RE.POINodes[self.name].texture)) then
 		return
 	end
 
@@ -1320,7 +1330,7 @@ function RE:Create()
 		RE.DefaultTimer = 60
 	end
 
-	if Contains({AV, BFG, IOC, AB, DG, SS, EOTS, TOK, BFW}, RE.CurrentMap) then
+	if Contains({AV, BFG, IOC, AB, DG, SS, EOTS, TOK, BFW, CI}, RE.CurrentMap) then
 		RE.CareAboutNodes = true
 		if RE.CurrentMap == SS then
 			_G.REPorterFrame:RegisterEvent("VIGNETTES_UPDATED")
@@ -1342,7 +1352,7 @@ function RE:Create()
 	else
 		RE.CareAboutGates = false
 	end
-	if Contains({WG, TP, EOTS, TOK}, RE.CurrentMap) or (RE.CurrentMap == DG and RE.IsBrawl) then
+	if Contains({WG, TP, EOTS, TOK, CI}, RE.CurrentMap) or (RE.CurrentMap == DG and RE.IsBrawl) then
 		RE.CareAboutFlags = true
 	else
 		RE.CareAboutFlags = false
