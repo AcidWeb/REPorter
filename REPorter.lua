@@ -111,6 +111,7 @@ local ABJ = 1383
 local SS = 907
 local BFW = 1334
 local CI = 1335
+local ASH = 1478
 
 RE.POIIconSize = 30
 RE.POINumber = 40
@@ -173,7 +174,8 @@ RE.MapSettings = {
 	[TMVS] = {["PlayerNumber"] = 40},
 	[SS] = {["PlayerNumber"] = 10, ["NodeTimer"] = 40},
 	[BFW] = {["PlayerNumber"] = 40},
-	[CI] = {["PlayerNumber"] = 10}
+	[CI] = {["PlayerNumber"] = 10},
+	[ASH] = {["PlayerNumber"] = 40}
 }
 RE.ZonesWithoutSubZones = {
 	[DG] = true,
@@ -290,7 +292,8 @@ RE.DefaultConfig = {
 			[TMVS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 370, ["mx"] = -2, ["my"] = -22, ["ms"] = 1},
 			[SS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 360, ["wh"] = 385, ["mx"] = 66, ["my"] = -63, ["ms"] = 1},
 			[BFW] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 500, ["wh"] = 320, ["mx"] = -3, ["my"] = -84, ["ms"] = 1},
-			[CI] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 270, ["wh"] = 305, ["mx"] = -30, ["my"] = 55, ["ms"] = 1}
+			[CI] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 270, ["wh"] = 305, ["mx"] = -30, ["my"] = 55, ["ms"] = 1},
+			[ASH] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 270, ["wh"] = 330, ["mx"] = 15, ["my"] = -40, ["ms"] = 1}
 		}
 	}
 }
@@ -403,7 +406,8 @@ RE.AceConfig = {
 						[TMVS] = GetMapInfo(TMVS).name,
 						[SS] = GetMapInfo(SS).name,
 						[BFW] = GetMapInfo(BFW).name,
-						[CI] = GetMapInfo(CI).name
+						[CI] = GetMapInfo(CI).name,
+						[ASH] = GetMapInfo(ASH).name
 					},
 					set = function(_, val) RE.LastMap = val; RE:ShowDummyMap(val) end,
 					get = function(_) return RE.LastMap end
@@ -1330,7 +1334,7 @@ function RE:Create()
 		RE.DefaultTimer = 60
 	end
 
-	if Contains({AV, BFG, IOC, AB, DG, SS, EOTS, TOK, BFW, CI}, RE.CurrentMap) then
+	if Contains({AV, BFG, IOC, AB, DG, SS, EOTS, TOK, BFW, CI, ASH}, RE.CurrentMap) then
 		RE.CareAboutNodes = true
 		if RE.CurrentMap == SS then
 			_G.REPorterFrame:RegisterEvent("VIGNETTES_UPDATED")
