@@ -57,7 +57,7 @@ local IsShiftKeyDown = _G.IsShiftKeyDown
 local IsAltKeyDown = _G.IsAltKeyDown
 local IsControlKeyDown = _G.IsControlKeyDown
 local IsInBrawl = _G.C_PvP.IsInBrawl
-local IsRatedBattleground = _G.IsRatedBattleground
+local IsRatedBattleground = _G.C_PvP.IsRatedBattleground
 local GetTime = _G.GetTime
 local GetBattlefieldInstanceRunTime = _G.GetBattlefieldInstanceRunTime
 local GetMapInfo = _G.C_Map.GetMapInfo
@@ -157,7 +157,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 250
+RE.AddonVersionCheck = 251
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
