@@ -131,7 +131,7 @@ local BFG = 275
 local EOTSR = 397
 local TOK = 417
 local SM = 423
-local DG = 519
+local DG = 1576
 local TMVS = 623
 local ABW = 837
 local ABJ = 1383
@@ -185,7 +185,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 252
+RE.AddonVersionCheck = 260
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -198,7 +198,7 @@ RE.MapSettings = {
 	[TP] = {["PlayerNumber"] = 10},
 	[TOK] = {["PlayerNumber"] = 10},
 	[SM] = {["PlayerNumber"] = 10, ["WidgetID"] = 1687},
-	[DG] = {["PlayerNumber"] = 15, ["NodeTimer"] = 61, ["WidgetID"] = 1671},
+	[DG] = {["PlayerNumber"] = 15, ["NodeTimer"] = 60, ["WidgetID"] = 2074},
 	[TMVS] = {["PlayerNumber"] = 40},
 	[SS] = {["PlayerNumber"] = 10, ["NodeTimer"] = 40},
 	[BFW] = {["PlayerNumber"] = 40},
@@ -206,11 +206,41 @@ RE.MapSettings = {
 	[ASH] = {["PlayerNumber"] = 40}
 }
 RE.ZonesWithoutSubZones = {
-	[DG] = true,
 	[SM] = true,
 	[TOK] = true,
 	[TMVS] = true,
 	[CI] = true
+}
+RE.POICaptureStatus = {
+	[4] = FACTION_ALLIANCE, -- Graveyard
+	[9] = FACTION_ALLIANCE, -- Tower/Keep
+	[12] = FACTION_HORDE, -- Tower/Keep
+	[14] = FACTION_HORDE, -- Graveyard
+	[17] = FACTION_ALLIANCE, -- Mine/Quarry
+	[19] = FACTION_HORDE, -- Mine/Quarry
+	[22] = FACTION_ALLIANCE, -- Lumbermill
+	[24] = FACTION_HORDE, -- Lumbermill
+	[27] = FACTION_ALLIANCE, -- Waterworks/Blacksmith
+	[29] = FACTION_HORDE, -- Waterworks/Blacksmith
+	[32] = FACTION_ALLIANCE, -- Farm
+	[34] = FACTION_HORDE, -- Farm
+	[37] = FACTION_ALLIANCE, -- Stables
+	[39] = FACTION_HORDE, -- Stables
+	[137] = FACTION_ALLIANCE, -- Workshop
+	[139] = FACTION_HORDE, -- Workshop
+	[142] = FACTION_ALLIANCE, -- Air
+	[144] = FACTION_HORDE, -- Air
+	[147] = FACTION_ALLIANCE, -- Dock
+	[149] = FACTION_HORDE, -- Dock
+	[152] = FACTION_ALLIANCE, -- Oil
+	[154] = FACTION_HORDE, -- Oil
+	[208] = FACTION_ALLIANCE, -- Market
+	[209] = FACTION_HORDE, -- Market
+	[213] = FACTION_ALLIANCE, -- Ruins
+	[214] = FACTION_HORDE, -- Ruins
+	[218] = FACTION_ALLIANCE, -- Shrine
+	[219] = FACTION_HORDE, -- Shrine
+	[1001] = "" -- Azerite Node
 }
 RE.AzeriteNodes = {
 	[0.391] = {[0.750] = L["Overlook"]},
@@ -227,26 +257,6 @@ RE.AzeriteNodes = {
 	[0.349] = {[0.252] = L["Tower"]}
 }
 RE.AtlasNameToTextureIndex = {
-	["dg_capPts-neutralIcon1-state1"] = 16,
-	["dg_capPts-neutralIcon2-state1"] = 16,
-	["dg_capPts-neutralIcon3-state1"] = 16,
-	["dg_capPts-neutralIcon4-state1"] = 16,
-	["dg_capPts-leftIcon1-state1"] = 17,
-	["dg_capPts-leftIcon1-state2"] = 18,
-	["dg_capPts-leftIcon2-state1"] = 17,
-	["dg_capPts-leftIcon2-state2"] = 18,
-	["dg_capPts-leftIcon3-state1"] = 17,
-	["dg_capPts-leftIcon3-state2"] = 18,
-	["dg_capPts-leftIcon4-state1"] = 17,
-	["dg_capPts-leftIcon4-state2"] = 18,
-	["dg_capPts-rightIcon1-state1"] = 19,
-	["dg_capPts-rightIcon1-state2"] = 20,
-	["dg_capPts-rightIcon2-state1"] = 19,
-	["dg_capPts-rightIcon2-state2"] = 20,
-	["dg_capPts-rightIcon3-state1"] = 19,
-	["dg_capPts-rightIcon3-state2"] = 20,
-	["dg_capPts-rightIcon4-state1"] = 19,
-	["dg_capPts-rightIcon4-state2"] = 20,
 	["eots_capPts-neutralIcon1-state1"] = 6,
 	["eots_capPts-neutralIcon2-state1"] = 6,
 	["eots_capPts-neutralIcon3-state1"] = 6,
@@ -316,7 +326,7 @@ RE.DefaultConfig = {
 			[TP] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 245, ["wh"] = 460, ["mx"] = 1, ["my"] = -33, ["ms"] = 1},
 			[TOK] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 390, ["wh"] = 250, ["mx"] = 19, ["my"] = -21, ["ms"] = 1},
 			[SM] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 460, ["wh"] = 350, ["mx"] = 7, ["my"] = -43, ["ms"] = 1},
-			[DG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 520, ["wh"] = 385, ["mx"] = -10, ["my"] = -45, ["ms"] = 1},
+			[DG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 555, ["wh"] = 470, ["mx"] = -15, ["my"] = -35, ["ms"] = 1},
 			[TMVS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 220, ["wh"] = 370, ["mx"] = -2, ["my"] = -22, ["ms"] = 1},
 			[SS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 360, ["wh"] = 385, ["mx"] = 66, ["my"] = -63, ["ms"] = 1},
 			[BFW] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 500, ["wh"] = 320, ["mx"] = -3, ["my"] = -84, ["ms"] = 1},
@@ -1386,12 +1396,12 @@ function RE:Create()
 	else
 		RE.CareAboutGates = false
 	end
-	if Contains({WG, TP, EOTS, TOK, CI}, RE.CurrentMap) or (RE.CurrentMap == DG and RE.IsBrawl) then
+	if Contains({WG, TP, EOTS, TOK, CI}, RE.CurrentMap) then
 		RE.CareAboutFlags = true
 	else
 		RE.CareAboutFlags = false
 	end
-	if Contains({IOC, SM, DG, BFW}, RE.CurrentMap) then
+	if Contains({IOC, SM, BFW}, RE.CurrentMap) then
 		RE.CareAboutVehicles = true
 	else
 		RE.CareAboutVehicles = false
@@ -1404,132 +1414,10 @@ function RE:Create()
 end
 
 function RE:NodeChange(newTexture, nodeName)
-	TIMER:CancelTimer(RE.POINodes[nodeName].timer)
-	if RE.CurrentMap == AV then
-		if newTexture == 9 then -- Tower Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 12 then -- Tower Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		elseif newTexture == 4 then -- GY Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 14 then -- GY Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		end
-	elseif RE.CurrentMap == EOTS then
-		if newTexture == 9 then -- Tower Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 12 then -- Tower Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		end
-	elseif RE.CurrentMap == BFG then
-		if newTexture == 9 then -- Lighthouse Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 12 then -- Lighthouse Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		elseif newTexture == 27 then -- Waterworks Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 29 then -- Waterworks Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		elseif newTexture == 17 then -- Mine Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 19 then -- Mine Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		end
-	elseif RE.CurrentMap == IOC then
-		if newTexture == 9 then -- Keep Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 12 then -- Keep Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		elseif newTexture == 152 then -- Oil Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 154 then -- Oil Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		elseif newTexture == 147 then -- Dock Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 149 then -- Dock Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		elseif newTexture == 137 then -- Workshop Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 139 then -- Workshop Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		elseif newTexture == 142 then -- Air Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 144 then -- Air Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		elseif newTexture == 17 then -- Quary Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 19 then -- Quary Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		end
-	elseif RE.CurrentMap == AB then
-		if newTexture == 32 then -- Farm Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 34 then -- Farm Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		elseif newTexture == 17 then -- Mine Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 19 then -- Mine Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		elseif newTexture == 37 then -- Stables Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 39 then -- Stables Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		elseif newTexture == 27 then -- Blacksmith Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 29 then -- Blacksmith Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		elseif newTexture == 22 then -- Lumbermill Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 24 then -- Lumbermill Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		end
-	elseif RE.CurrentMap == DG then
-		if newTexture == 17 then -- Mine Ally
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_ALLIANCE
-		elseif newTexture == 19 then -- Mine Horde
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = FACTION_HORDE
-		end
-	elseif RE.CurrentMap == SS then
-		if newTexture == 1001 then
-			RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
-			RE.POINodes[nodeName].isCapturing = ""
-		end
+	if RE.POICaptureStatus[newTexture] ~= nil then
+		TIMER:CancelTimer(RE.POINodes[nodeName].timer)
+		RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
+		RE.POINodes[nodeName].isCapturing = RE.POICaptureStatus[newTexture]
 	end
 end
 
