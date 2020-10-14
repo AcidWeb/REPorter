@@ -480,13 +480,6 @@ RE.AceConfig = {
 	}
 }
 
-local function ElvUISwag(sender)
-  if sender == "Livarax-BurningLegion" then
-    return [[|TInterface\PvPRankBadges\PvPRank09:0|t ]]
-  end
-  return nil
-end
-
 -- *** Auxiliary functions
 function RE:BlinkPOI()
 	if RE.BlinkPOIValue + 0.03 <= RE.BlinkPOIMax and RE.BlinkPOIUp then
@@ -695,9 +688,6 @@ function RE:OnEvent(self, event, ...)
 		end)
 
 		RE.IsSkinned = _G.AddOnSkins and _G.AddOnSkins[1]:CheckOption("REPorter") or false
-		if ElvUI then
-			ElvUI[1]:GetModule("Chat"):AddPluginIcons(ElvUISwag)
-		end
 
 		self:UnregisterEvent("ADDON_LOADED")
 	elseif event == "CHAT_MSG_ADDON" and ... == "REPorter" then
