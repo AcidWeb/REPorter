@@ -1,15 +1,16 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\..\FrameXML\UI.xsd">
 
+	<Script file="AntiTaint.lua"/>
 	<Script file="ElvUI.lua"/>
 	<Script file="REPorter.lua"/>
 
-	<Frame name="REPorterPOITimerTemplate" parent="REPorterFrameCorePOITimers" virtual="true">
+	<Frame name="REPorterPOITimerTemplate" inherits="BackdropTemplate" parent="REPorterFrameCorePOITimers" virtual="true">
 		<Size>
 			<AbsDimension x="30" y="17"/>
 		</Size>
-		<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" tile="true">
-			<TileSize val="32"/>
-		</Backdrop>
+		<KeyValues>
+			<KeyValue key="backdropInfo" value="REPorter.BackdropB" type="global"/>
+    	</KeyValues>
 		<Layers>
 			<Layer>
 				<FontString name="$ParentCaption" justifyH="CENTER" inherits="SystemFont_Shadow_Small">
@@ -64,10 +65,10 @@
 			<OnEvent>REPorter:OnEvent(self, event, ...)</OnEvent>
 		</Scripts>
 		<Frames>
-			<Frame name="$parentBorder" frameLevel="4">
-				<Backdrop edgeFile="Interface\FriendsFrame\UI-Toast-Border">
-					<EdgeSize val="12"/>
-				</Backdrop>
+			<Frame name="$parentBorder" inherits="BackdropTemplate" frameLevel="4">
+				<KeyValues>
+					<KeyValue key="backdropInfo" value="REPorter.BackdropA" type="global"/>
+    			</KeyValues>
 				<Anchors>
 					<Anchor point="TOPLEFT">
 						<Offset>
@@ -257,16 +258,16 @@
 					</Frame>
 				</Frames>
 			</Frame>
-			<Frame name="$parentBG" enableMouse="true" frameLevel="2">
-				<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" tile="true">
-					<TileSize val="32"/>
-				</Backdrop>
+			<Frame name="$parentBG" inherits="BackdropTemplate" enableMouse="true" frameLevel="2">
+				<KeyValues>
+					<KeyValue key="backdropInfo" value="REPorter.BackdropB" type="global"/>
+				</KeyValues>
 				<Anchors>
 					<Anchor point="TOPLEFT"/>
 					<Anchor point="BOTTOMRIGHT"/>
 				</Anchors>
 				<Scripts>
-					<OnLoad>self:RegisterForDrag("LeftButton")</OnLoad>
+					<OnLoad inherit="prepend">self:RegisterForDrag("LeftButton")</OnLoad>
 					<OnDragStart>if not REPorter.Settings.profile.Locked then REPorter:OnDragStart(self) end</OnDragStart>
 					<OnDragStop>REPorterFrameCoreAnchor:StopMovingOrSizing(); REPorterFrame:StopMovingOrSizing(); REPorter:OnDragStop(self)</OnDragStop>
 					<OnMouseWheel>if not REPorter.Settings.profile.Locked then REPorter:OnMouseWheel(delta) end</OnMouseWheel>
@@ -276,14 +277,10 @@
 		</Frames>
 	</Frame>
 
-	<Frame name="REPorterBar" parent="REPorterFrame" hidden="true" movable="true" clampedToScreen="true">
-		<Backdrop bgFile="Interface\TutorialFrame\TutorialFrameBackground" edgeFile="Interface\FriendsFrame\UI-Toast-Border" tile="true">
-			<EdgeSize val="12"/>
-			<TileSize val="32"/>
-			<BackgroundInsets>
-				<AbsInset left="5" right="5" top="5" bottom="5"/>
-			</BackgroundInsets>
-		</Backdrop>
+	<Frame name="REPorterBar" inherits="BackdropTemplate" parent="REPorterFrame" hidden="true" movable="true" clampedToScreen="true">
+		<KeyValues>
+			<KeyValue key="backdropInfo" value="REPorter.BackdropC" type="global"/>
+		</KeyValues>
 		<Frames>
 			<Button name="$parentB1" text="1" inherits="UIPanelButtonTemplate">
 				<Size>
@@ -351,7 +348,7 @@
 			</Button>
 		</Frames>
 		<Scripts>
-			<OnLoad>self:RegisterForDrag("LeftButton")</OnLoad>
+			<OnLoad inherit="prepend">self:RegisterForDrag("LeftButton")</OnLoad>
 			<OnDragStart>if not REPorter.Settings.profile.Locked and (REPorter.Settings.profile.BarHandle == 13 or REPorter.Settings.profile.BarHandle == 14) then self:StartMoving() end</OnDragStart>
 			<OnDragStop>REPorter.Settings.profile.BarX, REPorter.Settings.profile.BarY = self:GetCenter(); self:StopMovingOrSizing()</OnDragStop>
 			<OnEnter>REPorter:OnEnterBar()</OnEnter>
@@ -361,7 +358,7 @@
 
 	<Frame name="REPorterFrameEstimator" parent="UIWidgetTopCenterContainerFrame" hidden="true">
 		<Size>
-			<AbsDimension x="100" y="50"/>
+			<AbsDimension x="100" y="40"/>
 		</Size>
 		<Layers>
 			<Layer>

@@ -5,76 +5,6 @@ local TOAST = LibStub("LibToast-1.0")
 local TIMER = LibStub("AceTimer-3.0")
 _G.REPorter = RE
 
--- UIDropDownMenu taint workaround by foxlit
-if (UIDROPDOWNMENU_OPEN_PATCH_VERSION or 0) < 1 then
-	UIDROPDOWNMENU_OPEN_PATCH_VERSION = 1
-	hooksecurefunc("UIDropDownMenu_InitializeHelper", function(frame)
-		if UIDROPDOWNMENU_OPEN_PATCH_VERSION ~= 1 then
-			return
-		end
-		if UIDROPDOWNMENU_OPEN_MENU and UIDROPDOWNMENU_OPEN_MENU ~= frame
-		   and not issecurevariable(UIDROPDOWNMENU_OPEN_MENU, "displayMode") then
-			UIDROPDOWNMENU_OPEN_MENU = nil
-			local t, f, prefix, i = _G, issecurevariable, " \0", 1
-			repeat
-				i, t[prefix .. i] = i + 1
-			until f("UIDROPDOWNMENU_OPEN_MENU")
-		end
-	end)
-end
-if (COMMUNITY_UIDD_REFRESH_PATCH_VERSION or 0) < 2 then
-	COMMUNITY_UIDD_REFRESH_PATCH_VERSION = 2
-	if select(4, GetBuildInfo()) > 8e4 then
-		local function CleanDropdowns()
-			if COMMUNITY_UIDD_REFRESH_PATCH_VERSION ~= 2 then
-				return
-			end
-			local f, f2 = FriendsFrame, FriendsTabHeader
-			local s = f:IsShown()
-			f:Hide()
-			f:Show()
-			if not f2:IsShown() then
-				f2:Show()
-				f2:Hide()
-			end
-			if not s then
-				f:Hide()
-			end
-		end
-		hooksecurefunc("Communities_LoadUI", CleanDropdowns)
-		hooksecurefunc("SetCVar", function(n)
-			if n == "lastSelectedClubId" then
-				CleanDropdowns()
-			end
-		end)
-	end
-end
-if (UIDD_REFRESH_OVERREAD_PATCH_VERSION or 0) < 1 then
-	UIDD_REFRESH_OVERREAD_PATCH_VERSION = 1
-	local function drop(t, k)
-		local c = 42
-		t[k] = nil
-		while not issecurevariable(t, k) do
-			if t[c] == nil then
-				t[c] = nil
-			end
-			c = c + 1
-		end
-	end
-	hooksecurefunc("UIDropDownMenu_InitializeHelper", function()
-		if UIDD_REFRESH_OVERREAD_PATCH_VERSION ~= 1 then
-			return
-		end
-		for i=1,UIDROPDOWNMENU_MAXLEVELS do
-			for j=1,UIDROPDOWNMENU_MAXBUTTONS do
-				local b, _ = _G["DropDownList" .. i .. "Button" .. j]
-				_ = issecurevariable(b, "checked")      or drop(b, "checked")
-				_ = issecurevariable(b, "notCheckable") or drop(b, "notCheckable")
-			end
-		end
-	end)
-end
-
 local select, pairs, strsplit, tonumber, strfind, print, strupper, next, wipe, floor, ceil = _G.select, _G.pairs, _G.strsplit, _G.tonumber, _G.strfind, _G.print, _G.strupper, _G.next, _G.wipe, _G.floor, _G.ceil
 local CreateFrame = _G.CreateFrame
 local CreateFramePool = _G.CreateFramePool
@@ -99,8 +29,7 @@ local GetVignettePosition = _G.C_VignetteInfo.GetVignettePosition
 local GetNumBattlefieldFlagPositions = _G.GetNumBattlefieldFlagPositions
 local GetBattlefieldFlagPosition = _G.GetBattlefieldFlagPosition
 local GetNumBattlefieldVehicles = _G.GetNumBattlefieldVehicles
-local GetBattlefieldVehicleInfo = _G.GetBattlefieldVehicleInfo
-local GetVehicleTexture = _G.VehicleUtil.GetVehicleTexture
+local GetBattlefieldVehicleInfo = _G.C_PvP.GetBattlefieldVehicleInfo
 local GetSubZoneText = _G.GetSubZoneText
 local GetClassColor = _G.GetClassColor
 local GetRaidTargetIndex = _G.GetRaidTargetIndex
@@ -119,7 +48,6 @@ local SendAddonMessage = _G.C_ChatInfo.SendAddonMessage
 local CombatLogGetCurrentEventInfo = _G.CombatLogGetCurrentEventInfo
 local RegisterAddonMessagePrefix = _G.C_ChatInfo.RegisterAddonMessagePrefix
 local Contains = _G.tContains
-local ElvUI = _G.ElvUI
 
 local AV = 91
 local WG = 1339
@@ -149,6 +77,7 @@ RE.CurrentMap = -1
 RE.NeedRefresh = false
 RE.UpdateInProgress = false
 RE.BGVehicles = {}
+RE.BGVehicleInfo = {}
 RE.POINodes = {}
 RE.POIInfo = {}
 RE.POIList = {}
@@ -185,7 +114,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 260
+RE.AddonVersionCheck = 270
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -212,34 +141,34 @@ RE.ZonesWithoutSubZones = {
 	[CI] = true
 }
 RE.POICaptureStatus = {
-	[4] = FACTION_ALLIANCE, -- Graveyard
-	[9] = FACTION_ALLIANCE, -- Tower/Keep
-	[12] = FACTION_HORDE, -- Tower/Keep
-	[14] = FACTION_HORDE, -- Graveyard
-	[17] = FACTION_ALLIANCE, -- Mine/Quarry
-	[19] = FACTION_HORDE, -- Mine/Quarry
-	[22] = FACTION_ALLIANCE, -- Lumbermill
-	[24] = FACTION_HORDE, -- Lumbermill
-	[27] = FACTION_ALLIANCE, -- Waterworks/Blacksmith
-	[29] = FACTION_HORDE, -- Waterworks/Blacksmith
-	[32] = FACTION_ALLIANCE, -- Farm
-	[34] = FACTION_HORDE, -- Farm
-	[37] = FACTION_ALLIANCE, -- Stables
-	[39] = FACTION_HORDE, -- Stables
-	[137] = FACTION_ALLIANCE, -- Workshop
-	[139] = FACTION_HORDE, -- Workshop
-	[142] = FACTION_ALLIANCE, -- Air
-	[144] = FACTION_HORDE, -- Air
-	[147] = FACTION_ALLIANCE, -- Dock
-	[149] = FACTION_HORDE, -- Dock
-	[152] = FACTION_ALLIANCE, -- Oil
-	[154] = FACTION_HORDE, -- Oil
-	[208] = FACTION_ALLIANCE, -- Market
-	[209] = FACTION_HORDE, -- Market
-	[213] = FACTION_ALLIANCE, -- Ruins
-	[214] = FACTION_HORDE, -- Ruins
-	[218] = FACTION_ALLIANCE, -- Shrine
-	[219] = FACTION_HORDE, -- Shrine
+	[4] = _G.FACTION_ALLIANCE, -- Graveyard
+	[9] = _G.FACTION_ALLIANCE, -- Tower/Keep
+	[12] = _G.FACTION_HORDE, -- Tower/Keep
+	[14] = _G.FACTION_HORDE, -- Graveyard
+	[17] = _G.FACTION_ALLIANCE, -- Mine/Quarry
+	[19] = _G.FACTION_HORDE, -- Mine/Quarry
+	[22] = _G.FACTION_ALLIANCE, -- Lumbermill
+	[24] = _G.FACTION_HORDE, -- Lumbermill
+	[27] = _G.FACTION_ALLIANCE, -- Waterworks/Blacksmith
+	[29] = _G.FACTION_HORDE, -- Waterworks/Blacksmith
+	[32] = _G.FACTION_ALLIANCE, -- Farm
+	[34] = _G.FACTION_HORDE, -- Farm
+	[37] = _G.FACTION_ALLIANCE, -- Stables
+	[39] = _G.FACTION_HORDE, -- Stables
+	[137] = _G.FACTION_ALLIANCE, -- Workshop
+	[139] = _G.FACTION_HORDE, -- Workshop
+	[142] = _G.FACTION_ALLIANCE, -- Air
+	[144] = _G.FACTION_HORDE, -- Air
+	[147] = _G.FACTION_ALLIANCE, -- Dock
+	[149] = _G.FACTION_HORDE, -- Dock
+	[152] = _G.FACTION_ALLIANCE, -- Oil
+	[154] = _G.FACTION_HORDE, -- Oil
+	[208] = _G.FACTION_ALLIANCE, -- Market
+	[209] = _G.FACTION_HORDE, -- Market
+	[213] = _G.FACTION_ALLIANCE, -- Ruins
+	[214] = _G.FACTION_HORDE, -- Ruins
+	[218] = _G.FACTION_ALLIANCE, -- Shrine
+	[219] = _G.FACTION_HORDE, -- Shrine
 	[1001] = "" -- Azerite Node
 }
 RE.AzeriteNodes = {
@@ -285,6 +214,24 @@ RE.AtlasNameToTextureIndex = {
 }
 RE.BFWWalls = {86, 87, 88, 89, 90, 91, 95, 96, 97, 98, 99, 100}
 
+RE.BackdropA = {
+	edgeFile = "Interface\\FriendsFrame\\UI-Toast-Border",
+	edgeSize = 12,
+}
+RE.BackdropB = {
+	bgFile = "Interface\\TutorialFrame\\TutorialFrameBackground",
+	tile = true,
+	tileSize = 32,
+}
+RE.BackdropC = {
+	edgeFile = "Interface\\FriendsFrame\\UI-Toast-Border",
+	bgFile = "Interface\\TutorialFrame\\TutorialFrameBackground",
+	tile = true,
+	tileSize = 32,
+	edgeSize = 12,
+	insets = { left = 5, right = 5, top = 5, bottom = 5 },
+}
+
 RE.POIDropDown = {
 	{ text = L["Incoming"], hasArrow = true, notCheckable = true,
 	menuList = {
@@ -295,10 +242,10 @@ RE.POIDropDown = {
 		{ text = "5", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(5, true); _G.CloseDropDownMenus() end },
 		{ text = "5+", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(6, true); _G.CloseDropDownMenus() end }
 	} },
-	{ text = HELP_LABEL, notCheckable = true, func = function() RE:BigButton(true, true) end },
+	{ text = _G.HELP_LABEL, notCheckable = true, func = function() RE:BigButton(true, true) end },
 	{ text = L["Clear"], notCheckable = true, func = function() RE:BigButton(false, true) end },
 	{ text = "", notCheckable = true, disabled = true },
-	{ text = ATTACK, notCheckable = true, func = function() RE:ReportDropDownClick(ATTACK) end },
+	{ text = _G.ATTACK, notCheckable = true, func = function() RE:ReportDropDownClick(_G.ATTACK) end },
 	{ text = L["Guard"], notCheckable = true, func = function() RE:ReportDropDownClick(L["Guard"]) end },
 	{ text = L["Heavily defended"], notCheckable = true, func = function() RE:ReportDropDownClick(L["Heavily defended"]) end },
 	{ text = L["Losing"], notCheckable = true, func = function() RE:ReportDropDownClick(L["Losing"]) end },
@@ -354,7 +301,7 @@ RE.AceConfig = {
 	args = {
 		Options = {
 			type = "group",
-			name = OPTIONS,
+			name = _G.OPTIONS,
 			args = {
 				Locked = {
 					name = L["Lock map"],
@@ -424,7 +371,7 @@ RE.AceConfig = {
 					get = function(_) return RE.Settings.profile.BarHandle end
 				},
 				MapSettings = {
-					name = BATTLEGROUND,
+					name = _G.BATTLEGROUND,
 					desc = L["Map position is saved separately for each battleground."],
 					type = "select",
 					width = "double",
@@ -668,7 +615,7 @@ function RE:OnEvent(self, event, ...)
 		_G.BINDING_NAME_REPORTERINC4 = L["Incoming"].." 4"
 		_G.BINDING_NAME_REPORTERINC5 = L["Incoming"].." 5"
 		_G.BINDING_NAME_REPORTERINC6 = L["Incoming"].." 5+"
-		_G.BINDING_NAME_REPORTERHELP = HELP_LABEL
+		_G.BINDING_NAME_REPORTERHELP = _G.HELP_LABEL
 		_G.BINDING_NAME_REPORTERCLEAR = L["Clear"]
 		_G.REPorterBar:SetHitRectInsets(-5, -5, -5, -5)
 		_G.REPorterFrameClip:SetClipsChildren(true)
@@ -707,40 +654,40 @@ function RE:OnEvent(self, event, ...)
 		local gateID = guid:match("%-(%d-)%-%x-$")
 		if gateID == "195496" then -- Horde East
 			RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health - damage
-			if RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health < RE.IoCGateEstimator[FACTION_HORDE] then
-				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health
+			if RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health < RE.IoCGateEstimator[_G.FACTION_HORDE] then
+				RE.IoCGateEstimator[_G.FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["East"]].health
 			end
 		elseif gateID == "195494" then -- Horde Central
 			RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health - damage
-			if RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health < RE.IoCGateEstimator[FACTION_HORDE] then
-				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health
+			if RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health < RE.IoCGateEstimator[_G.FACTION_HORDE] then
+				RE.IoCGateEstimator[_G.FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["Front"]].health
 			end
 		elseif gateID == "195495" then -- Horde West
 			RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health - damage
-			if RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health < RE.IoCGateEstimator[FACTION_HORDE] then
-				RE.IoCGateEstimator[FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health
+			if RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health < RE.IoCGateEstimator[_G.FACTION_HORDE] then
+				RE.IoCGateEstimator[_G.FACTION_HORDE] = RE.POINodes[RE.IoCHordeGateName.." - "..L["West"]].health
 			end
 		elseif gateID == "195700" then -- Alliance East
 			RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health - damage
-			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health
+			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health < RE.IoCGateEstimator[_G.FACTION_ALLIANCE] then
+				RE.IoCGateEstimator[_G.FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["East"]].health
 			end
 		elseif gateID == "195698" then -- Alliance Center
 			RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health - damage
-			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health
+			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health < RE.IoCGateEstimator[_G.FACTION_ALLIANCE] then
+				RE.IoCGateEstimator[_G.FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["Front"]].health
 			end
 		elseif gateID == "195699" then -- Alliance West
 			RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health - damage
-			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-				RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health
+			if RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health < RE.IoCGateEstimator[_G.FACTION_ALLIANCE] then
+				RE.IoCGateEstimator[_G.FACTION_ALLIANCE] = RE.POINodes[RE.IoCAllianceGateName.." - "..L["West"]].health
 			end
 		end
 
-		if RE.IoCGateEstimator[FACTION_HORDE] < RE.IoCGateEstimator[FACTION_ALLIANCE] then
-			RE.IoCGateEstimatorText = "|cFF00A9FF"..RE:Round((RE.IoCGateEstimator[FACTION_HORDE] / RE.IoCGateHealth) * 100, 0).."%|r"
-		elseif RE.IoCGateEstimator[FACTION_HORDE] > RE.IoCGateEstimator[FACTION_ALLIANCE] then
-			RE.IoCGateEstimatorText = "|cFFFF141D"..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE] / RE.IoCGateHealth) * 100, 0).."%|r"
+		if RE.IoCGateEstimator[_G.FACTION_HORDE] < RE.IoCGateEstimator[_G.FACTION_ALLIANCE] then
+			RE.IoCGateEstimatorText = "|cFF00A9FF"..RE:Round((RE.IoCGateEstimator[_G.FACTION_HORDE] / RE.IoCGateHealth) * 100, 0).."%|r"
+		elseif RE.IoCGateEstimator[_G.FACTION_HORDE] > RE.IoCGateEstimator[_G.FACTION_ALLIANCE] then
+			RE.IoCGateEstimatorText = "|cFFFF141D"..RE:Round((RE.IoCGateEstimator[_G.FACTION_ALLIANCE] / RE.IoCGateHealth) * 100, 0).."%|r"
 		else
 			RE.IoCGateEstimatorText = ""
 		end
@@ -816,7 +763,7 @@ function RE:OnPointsUpdate(RawTick)
 		if RawTick == -1 then
 			local ACart, HCart = (Data.leftBarMax - Data.leftBarValue) / 150, (Data.rightBarMax - Data.rightBarValue) / 150
 			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(ACart, 1).."|r   |cFFFF141D"..RE:Round(HCart, 1).."|r"
-			RE.SMEstimatorReport = FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(ACart, 1).." "..L["carts"].." - "..FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HCart, 1).." "..L["carts"]
+			RE.SMEstimatorReport = _G.FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(ACart, 1).." "..L["carts"].." - ".._G.FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HCart, 1).." "..L["carts"]
 			_G.REPorterFrameEstimatorText:SetText(RE.SMEstimatorText)
 		else
 			RE.EstimatorData[2] = Data.leftBarValue - RE.EstimatorData[1]
@@ -831,10 +778,10 @@ function RE:OnPointsUpdate(RawTick)
 			RE.EstimatorTicks[2] = RE.EstimatorData[4] > 0 and ceil((Data.rightBarMax - Data.rightBarValue) / RE.EstimatorData[4]) or 10000
 			TIMER:CancelTimer(RE.EstimatorTimer)
 			if RE.EstimatorTicks[1] < RE.EstimatorTicks[2] then
-				RE.IsWinning = FACTION_ALLIANCE
+				RE.IsWinning = _G.FACTION_ALLIANCE
 				RE.EstimatorTimer = TIMER:ScheduleTimer(RE.TimerNull, RE.EstimatorTicks[1] * TickTime)
 			elseif RE.EstimatorTicks[1] > RE.EstimatorTicks[2] then
-				RE.IsWinning = FACTION_HORDE
+				RE.IsWinning = _G.FACTION_HORDE
 				RE.EstimatorTimer = TIMER:ScheduleTimer(RE.TimerNull, RE.EstimatorTicks[2] * TickTime)
 			else
 				RE.IsWinning = ""
@@ -951,13 +898,13 @@ function RE:OnPOIUpdate()
 				end
 			elseif RE.CurrentMap == TOK then
 				if RE.POIInfo.areaPoiID == 2774 then
-					RE.POIInfo.name = RE.POIInfo.name.." - "..BLUE_GEM
+					RE.POIInfo.name = RE.POIInfo.name.." - ".._G.BLUE_GEM
 					colorOverride = {0, 0, 1}
 				elseif RE.POIInfo.areaPoiID == 2775 then
 					RE.POIInfo.name = RE.POIInfo.name.." - "..L["Purple"]
 					colorOverride = {0.5, 0, 0.5}
 				elseif RE.POIInfo.areaPoiID == 2776 then
-					RE.POIInfo.name = RE.POIInfo.name.." - "..RED_GEM
+					RE.POIInfo.name = RE.POIInfo.name.." - ".._G.RED_GEM
 					colorOverride = {1, 0, 0}
 				elseif RE.POIInfo.areaPoiID == 2777 then
 					RE.POIInfo.name = RE.POIInfo.name.." - "..L["Green"]
@@ -1102,12 +1049,12 @@ function RE:OnUpdate(elapsed)
 					RE.BGVehicles[i] = CreateFrame("FRAME", vehicleName, _G.REPorterFrameCorePOI, "REPorterVehicleTemplate")
 					RE.BGVehicles[i].texture = _G[vehicleName.."Texture"]
 				end
-				local vehicleX, vehicleY, unitName, isPossessed, vehicleType, orientation, isPlayer, isAlive = GetBattlefieldVehicleInfo(i, RE.CurrentMap)
-				if vehicleX and isAlive and not isPlayer and vehicleType ~= "Idle" then
-					vehicleX, vehicleY = RE:GetRealCoords(vehicleX, vehicleY)
-					RE.BGVehicles[i].texture:SetTexture(GetVehicleTexture(vehicleType, isPossessed))
-					RE.BGVehicles[i].texture:SetRotation(orientation)
-					RE.BGVehicles[i].name = unitName
+				RE.BGVehicleInfo = GetBattlefieldVehicleInfo(i, RE.CurrentMap)
+				if RE.BGVehicleInfo.x and RE.BGVehicleInfo.isAlive and not RE.BGVehicleInfo.isPlayer and RE.BGVehicleInfo.atlas ~= "Idle" then
+					local vehicleX, vehicleY = RE:GetRealCoords(RE.BGVehicleInfo.x, RE.BGVehicleInfo.y)
+					RE.BGVehicles[i].texture:SetAtlas(RE.BGVehicleInfo.atlas);
+					RE.BGVehicles[i].texture:SetRotation(RE.BGVehicleInfo.facing)
+					RE.BGVehicles[i].name = RE.BGVehicleInfo.name
 					RE.BGVehicles[i]:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", vehicleX, vehicleY)
 					if IsShiftKeyDown() and IsAltKeyDown() then
 						RE.BGVehicles[i]:SetFrameLevel(9)
@@ -1137,9 +1084,9 @@ function RE:OnUpdate(elapsed)
 				  local battlefieldPOIName = "REPorterFrameCorePOI"..v.id
 					local battlefieldPOI = _G[battlefieldPOIName]
 				  if TIMER:TimeLeft(v.timer) == 0 then
-				    if strfind(v.status, FACTION_HORDE) then
+				    if strfind(v.status, _G.FACTION_HORDE) then
 				      _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,0.3)
-				    elseif strfind(v.status, FACTION_ALLIANCE) then
+				    elseif strfind(v.status, _G.FACTION_ALLIANCE) then
 				      _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,0.3)
 				    else
 				      if RE.CurrentMap == SS then
@@ -1172,9 +1119,9 @@ function RE:OnUpdate(elapsed)
 				    _G[battlefieldPOIName.."TextureBG"]:SetWidth(RE.POIIconSize - ((timeLeft / RE.DefaultTimer) * RE.POIIconSize))
 				    _G[battlefieldPOIName.."TextureBGofBG"]:Show()
 				    _G[battlefieldPOIName.."TextureBGofBG"]:SetWidth((timeLeft / RE.DefaultTimer) * RE.POIIconSize)
-				    if v.isCapturing == FACTION_HORDE or RE.CurrentMap == SS then
+				    if v.isCapturing == _G.FACTION_HORDE or RE.CurrentMap == SS then
 				      _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(1,0,0,RE.BlinkPOIValue)
-				    elseif v.isCapturing == FACTION_ALLIANCE then
+				    elseif v.isCapturing == _G.FACTION_ALLIANCE then
 				      _G[battlefieldPOIName.."TextureBG"]:SetColorTexture(0,0,1,RE.BlinkPOIValue)
 				    end
 				    if timeLeft <= 10 then
@@ -1194,9 +1141,9 @@ function RE:OnUpdate(elapsed)
 			end
 		end
 		if TIMER:TimeLeft(RE.EstimatorTimer) > 0 then
-			if RE.IsWinning == FACTION_ALLIANCE then
+			if RE.IsWinning == _G.FACTION_ALLIANCE then
 				_G.REPorterFrameEstimatorText:SetText("|cFF00A9FF"..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)).."|r")
-			elseif RE.IsWinning == FACTION_HORDE then
+			elseif RE.IsWinning == _G.FACTION_HORDE then
 				_G.REPorterFrameEstimatorText:SetText("|cFFFF141D"..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)).."|r")
 			else
 				_G.REPorterFrameEstimatorText:SetText("")
@@ -1340,15 +1287,15 @@ end
 function RE:Create()
 	_G.REPorterFrameCore:SetScript("OnUpdate", nil)
 	_G.REPorterFrameEstimator:ClearAllPoints()
-	_G.REPorterFrameEstimator:SetPoint("TOP", _G.UIWidgetTopCenterContainerFrame, "BOTTOM", 0, 10)
+	_G.REPorterFrameEstimator:SetPoint("TOP", _G.UIWidgetTopCenterContainerFrame, "BOTTOM")
 	RE.IsBrawl = IsInBrawl()
 	RE.IsRated = IsRatedBattleground()
 	RE.POINodes = {}
 
 	if RE.CurrentMap == IOC then
 		RE.IoCGateEstimator = {}
-		RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.IoCGateHealth
-		RE.IoCGateEstimator[FACTION_HORDE] = RE.IoCGateHealth
+		RE.IoCGateEstimator[_G.FACTION_ALLIANCE] = RE.IoCGateHealth
+		RE.IoCGateEstimator[_G.FACTION_HORDE] = RE.IoCGateHealth
 		RE.IoCGateEstimatorText = ""
 	elseif RE.CurrentMap == SM then
 		RE.SMEstimatorText = ""
@@ -1416,7 +1363,7 @@ function RE:POIStatus(POIName)
 		if TIMER:TimeLeft(RE.POINodes[POIName].timer) == 0 then
 			if RE.POINodes[POIName].health and RE.PlayedFromStart then
 				local gateHealth = RE:Round((RE.POINodes[POIName].health / RE.POINodes[POIName].maxHealth) * 100, 0)
-				return " - "..HEALTH..": "..gateHealth.."%"
+				return " - ".._G.HEALTH..": "..gateHealth.."%"
 			end
 			return ""
 		else
@@ -1433,15 +1380,15 @@ function RE:POIOwner(POIName, isReport)
 		prefix = ""
 	end
 	if RE.POINodes[POIName] then
-		if strfind(RE.POINodes[POIName].status, FACTION_HORDE) then
-			return prefix..POIName.." ("..FACTION_HORDE..")"
-		elseif strfind(RE.POINodes[POIName].status, FACTION_ALLIANCE) then
-			return prefix..POIName.." ("..FACTION_ALLIANCE..")"
+		if strfind(RE.POINodes[POIName].status, _G.FACTION_HORDE) then
+			return prefix..POIName.." (".._G.FACTION_HORDE..")"
+		elseif strfind(RE.POINodes[POIName].status, _G.FACTION_ALLIANCE) then
+			return prefix..POIName.." (".._G.FACTION_ALLIANCE..")"
 		else
-			if RE.POINodes[POIName].isCapturing == FACTION_HORDE and TIMER:TimeLeft(RE.POINodes[POIName].timer) ~= 0 then
-				return prefix..POIName.." ("..FACTION_HORDE..")"
-			elseif RE.POINodes[POIName].isCapturing == FACTION_ALLIANCE and TIMER:TimeLeft(RE.POINodes[POIName].timer) ~= 0 then
-				return prefix..POIName.." ("..FACTION_ALLIANCE..")"
+			if RE.POINodes[POIName].isCapturing == _G.FACTION_HORDE and TIMER:TimeLeft(RE.POINodes[POIName].timer) ~= 0 then
+				return prefix..POIName.." (".._G.FACTION_HORDE..")"
+			elseif RE.POINodes[POIName].isCapturing == _G.FACTION_ALLIANCE and TIMER:TimeLeft(RE.POINodes[POIName].timer) ~= 0 then
+				return prefix..POIName.." (".._G.FACTION_ALLIANCE..")"
 			else
 				return prefix..POIName
 			end
@@ -1488,7 +1435,7 @@ function RE:BigButton(isHelp, otherNode)
 		end
 		if name and name ~= "" then
 			if isHelp then
-				SendChatMessage(strupper(HELP_LABEL)..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
+				SendChatMessage(strupper(_G.HELP_LABEL)..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
 			else
 				SendChatMessage(strupper(L["Clear"])..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
 			end
@@ -1506,7 +1453,7 @@ function RE:ReportEstimator()
 	elseif RE.CurrentMap == SM and RE.SMEstimatorReport ~= "" then
 		SendChatMessage(RE.SMEstimatorReport, "INSTANCE_CHAT")
 	elseif RE.CurrentMap == IOC and RE.PlayedFromStart then
-		SendChatMessage(FACTION_ALLIANCE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_ALLIANCE] / RE.IoCGateHealth) * 100, 0).."% - "..FACTION_HORDE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[FACTION_HORDE] / RE.IoCGateHealth) * 100, 0).."%", "INSTANCE_CHAT")
+		SendChatMessage(_G.FACTION_ALLIANCE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[_G.FACTION_ALLIANCE] / RE.IoCGateHealth) * 100, 0).."% - ".._G.FACTION_HORDE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[_G.FACTION_HORDE] / RE.IoCGateHealth) * 100, 0).."%", "INSTANCE_CHAT")
 	end
 end
 
