@@ -1,7 +1,6 @@
 local _G = _G
 local _, RE = ...
 local L = LibStub("AceLocale-3.0"):GetLocale("REPorter")
-local TOAST = LibStub("LibToast-1.0")
 local TIMER = LibStub("AceTimer-3.0")
 _G.REPorter = RE
 
@@ -628,12 +627,6 @@ function RE:OnEvent(self, event, ...)
 			RE:CreatePOI(i)
 		end
 
-		TOAST:Register("REPorterToastInfo", function(toast, ...)
-			toast:SetFormattedTitle("|cFF74D06CRE|r|cFFFFFFFFPorter|r")
-			toast:SetFormattedText(...)
-			toast:SetIconTexture([[Interface\Challenges\ChallengeMode_Medal_Bronze]])
-		end)
-
 		RE.IsSkinned = _G.AddOnSkins and _G.AddOnSkins[1]:CheckOption("REPorter") or false
 
 		self:UnregisterEvent("ADDON_LOADED")
@@ -643,7 +636,7 @@ function RE:OnEvent(self, event, ...)
 
 		if REMessageEx[1] == "Version" then
 			if not RE.FoundNewVersion and tonumber(REMessageEx[2]) > RE.AddonVersionCheck then
-				TOAST:Spawn("REPorterToastInfo", L["New version released!"])
+				print("\124cFF74D06C[REPorter]\124r "..L["New version released!"])
 				RE.FoundNewVersion = true
 			end
 		end
