@@ -113,7 +113,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 270
+RE.AddonVersionCheck = 271
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -806,7 +806,7 @@ function RE:OnPOIUpdate()
 			wipe(RE.VignettePosition)
 			RE.VignetteInfo = GetVignetteInfo(RE.POIList[i]) or {}
 			RE.VignettePosition = GetVignettePosition(RE.POIList[i], RE.CurrentMap) or {}
-			if RE.VignetteInfo and RE.VignettePosition then
+			if RE.VignetteInfo and RE.VignettePosition and RE.VignettePosition.x then
 				local xZ, yZ = RE:Round(RE.VignettePosition.x, 3), RE:Round(RE.VignettePosition.y, 3)
 				RE.POIInfo = {["areaPoiID"] = RE.VignetteInfo.vignetteID, ["name"] = RE.VignetteInfo.name, ["description"] = "", ["position"] = {["x"] = RE.VignettePosition.x, ["y"] = RE.VignettePosition.y}, ["textureIndex"] = 0, ["atlasID"] = RE.VignetteInfo.atlasName}
 				if RE.CurrentMap == SS then
@@ -1344,8 +1344,8 @@ function RE:Create()
 end
 
 function RE:NodeChange(newTexture, nodeName)
+	TIMER:CancelTimer(RE.POINodes[nodeName].timer)
 	if RE.POICaptureStatus[newTexture] ~= nil then
-		TIMER:CancelTimer(RE.POINodes[nodeName].timer)
 		RE.POINodes[nodeName].timer = TIMER:ScheduleTimer(RE.TimerNull, RE.DefaultTimer)
 		RE.POINodes[nodeName].isCapturing = RE.POICaptureStatus[newTexture]
 	end
