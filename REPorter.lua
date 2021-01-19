@@ -1,6 +1,7 @@
 local _G = _G
 local _, RE = ...
 local L = LibStub("AceLocale-3.0"):GetLocale("REPorter")
+local LBS = LibStub("LibBabble-SubZone-3.0"):GetReverseLookupTable()
 local TIMER = LibStub("AceTimer-3.0")
 _G.REPorter = RE
 
@@ -113,7 +114,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 272
+RE.AddonVersionCheck = 280
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -244,12 +245,12 @@ RE.POIDropDown = {
 	{ text = _G.HELP_LABEL, notCheckable = true, func = function() RE:BigButton(true, true) end },
 	{ text = L["Clear"], notCheckable = true, func = function() RE:BigButton(false, true) end },
 	{ text = "", notCheckable = true, disabled = true },
-	{ text = _G.ATTACK, notCheckable = true, func = function() RE:ReportDropDownClick(_G.ATTACK) end },
-	{ text = L["Guard"], notCheckable = true, func = function() RE:ReportDropDownClick(L["Guard"]) end },
-	{ text = L["Heavily defended"], notCheckable = true, func = function() RE:ReportDropDownClick(L["Heavily defended"]) end },
-	{ text = L["Losing"], notCheckable = true, func = function() RE:ReportDropDownClick(L["Losing"]) end },
+	{ text = _G.ATTACK, notCheckable = true, func = function() RE:ReportDropDownClick("Attack") end },
+	{ text = L["Guard"], notCheckable = true, func = function() RE:ReportDropDownClick("Guard") end },
+	{ text = L["Heavily defended"], notCheckable = true, func = function() RE:ReportDropDownClick("Heavily defended") end },
+	{ text = L["Losing"], notCheckable = true, func = function() RE:ReportDropDownClick("Losing") end },
 	{ text = "", notCheckable = true, disabled = true },
-	{ text = L["On my way"], notCheckable = true, func = function() RE:ReportDropDownClick(L["On my way"]) end },
+	{ text = L["On my way"], notCheckable = true, func = function() RE:ReportDropDownClick("On my way") end },
 	{ text = L["Report status"], notCheckable = true, func = function() RE:ReportDropDownClick("") end }
 }
 RE.DefaultConfig = {
@@ -756,7 +757,7 @@ function RE:OnPointsUpdate(RawTick)
 		if RawTick == -1 then
 			local ACart, HCart = (Data.leftBarMax - Data.leftBarValue) / 150, (Data.rightBarMax - Data.rightBarValue) / 150
 			RE.SMEstimatorText = "|cFF00A9FF"..RE:Round(ACart, 1).."|r   |cFFFF141D"..RE:Round(HCart, 1).."|r"
-			RE.SMEstimatorReport = _G.FACTION_ALLIANCE.." "..L["victory"]..": "..RE:Round(ACart, 1).." "..L["carts"].." - ".._G.FACTION_HORDE.." "..L["victory"]..": "..RE:Round(HCart, 1).." "..L["carts"]
+			RE.SMEstimatorReport = "Alliance victory: "..RE:Round(ACart, 1).." carts - Horde victory: "..RE:Round(HCart, 1).." carts"
 			_G.REPorterFrameEstimatorText:SetText(RE.SMEstimatorText)
 		else
 			RE.EstimatorData[2] = Data.leftBarValue - RE.EstimatorData[1]
@@ -771,10 +772,10 @@ function RE:OnPointsUpdate(RawTick)
 			RE.EstimatorTicks[2] = RE.EstimatorData[4] > 0 and ceil((Data.rightBarMax - Data.rightBarValue) / RE.EstimatorData[4]) or 10000
 			TIMER:CancelTimer(RE.EstimatorTimer)
 			if RE.EstimatorTicks[1] < RE.EstimatorTicks[2] then
-				RE.IsWinning = _G.FACTION_ALLIANCE
+				RE.IsWinning = "Alliance"
 				RE.EstimatorTimer = TIMER:ScheduleTimer(RE.TimerNull, RE.EstimatorTicks[1] * TickTime)
 			elseif RE.EstimatorTicks[1] > RE.EstimatorTicks[2] then
-				RE.IsWinning = _G.FACTION_HORDE
+				RE.IsWinning = "Horde"
 				RE.EstimatorTimer = TIMER:ScheduleTimer(RE.TimerNull, RE.EstimatorTicks[2] * TickTime)
 			else
 				RE.IsWinning = ""
@@ -839,27 +840,33 @@ function RE:OnPOIUpdate()
 				if RE:CheckCoordinates(x, y, 421, -401) then
 					RE.IoCAllianceGateName = RE.POIInfo.name
 					RE.POIInfo.name = RE.POIInfo.name.." - "..L["East"]
+					RE.POIInfo.translatedName = "Alliance Gate - East"
 					RE.POIInfo.gate = true
 					x = x + 15
 				elseif RE:CheckCoordinates(x, y, 381, -401) then
 					RE.POIInfo.name = RE.POIInfo.name.." - "..L["West"]
+					RE.POIInfo.translatedName = "Alliance Gate - West"
 					RE.POIInfo.gate = true
 					x = x - 13
 				elseif RE:CheckCoordinates(x, y, 401, -384) then
 					RE.POIInfo.name = RE.POIInfo.name.." - "..L["Front"]
+					RE.POIInfo.translatedName = "Alliance Gate - Front"
 					RE.POIInfo.gate = true
 					y = y + 15
 				elseif RE:CheckCoordinates(x, y, 380, -165) then
 					RE.IoCHordeGateName = RE.POIInfo.name
 					RE.POIInfo.name = RE.POIInfo.name.." - "..L["Front"]
+					RE.POIInfo.translatedName = "Horde Gate - Front"
 					RE.POIInfo.gate = true
 					y = y - 15
 				elseif RE:CheckCoordinates(x, y, 406, -145) then
 					RE.POIInfo.name = RE.POIInfo.name.." - "..L["East"]
+					RE.POIInfo.translatedName = "Horde Gate - East"
 					RE.POIInfo.gate = true
 					x = x + 10
 				elseif RE:CheckCoordinates(x, y, 355, -145) then
 					RE.POIInfo.name = RE.POIInfo.name.." - "..L["West"]
+					RE.POIInfo.translatedName = "Horde Gate - West"
 					RE.POIInfo.gate = true
 					x = x - 10
 					y = y - 1
@@ -889,6 +896,7 @@ function RE:OnPOIUpdate()
 				elseif RE:CheckCoordinates(x, y, 385, -463) then
 					y = y - 10
 				end
+			--[[
 			elseif RE.CurrentMap == TOK then
 				if RE.POIInfo.areaPoiID == 2774 then
 					RE.POIInfo.name = RE.POIInfo.name.." - ".._G.BLUE_GEM
@@ -903,6 +911,7 @@ function RE:OnPOIUpdate()
 					RE.POIInfo.name = RE.POIInfo.name.." - "..L["Green"]
 					colorOverride = {0, 1, 0}
 				end
+			]]--
 			elseif RE.CurrentMap == BFW then
 				if Contains(RE.BFWWalls, RE.POIInfo.textureIndex) then
 					RE.POIInfo.name = RE.POIInfo.name.." "..RE.POIInfo.areaPoiID
@@ -913,6 +922,7 @@ function RE:OnPOIUpdate()
 				if RE.CurrentMap == IOC and RE.POIInfo.gate then
 					RE.POINodes[RE.POIInfo.name].health = RE.IoCGateHealth
 					RE.POINodes[RE.POIInfo.name].maxHealth = RE.IoCGateHealth
+					RE.POINodes[RE.POIInfo.name].translatedName = RE.POIInfo.translatedName
 				elseif RE.CurrentMap == SS and RE.PlayedFromStart then
 					RE:NodeChange(RE.POIInfo.textureIndex, RE.POIInfo.name)
 				end
@@ -924,6 +934,7 @@ function RE:OnPOIUpdate()
 				RE.POINodes[RE.POIInfo.name].x = x
 				RE.POINodes[RE.POIInfo.name].y = y
 				RE.POINodes[RE.POIInfo.name].active = true
+				RE.POINodes[RE.POIInfo.name].translatedName = RE.POIInfo.translatedName
 				if RE.CareAboutNodes and RE.POINodes[RE.POIInfo.name].texture and RE.POINodes[RE.POIInfo.name].texture ~= RE.POIInfo.textureIndex then
 					RE:NodeChange(RE.POIInfo.textureIndex, RE.POIInfo.name)
 				end
@@ -1134,9 +1145,9 @@ function RE:OnUpdate(elapsed)
 			end
 		end
 		if TIMER:TimeLeft(RE.EstimatorTimer) > 0 then
-			if RE.IsWinning == _G.FACTION_ALLIANCE then
+			if RE.IsWinning == "Alliance" then
 				_G.REPorterFrameEstimatorText:SetText("|cFF00A9FF"..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)).."|r")
-			elseif RE.IsWinning == _G.FACTION_HORDE then
+			elseif RE.IsWinning == "Horde" then
 				_G.REPorterFrameEstimatorText:SetText("|cFFFF141D"..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)).."|r")
 			else
 				_G.REPorterFrameEstimatorText:SetText("")
@@ -1304,7 +1315,7 @@ function RE:Create()
 		RE.DefaultTimer = 60
 	end
 
-	if Contains({AV, BFG, IOC, AB, DG, SS, EOTS, TOK, BFW, CI, ASH}, RE.CurrentMap) then
+	if Contains({AV, BFG, IOC, AB, DG, SS, EOTS, BFW, CI, ASH}, RE.CurrentMap) then
 		RE.CareAboutNodes = true
 		if RE.CurrentMap == SS then
 			_G.REPorterFrame:RegisterEvent("VIGNETTES_UPDATED")
@@ -1356,7 +1367,7 @@ function RE:POIStatus(POIName)
 		if TIMER:TimeLeft(RE.POINodes[POIName].timer) == 0 then
 			if RE.POINodes[POIName].health and RE.PlayedFromStart then
 				local gateHealth = RE:Round((RE.POINodes[POIName].health / RE.POINodes[POIName].maxHealth) * 100, 0)
-				return " - ".._G.HEALTH..": "..gateHealth.."%"
+				return " - Health: "..gateHealth.."%"
 			end
 			return ""
 		else
@@ -1372,22 +1383,26 @@ function RE:POIOwner(POIName, isReport)
 	if isReport then
 		prefix = ""
 	end
+	local TranslatedName = LBS[POIName] or POIName
 	if RE.POINodes[POIName] then
+		if RE.POINodes[POIName].translatedName then
+			TranslatedName = RE.POINodes[POIName].translatedName
+		end
 		if strfind(RE.POINodes[POIName].status, _G.FACTION_HORDE) then
-			return prefix..POIName.." (".._G.FACTION_HORDE..")"
+			return prefix..TranslatedName.." (Horde)"
 		elseif strfind(RE.POINodes[POIName].status, _G.FACTION_ALLIANCE) then
-			return prefix..POIName.." (".._G.FACTION_ALLIANCE..")"
+			return prefix..TranslatedName.." (Alliance)"
 		else
 			if RE.POINodes[POIName].isCapturing == _G.FACTION_HORDE and TIMER:TimeLeft(RE.POINodes[POIName].timer) ~= 0 then
-				return prefix..POIName.." (".._G.FACTION_HORDE..")"
+				return prefix..TranslatedName.." (Horde)"
 			elseif RE.POINodes[POIName].isCapturing == _G.FACTION_ALLIANCE and TIMER:TimeLeft(RE.POINodes[POIName].timer) ~= 0 then
-				return prefix..POIName.." (".._G.FACTION_ALLIANCE..")"
+				return prefix..TranslatedName.." (Alliance)"
 			else
-				return prefix..POIName
+				return prefix..TranslatedName
 			end
 		end
 	end
-	return prefix..POIName
+	return prefix..TranslatedName
 end
 
 function RE:SmallButton(number, otherNode)
@@ -1403,9 +1418,9 @@ function RE:SmallButton(number, otherNode)
 		local message
 		if name and name ~= "" then
 			if number < 6 then
-				message = strupper(L["Incoming"]).." "..number
+				message = strupper("Incoming").." "..number
 			else
-				message = strupper(L["Incoming"]).." 5+"
+				message = strupper("Incoming").." 5+"
 			end
 			SendChatMessage(message..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
 		else
@@ -1428,9 +1443,9 @@ function RE:BigButton(isHelp, otherNode)
 		end
 		if name and name ~= "" then
 			if isHelp then
-				SendChatMessage(strupper(_G.HELP_LABEL)..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
+				SendChatMessage(strupper("Help")..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
 			else
-				SendChatMessage(strupper(L["Clear"])..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
+				SendChatMessage(strupper("Clear")..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
 			end
 		else
 			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."])
@@ -1442,11 +1457,11 @@ end
 
 function RE:ReportEstimator()
 	if TIMER:TimeLeft(RE.EstimatorTimer) > 0 then
-		SendChatMessage(RE.IsWinning.." "..L["victory"]..": "..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)), "INSTANCE_CHAT")
+		SendChatMessage(RE.IsWinning.." victory: "..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)), "INSTANCE_CHAT")
 	elseif RE.CurrentMap == SM and RE.SMEstimatorReport ~= "" then
 		SendChatMessage(RE.SMEstimatorReport, "INSTANCE_CHAT")
 	elseif RE.CurrentMap == IOC and RE.PlayedFromStart then
-		SendChatMessage(_G.FACTION_ALLIANCE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[_G.FACTION_ALLIANCE] / RE.IoCGateHealth) * 100, 0).."% - ".._G.FACTION_HORDE.." "..L["gate"]..": "..RE:Round((RE.IoCGateEstimator[_G.FACTION_HORDE] / RE.IoCGateHealth) * 100, 0).."%", "INSTANCE_CHAT")
+		SendChatMessage("Alliance gate: "..RE:Round((RE.IoCGateEstimator[_G.FACTION_ALLIANCE] / RE.IoCGateHealth) * 100, 0).."% - Horde gate: "..RE:Round((RE.IoCGateEstimator[_G.FACTION_HORDE] / RE.IoCGateHealth) * 100, 0).."%", "INSTANCE_CHAT")
 	end
 end
 
