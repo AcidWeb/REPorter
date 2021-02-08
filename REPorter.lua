@@ -114,7 +114,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 280
+RE.AddonVersionCheck = 281
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -1054,7 +1054,7 @@ function RE:OnUpdate(elapsed)
 					RE.BGVehicles[i].texture = _G[vehicleName.."Texture"]
 				end
 				RE.BGVehicleInfo = GetBattlefieldVehicleInfo(i, RE.CurrentMap)
-				if RE.BGVehicleInfo.x and RE.BGVehicleInfo.isAlive and not RE.BGVehicleInfo.isPlayer and RE.BGVehicleInfo.atlas ~= "Idle" then
+				if RE.BGVehicleInfo and RE.BGVehicleInfo.x and RE.BGVehicleInfo.isAlive and not RE.BGVehicleInfo.isPlayer and RE.BGVehicleInfo.atlas ~= "Idle" then
 					local vehicleX, vehicleY = RE:GetRealCoords(RE.BGVehicleInfo.x, RE.BGVehicleInfo.y)
 					RE.BGVehicles[i].texture:SetAtlas(RE.BGVehicleInfo.atlas);
 					RE.BGVehicles[i].texture:SetRotation(RE.BGVehicleInfo.facing)
