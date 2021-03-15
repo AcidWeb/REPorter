@@ -210,7 +210,15 @@ RE.AtlasNameToTextureIndex = {
 	["eots_capPts-rightIcon4-state1"] = 12,
 	["eots_capPts-rightIcon4-state2"] = 10,
 	["eots_capPts-rightIcon5-state1"] = 12,
-	["eots_capPts-rightIcon5-state2"] = 10
+	["eots_capPts-rightIcon5-state2"] = 10,
+	["orbs-leftIcon1-state1"] = 45,
+	["orbs-leftIcon2-state1"] = 45,
+	["orbs-leftIcon3-state1"] = 45,
+	["orbs-leftIcon4-state1"] = 45,
+	["orbs-rightIcon1-state1"] = 45,
+	["orbs-rightIcon2-state1"] = 45,
+	["orbs-rightIcon3-state1"] = 45,
+	["orbs-rightIcon4-state1"] = 45
 }
 RE.BFWWalls = {86, 87, 88, 89, 90, 91, 95, 96, 97, 98, 99, 100}
 
@@ -896,7 +904,6 @@ function RE:OnPOIUpdate()
 				elseif RE:CheckCoordinates(x, y, 385, -463) then
 					y = y - 10
 				end
-			--[[
 			elseif RE.CurrentMap == TOK then
 				if RE.POIInfo.areaPoiID == 2774 then
 					RE.POIInfo.name = RE.POIInfo.name.." - ".._G.BLUE_GEM
@@ -911,7 +918,6 @@ function RE:OnPOIUpdate()
 					RE.POIInfo.name = RE.POIInfo.name.." - "..L["Green"]
 					colorOverride = {0, 1, 0}
 				end
-			]]--
 			elseif RE.CurrentMap == BFW then
 				if Contains(RE.BFWWalls, RE.POIInfo.textureIndex) then
 					RE.POIInfo.name = RE.POIInfo.name.." "..RE.POIInfo.areaPoiID
@@ -1315,7 +1321,7 @@ function RE:Create()
 		RE.DefaultTimer = 60
 	end
 
-	if Contains({AV, BFG, IOC, AB, DG, SS, EOTS, BFW, CI, ASH}, RE.CurrentMap) then
+	if Contains({AV, BFG, IOC, AB, DG, SS, EOTS, BFW, CI, ASH, TOK}, RE.CurrentMap) then
 		RE.CareAboutNodes = true
 		if RE.CurrentMap == SS then
 			_G.REPorterFrame:RegisterEvent("VIGNETTES_UPDATED")
