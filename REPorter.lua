@@ -259,7 +259,7 @@ RE.POIDropDown = {
 	{ text = L["Losing"], notCheckable = true, func = function() RE:ReportDropDownClick("Losing") end },
 	{ text = "", notCheckable = true, disabled = true },
 	{ text = L["On my way"], notCheckable = true, func = function() RE:ReportDropDownClick("On my way") end },
-	{ text = L["Report status"], notCheckable = true, func = function() RE:ReportDropDownClick("") end }
+	{ text = L["Report status"], notCheckable = true, func = function() RE:ReportDropDownClick("Report Status At") end }
 }
 RE.DefaultConfig = {
 	profile = {
