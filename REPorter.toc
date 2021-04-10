@@ -7,6 +7,7 @@
 ## X-Website: https://www.curseforge.com/wow/addons/reporter-battleground-map
 ## X-Curse-Project-ID: 39399
 ## X-WoWI-ID: 21089
+## X-Wago-ID: Xb6X0o6p
 
 TaintLess.xml
 Embeds.xml
