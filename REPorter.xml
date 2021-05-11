@@ -355,7 +355,7 @@
 		</Scripts>
 	</Frame>
 
-	<Frame name="REPorterFrameEstimator" parent="UIWidgetTopCenterContainerFrame" hidden="true">
+	<Frame name="REPorterFrameEstimator" parent="UIWidgetTopCenterContainerFrame" hidden="true" frameStrata="BACKGROUND">
 		<Size>
 			<AbsDimension x="100" y="40"/>
 		</Size>

@@ -114,7 +114,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 283
+RE.AddonVersionCheck = 284
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -1462,12 +1462,14 @@ function RE:BigButton(isHelp, otherNode)
 end
 
 function RE:ReportEstimator()
-	if TIMER:TimeLeft(RE.EstimatorTimer) > 0 then
-		SendChatMessage(RE.IsWinning.." victory: "..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)), "INSTANCE_CHAT")
-	elseif RE.CurrentMap == SM and RE.SMEstimatorReport ~= "" then
-		SendChatMessage(RE.SMEstimatorReport, "INSTANCE_CHAT")
-	elseif RE.CurrentMap == IOC and RE.PlayedFromStart then
-		SendChatMessage("Alliance gate: "..RE:Round((RE.IoCGateEstimator[_G.FACTION_ALLIANCE] / RE.IoCGateHealth) * 100, 0).."% - Horde gate: "..RE:Round((RE.IoCGateEstimator[_G.FACTION_HORDE] / RE.IoCGateHealth) * 100, 0).."%", "INSTANCE_CHAT")
+	if IsShiftKeyDown() then
+		if TIMER:TimeLeft(RE.EstimatorTimer) > 0 then
+			SendChatMessage(RE.IsWinning.." victory: "..RE:ShortTime(RE:Round(TIMER:TimeLeft(RE.EstimatorTimer), 0)), "INSTANCE_CHAT")
+		elseif RE.CurrentMap == SM and RE.SMEstimatorReport ~= "" then
+			SendChatMessage(RE.SMEstimatorReport, "INSTANCE_CHAT")
+		elseif RE.CurrentMap == IOC and RE.PlayedFromStart then
+			SendChatMessage("Alliance gate: "..RE:Round((RE.IoCGateEstimator[_G.FACTION_ALLIANCE] / RE.IoCGateHealth) * 100, 0).."% - Horde gate: "..RE:Round((RE.IoCGateEstimator[_G.FACTION_HORDE] / RE.IoCGateHealth) * 100, 0).."%", "INSTANCE_CHAT")
+		end
 	end
 end
 
