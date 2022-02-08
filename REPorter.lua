@@ -271,6 +271,7 @@ RE.DefaultConfig = {
 		HideMinimap = false,
 		DisplayMarks = false,
 		DisplayHealers = false,
+		UseRaidWarnings = true,
 		Map = {
 			[AB] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 325, ["wh"] = 325, ["mx"] = 16, ["my"] = -77, ["ms"] = 1},
 			[WG] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 280, ["wh"] = 460, ["mx"] = -5, ["my"] = -38, ["ms"] = 1},
@@ -352,12 +353,21 @@ RE.AceConfig = {
 					set = function(_, val) RE.Settings.profile.DisplayHealers = val; RE:UpdateConfig() end,
 					get = function(_) return RE.Settings.profile.DisplayHealers end
 				},
+				UseRaidWarnings = {
+					name = L["Use raid warnings"],
+					desc = L["When checked, INCOMING, HELP, and CLEAR alerts will also be sent as raid warnings (provided you have raid assist or lead)."],
+					type = "toggle",
+					width = "full",
+					order = 6,
+					set = function(_, val) RE.Settings.profile.UseRaidWarnings = val; RE:UpdateConfig() end,
+					get = function(_) return RE.Settings.profile.UseRaidWarnings end
+				},
 				BarHandle = {
 					name = L["Report bar location"],
 					desc = L["Anchor point of a bar with quick report buttons."],
 					type = "select",
 					width = "double",
-					order = 6,
+					order = 7,
 					values = {
 						[1] = L["Right bottom"],
 						[2] = L["Right"],
@@ -383,7 +393,7 @@ RE.AceConfig = {
 					desc = L["Map position is saved separately for each battleground."],
 					type = "select",
 					width = "double",
-					order = 7,
+					order = 8,
 					disabled = function(_) if select(2, IsInInstance()) == "pvp" then return true else return false end end,
 					values = {
 						[AB] = GetMapInfo(AB).name,
@@ -410,7 +420,7 @@ RE.AceConfig = {
 					desc = L["This option control map size."],
 					type = "range",
 					width = "double",
-					order = 8,
+					order = 9,
 					min = 0.5,
 					max = 1.5,
 					step = 0.05,
@@ -422,7 +432,7 @@ RE.AceConfig = {
 					desc = L["This option control map transparency."],
 					type = "range",
 					width = "double",
-					order = 9,
+					order = 10,
 					isPercent = true,
 					min = 0.1,
 					max = 1,
@@ -1428,18 +1438,23 @@ function RE:SmallButton(number, otherNode)
 			else
 				message = strupper("Incoming").." 5+"
 			end
-			SendChatMessage(message..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
+			message = message..RE:POIOwner(name)..RE:POIStatus(name)
+			SendChatMessage(message, "INSTANCE_CHAT")
+			if RE.Settings.profile.UseRaidWarnings then
+				SendChatMessage(message, "RAID_WARNING")
+			end
 		else
-			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."])
+			print("\124cFF74D06C[REPorter]\124r "..L["This location does not have a name. Action canceled."])
 		end
 	else
-		print("\124cFF74D06C[REPorter]\124r "..L["This addon work only on battlegrounds."])
+		print("\124cFF74D06C[REPorter]\124r "..L["This add-on only works in battlegrounds."])
 	end
 end
 
 function RE:BigButton(isHelp, otherNode)
 	if select(2, IsInInstance()) == "pvp" then
 		local name
+		local message
 		if otherNode then
 			name = RE.ClickedPOI
 		elseif RE.ZonesWithoutSubZones[RE.CurrentMap] then
@@ -1449,15 +1464,19 @@ function RE:BigButton(isHelp, otherNode)
 		end
 		if name and name ~= "" then
 			if isHelp then
-				SendChatMessage(strupper("Help")..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
+				message = strupper("Help")..RE:POIOwner(name)..RE:POIStatus(name)
 			else
-				SendChatMessage(strupper("Clear")..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
+				message = strupper("Clear")..RE:POIOwner(name)..RE:POIStatus(name)
+			end
+			SendChatMessage(message, "INSTANCE_CHAT")
+			if RE.Settings.profile.UseRaidWarnings then
+				SendChatMessage(message, "RAID_WARNING")
 			end
 		else
-			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."])
+			print("\124cFF74D06C[REPorter]\124r "..L["This location does not have a name. Action canceled."])
 		end
 	else
-		print("\124cFF74D06C[REPorter]\124r "..L["This addon work only on battlegrounds."])
+		print("\124cFF74D06C[REPorter]\124r "..L["This add-on only works in battlegrounds."])
 	end
 end
 

@@ -66,5 +66,5 @@ L["carts"] = true
 L["victory"] = true
 
 L["New version released!"] = true
-L["This location don't have name. Action canceled."] = true
-L["This addon work only on battlegrounds."] = true
+L["This location does not have a name. Action canceled."] = true
+L["This add-on only works in battlegrounds."] = true
