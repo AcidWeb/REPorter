@@ -1,4 +1,19 @@
 local L = LibStub("AceLocale-3.0"):NewLocale("REPorter", "itIT")
 if not L then return end
 
---@localization(locale="itIT", format="lua_additive_table", handle-unlocalized="ignore")@
+L["Clear"] = "Libero"
+L["East"] = "Est"
+L["Front"] = "Centrale"
+L["Guard"] = "Difendere"
+L["Heavily defended"] = "Molto difeso"
+L["Incoming"] = "Arrivano"
+L["Lock map"] = "Blocca mappa"
+L["Losing"] = "Perdiamo"
+L["Map alpha"] = "Trasparenza mappa"
+L["Map scale"] = "Scala mappa"
+L["New version released!"] = "E' disponibile una nuova versione!"
+L["Report status"] = "Riferire lo stato"
+L["This addon work only on battlegrounds."] = "Questo Addon funzione solo nei battleground."
+L["This location don't have name. Action canceled."] = "Questa posizione non ha nome. Azione cancellata."
+L["victory"] = "vittoria in"
+L["West"] = "Ovest"
