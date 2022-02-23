@@ -1,7 +1,7 @@
-## Interface: 90105
+## Interface: 90200
 ## Title: |cFF74D06CRE|rPorter
 ## Notes: Provide battleground map.
-## Version: 2.8.6
+## Version: 2.8.7
 ## Author: AcidWeb
 ## SavedVariables: REPorterSettings
 ## X-Website: https://www.curseforge.com/wow/addons/reporter-battleground-map
