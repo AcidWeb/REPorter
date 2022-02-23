@@ -1430,10 +1430,10 @@ function RE:SmallButton(number, otherNode)
 			end
 			SendChatMessage(message..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
 		else
-			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."])
+			print("\124cFF74D06C[REPorter]\124r "..L["This location does not have a name. Action canceled."])
 		end
 	else
-		print("\124cFF74D06C[REPorter]\124r "..L["This addon work only on battlegrounds."])
+		print("\124cFF74D06C[REPorter]\124r "..L["This addon only works in battlegrounds."])
 	end
 end
 
@@ -1454,10 +1454,10 @@ function RE:BigButton(isHelp, otherNode)
 				SendChatMessage(strupper("Clear")..RE:POIOwner(name)..RE:POIStatus(name), "INSTANCE_CHAT")
 			end
 		else
-			print("\124cFF74D06C[REPorter]\124r "..L["This location don't have name. Action canceled."])
+			print("\124cFF74D06C[REPorter]\124r "..L["This location does not have a name. Action canceled."])
 		end
 	else
-		print("\124cFF74D06C[REPorter]\124r "..L["This addon work only on battlegrounds."])
+		print("\124cFF74D06C[REPorter]\124r "..L["This addon only works in battlegrounds."])
 	end
 end
 

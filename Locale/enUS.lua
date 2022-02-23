@@ -24,6 +24,8 @@ L["Always display raid markers"] = true
 L["When checked player pins will be always replaced with raid markers."] = true
 L["Always highlight the healers"] = true
 L["When checked healers will always be highlighted."] = true
+L["Use raid warnings"] = true
+L["When checked alerts will also be sent as raid warnings."]  = true
 
 L["Right bottom"] = true
 L["Right"] = true
@@ -66,5 +68,5 @@ L["carts"] = true
 L["victory"] = true
 
 L["New version released!"] = true
-L["This location don't have name. Action canceled."] = true
-L["This addon work only on battlegrounds."] = true
+L["This location does not have a name. Action canceled."] = true
+L["This addon only works in battlegrounds."] = true
