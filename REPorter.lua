@@ -114,7 +114,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 287
+RE.AddonVersionCheck = 288
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -1047,6 +1047,7 @@ function RE:OnUpdate(elapsed)
 		if RE.CareAboutFlags then
 			RE.FlagsPool:ReleaseAll()
 			for i = 1, GetNumBattlefieldFlagPositions() do
+				-- TODO 10.0
 				local flagX, flagY, flagTexture = GetBattlefieldFlagPosition(i)
 				if flagX then
 					local flagFrame = RE.FlagsPool:Acquire()
