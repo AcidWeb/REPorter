@@ -22,12 +22,12 @@ local GetMapArtLayerTextures = _G.C_Map.GetMapArtLayerTextures
 local GetBestMapForUnit = _G.C_Map.GetBestMapForUnit
 local GetAreaPOIForMap = _G.C_AreaPoiInfo.GetAreaPOIForMap
 local GetAreaPOIInfo = _G.C_AreaPoiInfo.GetAreaPOIInfo
-local GetPOITextureCoords = _G.GetPOITextureCoords
+local GetPOITextureCoords = _G.C_Minimap.GetPOITextureCoords
 local GetVignettes = _G.C_VignetteInfo.GetVignettes
 local GetVignetteInfo = _G.C_VignetteInfo.GetVignetteInfo
 local GetVignettePosition = _G.C_VignetteInfo.GetVignettePosition
 local GetNumBattlefieldFlagPositions = _G.GetNumBattlefieldFlagPositions
-local GetBattlefieldFlagPosition = _G.GetBattlefieldFlagPosition
+local GetBattlefieldFlagPosition = _G.C_PvP.GetBattlefieldFlagPosition
 local GetNumBattlefieldVehicles = _G.GetNumBattlefieldVehicles
 local GetBattlefieldVehicleInfo = _G.C_PvP.GetBattlefieldVehicleInfo
 local GetSubZoneText = _G.GetSubZoneText
@@ -114,7 +114,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 289
+RE.AddonVersionCheck = 290
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -606,7 +606,7 @@ function RE:OnMouseWheel(delta)
 	end
 	newscale = RE:Round(newscale, 2)
 	_G.REPorterFrameCore:SetScale(newscale)
-	if _G.InterfaceOptionsFrame:IsShown() then
+	if _G.SettingsPanel:IsShown() then
 		RE.ConfigFrame.obj.children[1].children[1].children[8]:SetValue(newscale)
 	end
 end
@@ -622,7 +622,7 @@ function RE:OnEvent(self, event, ...)
 
 		_G.LibStub("AceConfigRegistry-3.0"):RegisterOptionsTable("REPorter", RE.AceConfig)
 		RE.ConfigFrame = _G.LibStub("AceConfigDialog-3.0"):AddToBlizOptions("REPorter", "REPorter")
-		_G.InterfaceOptionsFrame:HookScript("OnHide", function() RE:HideDummyMap(true) end)
+		_G.SettingsPanel:HookScript("OnHide", function() RE:HideDummyMap(true) end)
 		RE:UpdateConfig()
 
 		RegisterAddonMessagePrefix("REPorter")
@@ -1656,7 +1656,7 @@ function RE:ShowDummyMap(mapID)
 	RE:LoadMapSettings()
 	RE:SetupReportBar()
 	_G.REPorterFrame:Show()
-	_G.InterfaceOptionsFrame:SetFrameStrata("LOW")
+	_G.SettingsPanel:SetFrameStrata("LOW")
 end
 
 function RE:HideDummyMap(save)
@@ -1666,7 +1666,7 @@ function RE:HideDummyMap(save)
 		RE.LastMap = 0
 		_G.REPorterFrame:Hide()
 		_G.REPorterBar:Hide()
-		_G.InterfaceOptionsFrame:SetFrameStrata("HIGH")
+		_G.SettingsPanel:SetFrameStrata("HIGH")
 	end
 end
 --

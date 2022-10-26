@@ -1,7 +1,7 @@
-## Interface: 90207
+## Interface: 100000
 ## Title: |cFF74D06CRE|rPorter
 ## Notes: Provide battleground map.
-## Version: 2.8.9
+## Version: 2.9.0
 ## Author: AcidWeb
 ## SavedVariables: REPorterSettings
 ## X-WoWI-ID: 21089
