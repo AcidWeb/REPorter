@@ -15,8 +15,3 @@ externals:
 
 ignore:
   - README.md
-  - .luacheckrc
-  - Libs/CallbackHandler-1.0/CallbackHandler-1.0.xml
-  - Libs/LibBabble-SubZone-3.0/CHANGES.txt
-  - Libs/LibBabble-SubZone-3.0/LibStub
-  - Libs/LibBabble-SubZone-3.0/LibBabble-SubZone-3.0.toc

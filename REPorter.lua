@@ -1073,7 +1073,7 @@ function RE:OnUpdate(elapsed)
 				RE.BGVehicleInfo = GetBattlefieldVehicleInfo(i, RE.CurrentMap)
 				if RE.BGVehicleInfo and RE.BGVehicleInfo.x and RE.BGVehicleInfo.isAlive and not RE.BGVehicleInfo.isPlayer and RE.BGVehicleInfo.atlas ~= "Idle" then
 					local vehicleX, vehicleY = RE:GetRealCoords(RE.BGVehicleInfo.x, RE.BGVehicleInfo.y)
-					RE.BGVehicles[i].texture:SetAtlas(RE.BGVehicleInfo.atlas);
+					RE.BGVehicles[i].texture:SetAtlas(RE.BGVehicleInfo.atlas)
 					RE.BGVehicles[i].texture:SetRotation(RE.BGVehicleInfo.facing)
 					RE.BGVehicles[i].name = RE.BGVehicleInfo.name
 					RE.BGVehicles[i]:SetPoint("CENTER", "REPorterFrameCorePOI", "TOPLEFT", vehicleX, vehicleY)
