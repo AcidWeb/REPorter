@@ -114,7 +114,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 291
+RE.AddonVersionCheck = 292
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -626,7 +626,7 @@ function RE:OnEvent(self, event, ...)
 		RE:UpdateConfig()
 
 		RegisterAddonMessagePrefix("REPorter")
-		_G.BINDING_HEADER_REPORTERB = "REPorter"
+		_G.BINDING_HEADER_REPORTERB = "|cFF74D06CRE|rPorter"
 		_G.BINDING_NAME_REPORTERINC1 = L["Incoming"].." 1"
 		_G.BINDING_NAME_REPORTERINC2 = L["Incoming"].." 2"
 		_G.BINDING_NAME_REPORTERINC3 = L["Incoming"].." 3"
