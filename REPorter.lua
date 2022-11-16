@@ -114,7 +114,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 292
+RE.AddonVersionCheck = 293
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -1655,7 +1655,7 @@ function RE:ShowDummyMap(mapID)
 	RE:LoadMapSettings()
 	RE:SetupReportBar()
 	_G.REPorterFrame:Show()
-	_G.SettingsPanel:SetFrameStrata("LOW")
+	_G.REPorterFrame:SetFrameStrata("HIGH")
 end
 
 function RE:HideDummyMap(save)
@@ -1664,8 +1664,8 @@ function RE:HideDummyMap(save)
 		RE.CurrentMap = -1
 		RE.LastMap = 0
 		_G.REPorterFrame:Hide()
+		_G.REPorterFrame:SetFrameStrata("MEDIUM")
 		_G.REPorterBar:Hide()
-		_G.SettingsPanel:SetFrameStrata("HIGH")
 	end
 end
 --
