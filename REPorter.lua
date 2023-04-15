@@ -114,7 +114,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 296
+RE.AddonVersionCheck = 297
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -607,7 +607,7 @@ function RE:OnMouseWheel(delta)
 	newscale = RE:Round(newscale, 2)
 	_G.REPorterFrameCore:SetScale(newscale)
 	if _G.SettingsPanel:IsShown() then
-		RE.ConfigFrame.obj.children[1].children[1].children[8]:SetValue(newscale)
+		RE.ConfigFrame.obj.children[1].children[1].children[9]:SetValue(newscale)
 	end
 end
 
@@ -626,7 +626,6 @@ function RE:OnEvent(self, event, ...)
 		RE:UpdateConfig()
 
 		RegisterAddonMessagePrefix("REPorter")
-		_G.BINDING_HEADER_REPORTERB = "|cFF74D06CRE|rPorter"
 		_G.BINDING_NAME_REPORTERINC1 = L["Incoming"].." 1"
 		_G.BINDING_NAME_REPORTERINC2 = L["Incoming"].." 2"
 		_G.BINDING_NAME_REPORTERINC3 = L["Incoming"].." 3"

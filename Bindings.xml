@@ -1,26 +1,26 @@
 <Bindings>
-  <Binding category="BINDING_HEADER_REPORTERB" name="REPORTERINC1">
+  <Binding category="|cFF74D06CRE|rPorter" name="REPORTERINC1">
     REPorter:SmallButton(1);
   </Binding>
-  <Binding category="BINDING_HEADER_REPORTERB" name="REPORTERINC2">
+  <Binding category="|cFF74D06CRE|rPorter" name="REPORTERINC2">
     REPorter:SmallButton(2);
   </Binding>
-  <Binding category="BINDING_HEADER_REPORTERB" name="REPORTERINC3">
+  <Binding category="|cFF74D06CRE|rPorter" name="REPORTERINC3">
     REPorter:SmallButton(3);
   </Binding>
-  <Binding category="BINDING_HEADER_REPORTERB" name="REPORTERINC4">
+  <Binding category="|cFF74D06CRE|rPorter" name="REPORTERINC4">
     REPorter:SmallButton(4);
   </Binding>
-  <Binding category="BINDING_HEADER_REPORTERB" name="REPORTERINC5">
+  <Binding category="|cFF74D06CRE|rPorter" name="REPORTERINC5">
     REPorter:SmallButton(5);
   </Binding>
-  <Binding category="BINDING_HEADER_REPORTERB" name="REPORTERINC6">
+  <Binding category="|cFF74D06CRE|rPorter" name="REPORTERINC6">
     REPorter:SmallButton(6);
   </Binding>
-  <Binding category="BINDING_HEADER_REPORTERB" name="REPORTERHELP">
+  <Binding category="|cFF74D06CRE|rPorter" name="REPORTERHELP">
     REPorter:BigButton(true);
   </Binding>
-  <Binding category="BINDING_HEADER_REPORTERB" name="REPORTERCLEAR">
+  <Binding category="|cFF74D06CRE|rPorter" name="REPORTERCLEAR">
     REPorter:BigButton(false);
   </Binding>
 </Bindings>
