@@ -14,6 +14,7 @@ local IsShiftKeyDown = _G.IsShiftKeyDown
 local IsAltKeyDown = _G.IsAltKeyDown
 local IsControlKeyDown = _G.IsControlKeyDown
 local IsInBrawl = _G.C_PvP.IsInBrawl
+local IsBrawlSoloRBG = _G.C_PvP.IsBrawlSoloRBG
 local IsRatedBattleground = _G.C_PvP.IsRatedBattleground
 local GetTime = _G.GetTime
 local GetBattlefieldInstanceRunTime = _G.GetBattlefieldInstanceRunTime
@@ -114,7 +115,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 2910
+RE.AddonVersionCheck = 21000
 RE.ScreenHeight, RE.ScreenWidth = _G.UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -127,7 +128,7 @@ RE.MapSettings = {
 	[TP] = {["PlayerNumber"] = 10},
 	[TOK] = {["PlayerNumber"] = 10},
 	[SM] = {["PlayerNumber"] = 10, ["WidgetID"] = 1687},
-	[DG] = {["PlayerNumber"] = 15, ["NodeTimer"] = 60, ["WidgetID"] = 2074},
+	[DG] = {["PlayerNumber"] = 15, ["WidgetID"] = 2074},
 	[TMVS] = {["PlayerNumber"] = 40},
 	[SS] = {["PlayerNumber"] = 10, ["NodeTimer"] = 40},
 	[BFW] = {["PlayerNumber"] = 40},
@@ -535,6 +536,18 @@ function RE:CreatePOI(index)
 end
 
 function RE:TimerJoinCheck()
+	RE.IsBrawl = IsInBrawl()
+	RE.IsRated = IsRatedBattleground()
+
+	if IsBrawlSoloRBG() then
+		RE:LoadMapSettings()
+		RE.DefaultTimer = 30
+	elseif RE.MapSettings[RE.CurrentMap].NodeTimer then
+		RE.DefaultTimer = RE.MapSettings[RE.CurrentMap].NodeTimer
+	else
+		RE.DefaultTimer = 60
+	end
+
 	if RE.CurrentMap ~= -1 and GetBattlefieldInstanceRunTime() / 1000 > 120 then
 		RE.PlayedFromStart = false
 		RE:OnPOIUpdate()
@@ -808,7 +821,7 @@ function RE:OnPOIUpdate()
 	for _, v in pairs(RE.POINodes) do
 		v.active = false
 	end
-	if RE.CurrentMap == EOTS and RE.IsRated then
+	if RE.CurrentMap == EOTS and (RE.IsRated or RE.IsBrawl) then
 		RE.POIList = GetAreaPOIForMap(EOTSR)
 	elseif RE.CurrentMap == SS or RE.CurrentMap == CI then
 		RE.POIList = GetVignettes()
@@ -841,7 +854,7 @@ function RE:OnPOIUpdate()
 					RE.POIInfo.textureIndex = 2000
 				end
 			end
-		elseif RE.CurrentMap == EOTS and RE.IsRated then
+		elseif RE.CurrentMap == EOTS and (RE.IsRated or RE.IsBrawl) then
 			RE.POIInfo = GetAreaPOIInfo(EOTSR, RE.POIList[i])
 		else
 			RE.POIInfo = GetAreaPOIInfo(RE.CurrentMap, RE.POIList[i])
@@ -1306,9 +1319,7 @@ end
 function RE:Create()
 	_G.REPorterFrameCore:SetScript("OnUpdate", nil)
 	_G.REPorterFrameEstimator:ClearAllPoints()
-	_G.REPorterFrameEstimator:SetPoint("TOP", _G.UIWidgetTopCenterContainerFrame, "BOTTOM")
-	RE.IsBrawl = IsInBrawl()
-	RE.IsRated = IsRatedBattleground()
+	_G.REPorterFrameEstimator:SetPoint("TOP", _G.UIWidgetTopCenterContainerFrame, "BOTTOM", 0, -10)
 	RE.POINodes = {}
 
 	if RE.CurrentMap == IOC then
@@ -1322,12 +1333,6 @@ function RE:Create()
 	else
 		RE.EstimatorTicks = {10000, 10000}
 		RE.EstimatorData = {0, 0, 0, 0, -1}
-	end
-
-	if RE.MapSettings[RE.CurrentMap].NodeTimer then
-		RE.DefaultTimer = RE.MapSettings[RE.CurrentMap].NodeTimer
-	else
-		RE.DefaultTimer = 60
 	end
 
 	if Contains({AV, BFG, IOC, AB, DG, SS, EOTS, BFW, CI, ASH, TOK}, RE.CurrentMap) then
@@ -1615,12 +1620,17 @@ function RE:LoadMapSettings()
 
 		local textures
 		if RE.CurrentMap == AB and RE.IsBrawl then
-			if GetBestMapForUnit("player") == ABJ then
+			local currentMap = GetBestMapForUnit("player")
+			if currentMap == ABJ then
 				textures = GetMapArtLayerTextures(AB, 1)
-			else
+				RE.ZonesWithoutSubZones[AB] = true
+			elseif currentMap == ABW then
 				textures = GetMapArtLayerTextures(ABW, 1)
+				RE.ZonesWithoutSubZones[AB] = true
+			else
+				textures = GetMapArtLayerTextures(RE.CurrentMap, 1)
+				RE.ZonesWithoutSubZones[AB] = nil
 			end
-			RE.ZonesWithoutSubZones[AB] = true
 		else
 			textures = GetMapArtLayerTextures(RE.CurrentMap, 1)
 			RE.ZonesWithoutSubZones[AB] = nil
