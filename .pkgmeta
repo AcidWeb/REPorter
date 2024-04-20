@@ -1,17 +1,19 @@
-enable-nolib-creation: no
-
 externals:
-  Libs/LibStub: https://repos.wowace.com/wow/ace3/trunk/LibStub
-  Libs/CallbackHandler-1.0: https://repos.wowace.com/wow/ace3/trunk/CallbackHandler-1.0
-  Libs/AceGUI-3.0: https://repos.wowace.com/wow/ace3/trunk/AceGUI-3.0
-  Libs/AceConfigDialog-3.0: https://repos.wowace.com/wow/ace3/trunk/AceConfig-3.0/AceConfigDialog-3.0
-  Libs/AceConfigRegistry-3.0: https://repos.wowace.com/wow/ace3/trunk/AceConfig-3.0/AceConfigRegistry-3.0
-  Libs/AceLocale-3.0: https://repos.wowace.com/wow/ace3/trunk/AceLocale-3.0
-  Libs/AceEvent-3.0: https://repos.wowace.com/wow/ace3/trunk/AceEvent-3.0
-  Libs/AceTimer-3.0: https://repos.wowace.com/wow/ace3/trunk/AceTimer-3.0
-  Libs/AceDB-3.0: https://repos.wowace.com/wow/ace3/trunk/AceDB-3.0
-  Libs/AceDBOptions-3.0: https://repos.wowace.com/wow/ace3/trunk/AceDBOptions-3.0
-  Libs/LibBabble-SubZone-3.0: https://repos.wowace.com/wow/libbabble-subzone-3-0/trunk
+  Libs/LibStub: https://repos.curseforge.com/wow/libstub/trunk
+  Libs/CallbackHandler-1.0: https://repos.curseforge.com/wow/callbackhandler/trunk/CallbackHandler-1.0
+  Libs/AceGUI-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceGUI-3.0
+  Libs/AceConfigDialog-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceConfig-3.0/AceConfigDialog-3.0
+  Libs/AceConfigRegistry-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceConfig-3.0/AceConfigRegistry-3.0
+  Libs/AceLocale-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceLocale-3.0
+  Libs/AceEvent-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceEvent-3.0
+  Libs/AceTimer-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceTimer-3.0
+  Libs/AceDB-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceDB-3.0
+  Libs/AceDBOptions-3.0: https://repos.curseforge.com/wow/ace3/trunk/AceDBOptions-3.0
+  Libs/LibBabble-SubZone-3.0: https://repos.curseforge.com/wow/libbabble-subzone-3-0/trunk
+  Libs/TaintLess:
+    url: https://www.townlong-yak.com/addons.git/taintless
+    commit: default
 
 ignore:
   - README.md
+  - Libs/LibStub/tests

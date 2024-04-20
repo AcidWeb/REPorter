@@ -1,0 +1,43 @@
+{
+	"$schema": "https://raw.githubusercontent.com/sumneko/vscode-lua/master/setting/schema.json",
+	"runtime.version": "Lua 5.1",
+	"diagnostics.globals": [
+        "AddOnSkins",
+        "FACTION_ALLIANCE",
+        "FACTION_HORDE",
+        "HELP_LABEL",
+        "ATTACK",
+        "OPTIONS",
+        "BATTLEGROUND",
+        "BLUE_GEM",
+        "RED_GEM",
+        "EasyMenu",
+        "MinimapCluster",
+        "CloseDropDownMenus",
+        "CreateFramePool",
+        "SettingsPanel",
+        "UIWidgetTopCenterContainerFrame",
+        "REPorterBarB1",
+        "REPorterFrame",
+        "REPorterBar",
+        "REPorterFrameClip",
+        "REPorterFrameCoreAnchor",
+        "REPorterFrameCore",
+        "REPorterFrameBorder",
+        "REPorterFrameBG",
+        "REPorterFrameBorderResize",
+        "REPorterFrameCoreUP",
+        "REPorterFrameCorePOI",
+        "REPorterFrameCorePOITimers",
+        "REPorterFrameEstimatorText",
+        "REPorterReportDropDown",
+        "REPorterFrameEstimator"
+    ],
+    "diagnostics.disable": [
+		"inject-field",
+        "undefined-field",
+        "missing-fields",
+        "param-type-mismatch",
+        "assign-type-mismatch"
+	  ]
+}
