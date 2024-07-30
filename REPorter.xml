@@ -46,8 +46,6 @@
 		</Layers>
 	</Frame>
 
-	<Frame name="REPorterReportDropDown" inherits="UIDropDownMenuTemplate" id="1" hidden="true"/>
-
 	<Frame name="REPorterFrame" hidden="true" resizable="true" movable="true" clampedToScreen="true" parent="UIParent">
 		<Size>
 			<AbsDimension x="783" y="522"/>

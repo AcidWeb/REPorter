@@ -113,7 +113,7 @@ RE.BlinkPOIValue = 0.3
 RE.BlinkPOIUp = true
 
 RE.FoundNewVersion = false
-RE.AddonVersionCheck = 21003
+RE.AddonVersionCheck = 21004
 RE.ScreenHeight, RE.ScreenWidth = UIParent:GetCenter()
 
 RE.MapSettings = {
@@ -239,27 +239,6 @@ RE.BackdropC = {
 	insets = { left = 5, right = 5, top = 5, bottom = 5 },
 }
 
-RE.POIDropDown = {
-	{ text = L["Incoming"], hasArrow = true, notCheckable = true,
-	menuList = {
-		{ text = "1", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(1, true); CloseDropDownMenus() end },
-		{ text = "2", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(2, true); CloseDropDownMenus() end },
-		{ text = "3", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(3, true); CloseDropDownMenus() end },
-		{ text = "4", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(4, true); CloseDropDownMenus() end },
-		{ text = "5", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(5, true); CloseDropDownMenus() end },
-		{ text = "5+", notCheckable = true, minWidth = 15, func = function() RE:SmallButton(6, true); CloseDropDownMenus() end }
-	} },
-	{ text = HELP_LABEL, notCheckable = true, func = function() RE:BigButton(true, true) end },
-	{ text = L["Clear"], notCheckable = true, func = function() RE:BigButton(false, true) end },
-	{ text = "", notCheckable = true, disabled = true },
-	{ text = ATTACK, notCheckable = true, func = function() RE:ReportDropDownClick("Attack") end },
-	{ text = L["Guard"], notCheckable = true, func = function() RE:ReportDropDownClick("Guard") end },
-	{ text = L["Heavily defended"], notCheckable = true, func = function() RE:ReportDropDownClick("Heavily defended") end },
-	{ text = L["Losing"], notCheckable = true, func = function() RE:ReportDropDownClick("Losing") end },
-	{ text = "", notCheckable = true, disabled = true },
-	{ text = L["On my way"], notCheckable = true, func = function() RE:ReportDropDownClick("On my way") end },
-	{ text = L["Report status"], notCheckable = true, func = function() RE:ReportDropDownClick("") end }
-}
 RE.DefaultConfig = {
 	profile = {
 		BarHandle = 11,
@@ -493,6 +472,26 @@ function RE:FramesOverlap(frameA, frameB)
 	and (frameB:GetLeft() * sB) < (frameA:GetRight() * sA)
 	and (frameA:GetBottom() * sA) < (frameB:GetTop() * sB)
 	and (frameB:GetBottom() * sB) < (frameA:GetTop() * sA)
+end
+
+function RE:POIDropDown(root)
+	local submenu = root:CreateButton(L["Incoming"])
+	submenu:CreateButton("1", function() RE:SmallButton(1, true) end)
+	submenu:CreateButton("2", function() RE:SmallButton(2, true) end)
+	submenu:CreateButton("3", function() RE:SmallButton(3, true) end)
+	submenu:CreateButton("4", function() RE:SmallButton(4, true) end)
+	submenu:CreateButton("5", function() RE:SmallButton(5, true) end)
+	submenu:CreateButton("5+", function() RE:SmallButton(6, true) end)
+    root:CreateButton(HELP_LABEL, function() RE:BigButton(true, true) end)
+	root:CreateButton(L["Clear"], function() RE:BigButton(false, true) end)
+	root:CreateDivider()
+	root:CreateButton(ATTACK, function() RE:ReportDropDownClick("Attack") end)
+	root:CreateButton(L["Guard"], function() RE:ReportDropDownClick("Guard") end)
+	root:CreateButton(L["Heavily defended"], function() RE:ReportDropDownClick("Heavily defended") end)
+	root:CreateButton(L["Losing"], function() RE:ReportDropDownClick("Losing") end)
+	root:CreateDivider()
+	root:CreateButton(L["On my way"], function() RE:ReportDropDownClick("On my way") end)
+	root:CreateButton(L["Report status"], function() RE:ReportDropDownClick("") end)
 end
 
 function RE:CreatePOI(index)
@@ -1254,7 +1253,7 @@ function RE:OnClickPOI(self)
 
 	CloseDropDownMenus()
 	RE.ClickedPOI = RE.POINodes[self.name].name
-	EasyMenu(RE.POIDropDown, REPorterReportDropDown, self, 0 , 0, "MENU")
+	MenuUtil.CreateContextMenu(UIParent, RE.POIDropDown)
 end
 ---
 

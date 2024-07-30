@@ -11,7 +11,7 @@
         "BATTLEGROUND",
         "BLUE_GEM",
         "RED_GEM",
-        "EasyMenu",
+        "MenuUtil",
         "MinimapCluster",
         "CloseDropDownMenus",
         "CreateFramePool",
@@ -30,7 +30,6 @@
         "REPorterFrameCorePOI",
         "REPorterFrameCorePOITimers",
         "REPorterFrameEstimatorText",
-        "REPorterReportDropDown",
         "REPorterFrameEstimator"
     ],
     "diagnostics.disable": [
