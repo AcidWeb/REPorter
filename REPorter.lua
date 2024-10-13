@@ -67,6 +67,7 @@ local BFW = 1334
 local CI = 1335
 local ASH = 1478
 local KR = 1537
+local DR = 2345
 
 RE.POIIconSize = 30
 RE.POINumber = 40
@@ -131,13 +132,15 @@ RE.MapSettings = {
 	[SS] = {["PlayerNumber"] = 10, ["NodeTimer"] = 40},
 	[BFW] = {["PlayerNumber"] = 40},
 	[CI] = {["PlayerNumber"] = 10},
-	[ASH] = {["PlayerNumber"] = 40}
+	[ASH] = {["PlayerNumber"] = 40},
+	[DR] = {["PlayerNumber"] = 10, ["WidgetID"] = 1687}
 }
 RE.ZonesWithoutSubZones = {
 	[SM] = true,
 	[TOK] = true,
 	[TMVS] = true,
-	[CI] = true
+	[CI] = true,
+	[DR] = true
 }
 RE.POICaptureStatus = {
 	[4] = FACTION_ALLIANCE, -- Graveyard
@@ -265,7 +268,8 @@ RE.DefaultConfig = {
 			[SS] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 360, ["wh"] = 385, ["mx"] = 66, ["my"] = -63, ["ms"] = 1},
 			[BFW] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 500, ["wh"] = 320, ["mx"] = -3, ["my"] = -84, ["ms"] = 1},
 			[CI] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 270, ["wh"] = 305, ["mx"] = -30, ["my"] = 55, ["ms"] = 1},
-			[ASH] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 270, ["wh"] = 330, ["mx"] = 15, ["my"] = -40, ["ms"] = 1}
+			[ASH] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 270, ["wh"] = 330, ["mx"] = 15, ["my"] = -40, ["ms"] = 1},
+			[DR] = {["wx"] = RE.ScreenHeight, ["wy"] = RE.ScreenWidth, ["ww"] = 270, ["wh"] = 330, ["mx"] = 15, ["my"] = -40, ["ms"] = 1}
 		}
 	}
 }
@@ -388,7 +392,8 @@ RE.AceConfig = {
 						[SS] = GetMapInfo(SS).name,
 						[BFW] = GetMapInfo(BFW).name,
 						[CI] = GetMapInfo(CI).name,
-						[ASH] = GetMapInfo(ASH).name
+						[ASH] = GetMapInfo(ASH).name,
+						[DR] = GetMapInfo(DR).name
 					},
 					set = function(_, val) RE.LastMap = val; RE:ShowDummyMap(val) end,
 					get = function(_) return RE.LastMap end
@@ -761,7 +766,7 @@ function RE:OnEvent(self, event, ...)
 	elseif event == "UPDATE_UI_WIDGET" then
 		local WidgetInfo = ...
 		if WidgetInfo and WidgetInfo.widgetID == RE.MapSettings[RE.CurrentMap].WidgetID then
-			if RE.CurrentMap == SM then
+			if RE.CurrentMap == SM or RE.CurrentMap == DR then
 				RE:OnPointsUpdate(-1)
 			else
 				if RE.EstimatorData[5] == -1 then
@@ -1326,7 +1331,7 @@ function RE:Create()
 		RE.IoCGateEstimator[FACTION_ALLIANCE] = RE.IoCGateHealth
 		RE.IoCGateEstimator[FACTION_HORDE] = RE.IoCGateHealth
 		RE.IoCGateEstimatorText = ""
-	elseif RE.CurrentMap == SM then
+	elseif RE.CurrentMap == SM or RE.CurrentMap == DR then
 		RE.SMEstimatorText = ""
 		RE.SMEstimatorReport = ""
 	else
@@ -1344,7 +1349,7 @@ function RE:Create()
 	else
 		RE.CareAboutNodes = false
 	end
-	if Contains({BFG, EOTS, AB, DG, SM}, RE.CurrentMap) then
+	if Contains({BFG, EOTS, AB, DG, SM, DR}, RE.CurrentMap) then
 		RE.CareAboutPoints = true
 		REPorterFrame:RegisterEvent("UPDATE_UI_WIDGET")
 	else
@@ -1356,12 +1361,12 @@ function RE:Create()
 	else
 		RE.CareAboutGates = false
 	end
-	if Contains({WG, TP, EOTS, TOK, CI}, RE.CurrentMap) then
+	if Contains({WG, TP, EOTS, TOK, CI, DR}, RE.CurrentMap) then
 		RE.CareAboutFlags = true
 	else
 		RE.CareAboutFlags = false
 	end
-	if Contains({IOC, SM, BFW}, RE.CurrentMap) then
+	if Contains({IOC, SM, BFW, DR}, RE.CurrentMap) then
 		RE.CareAboutVehicles = true
 	else
 		RE.CareAboutVehicles = false
